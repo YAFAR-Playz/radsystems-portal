@@ -1,0 +1,19 @@
+<div class="grid cols-2">
+  <div class="card">
+    <h3>Reassign Student</h3>
+    <div class="stack">
+      <div class="field"><label>Student</label><select id="h-studentSelect"></select></div>
+      <div class="field"><label>Assign to Assistant</label><select id="h-assistantSelect"></select></div>
+      <div class="row"><button id="h-reassign" class="btn primary"><span class="spinner hidden" id="h-reassign-spin"></span><span>Reassign</span></button><div id="h-reassign-msg" class="muted"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Roster</h3>
+    <div class="table-wrapper">
+      <table class="table" id="h-roster">
+        <thead><tr><th>Student</th><th>Assistant</th><th>Course</th><th>Unit</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>

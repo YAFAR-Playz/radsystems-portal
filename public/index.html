@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>RadSystems Portal</title>
+
+  <!-- Fonts & libs -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/core.css">
+  <!-- role-specific CSS will be injected dynamically -->
+
+</head>
+<body>
+  <div class="overlay" id="pageLoader"><div class="loader"></div></div>
+
+  <div class="container">
+    <header class="app-header">
+      <div class="brand">
+        <img id="brandLogo" class="logo" alt="Logo"/>
+        <div>
+          <div class="title">RadSystems Portal</div>
+          <div class="muted" style="font-size:12px">Assistants · Heads · Admin · Google Sheets backend</div>
+        </div>
+      </div>
+      <div class="row wrap">
+        <span id="userChip" class="pill hidden"></span>
+        <button id="logoutBtn" class="btn ghost hidden">Logout</button>
+      </div>
+    </header>
+
+    <!-- Root view host -->
+    <main id="app-root"></main>
+  </div>
+
+  <script type="module" src="../js/app.js"></script>
+</body>
+</html>

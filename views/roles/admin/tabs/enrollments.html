@@ -1,0 +1,33 @@
+<div class="grid cols-2">
+  <div class="card">
+    <h3 id="e-titlebar">Create Enrollment</h3>
+    <div id="e-edit-hint" class="muted hidden">Editing existing enrollment. Updating will overwrite its values.</div>
+    <div class="stack">
+      <input type="hidden" id="e-id">
+      <div class="row">
+        <div class="field" style="flex:2"><label>Student</label><select id="e-studentId"></select></div>
+        <div class="field" style="flex:2"><label>Course</label><select id="e-courseId"></select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Subgroup</label><input id="e-subgroupId" placeholder="optional (e.g. Section A)"></div>
+        <div class="field"><label>Start</label><input id="e-start" type="date"></div>
+        <div class="field"><label>End</label><input id="e-end" type="date"></div>
+      </div>
+      <div class="row">
+        <button id="e-create" class="btn primary"><span class="spinner hidden" id="e-create-spin"></span><span>Create</span></button>
+        <button id="e-update" class="btn primary hidden"><span class="spinner hidden" id="e-update-spin"></span><span>Update</span></button>
+        <button id="e-cancel" class="btn ghost hidden">Cancel edit</button>
+        <div id="e-msg" class="muted"></div>
+      </div>
+      <div class="muted" style="font-size:12px">
+        <b>Start/End</b> define active enrollment window. <b>Subgroup</b> is optional (e.g. section/shift).
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Enrollments</h3>
+    <div class="table-wrapper">
+      <table class="table" id="e-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>

@@ -10,24 +10,24 @@ const root = document.getElementById('app-root'); // must exist in public/index.
 /** Map of all tab panes per role => relative partial paths */
 const ROLE_TABS = {
   assistant: [
-    ['a-home',        '../views/roles/assistant/tabs/home.html'],
-    ['a-students',    '../views/roles/assistant/tabs/students.html'],
-    ['a-performance', '../views/roles/assistant/tabs/performance.html'],
+    ['a-home',        'views/roles/assistant/tabs/home.html'],
+    ['a-students',    'views/roles/assistant/tabs/students.html'],
+    ['a-performance', 'views/roles/assistant/tabs/performance.html'],
   ],
   head: [
-    ['h-home',         '../views/roles/head/tabs/home.html'],
-    ['h-assign',       '../views/roles/head/tabs/assign.html'],
-    ['h-assignments',  '../views/roles/head/tabs/assignments.html'],
-    ['h-analytics',    '../views/roles/head/tabs/analytics.html'],
+    ['h-home',         'views/roles/head/tabs/home.html'],
+    ['h-assign',       'views/roles/head/tabs/assign.html'],
+    ['h-assignments',  'views/roles/head/tabs/assignments.html'],
+    ['h-analytics',    'views/roles/head/tabs/analytics.html'],
   ],
   admin: [
-    ['adm-users',     '../views/roles/admin/tabs/users.html'],
-    ['adm-students',  '../views/roles/admin/tabs/students.html'],
-    ['adm-courses',   '../views/roles/admin/tabs/courses.html'],
-    ['adm-enroll',    '../views/roles/admin/tabs/enrollments.html'],
-    ['adm-perms',     '../views/roles/admin/tabs/perms.html'],
-    ['adm-data',      '../views/roles/admin/tabs/data.html'],
-    ['adm-brand',     '../views/roles/admin/tabs/brand.html'],
+    ['adm-users',     'views/roles/admin/tabs/users.html'],
+    ['adm-students',  'views/roles/admin/tabs/students.html'],
+    ['adm-courses',   'views/roles/admin/tabs/courses.html'],
+    ['adm-enroll',    'views/roles/admin/tabs/enrollments.html'],
+    ['adm-perms',     'views/roles/admin/tabs/perms.html'],
+    ['adm-data',      'views/roles/admin/tabs/data.html'],
+    ['adm-brand',     'views/roles/admin/tabs/brand.html'],
   ],
 };
 

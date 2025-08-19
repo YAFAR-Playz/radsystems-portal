@@ -1,0 +1,53 @@
+<div class="card">
+  <h3>Check / Edit</h3>
+  <div class="stack">
+    <div id="a-edit-hint" class="muted hidden">Editing existing record. Saving will update it.</div>
+    <div class="row">
+      <div class="field" style="flex:2">
+        <label>Assignment (open only)</label>
+        <select id="a-assignmentSelect"></select>
+      </div>
+      <div class="field" style="flex:2">
+        <label>Student (no record yet)</label>
+        <select id="a-studentSelect"></select>
+      </div>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="field"><label>Status</label>
+        <select id="a-status">
+          <option>Checked</option>
+          <option>Missing</option>
+          <option>Redo</option>
+        </select>
+      </div>
+      <div class="field" id="a-grade-field"><label>Grade</label>
+        <input id="a-grade" type="text" placeholder="e.g. 18/20 or 90%"/>
+      </div>
+      <div class="field"><label>Upload File (PDF/Image)</label>
+        <input id="a-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp"/>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Comment</label>
+      <textarea id="a-comment" rows="3" placeholder="Optional feedback..."></textarea>
+    </div>
+    <div class="row">
+      <button id="a-submit" class="btn primary"><span class="spinner hidden" id="a-spin"></span><span>Save</span></button>
+      <button id="a-cancel" class="btn ghost hidden">Cancel edit</button>
+      <div id="a-submit-msg" class="muted"></div>
+    </div>
+    <div class="muted" id="a-assignment-policy" style="font-size:12px"></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h3>Already Submitted for Selected Assignment</h3>
+  <div class="table-wrapper">
+    <table class="table" id="a-existing-table">
+      <thead><tr><th>Student</th><th>Status</th><th>Grade</th><th>Comment</th><th>File</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>

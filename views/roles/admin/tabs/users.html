@@ -1,0 +1,42 @@
+<div class="grid cols-2">
+  <div class="card">
+    <h3 id="u-titlebar">Create User</h3>
+    <div id="u-edit-hint" class="muted hidden">Editing existing user. Updating will overwrite its values.</div>
+    <div class="stack">
+      <input type="hidden" id="u-id">
+      <div class="row">
+        <div class="field" style="flex:2"><label>Email</label><input id="u-email" type="email"></div>
+        <div class="field"><label>Role</label>
+          <select id="u-role">
+            <option>assistant</option><option>head</option><option>admin</option>
+            <option>supervisor</option><option>student</option><option>parent</option>
+            <option>hr</option><option>finance</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:2"><label>Display Name</label><input id="u-name"></div>
+        <div class="field"><label>Course</label>
+          <select id="u-course"><option value="">— optional —</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <button id="u-create" class="btn primary"><span class="spinner hidden" id="u-create-spin"></span><span>Create</span></button>
+        <button id="u-update" class="btn primary hidden"><span class="spinner hidden" id="u-update-spin"></span><span>Update</span></button>
+        <button id="u-cancel" class="btn ghost hidden">Cancel edit</button>
+        <div id="u-msg" class="muted"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Users</h3>
+    <div class="row wrap">
+      <input id="u-search" placeholder="Search name/email" style="max-width:260px">
+      <select id="u-filter-role" style="max-width:180px"><option value="">All roles</option><option>assistant</option><option>head</option><option>admin</option><option>student</option></select>
+      <button id="u-refresh" class="btn"><span class="spinner dark hidden" id="u-refresh-spin"></span><span>Refresh</span></button>
+    </div>
+    <div class="table-wrapper">
+      <table class="table" id="u-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>

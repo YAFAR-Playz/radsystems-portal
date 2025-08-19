@@ -1,4 +1,41 @@
-<!DOCTYPE html><meta charset="utf-8">
-<title>Redirecting…</title>
-<meta http-equiv="refresh" content="0;url=public/">
-<link rel="canonical" href="public/">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>RadSystems — Portal</title>
+
+  <!-- Base + core styles -->
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/core.css">
+
+  <!-- Chart.js (only loaded once at shell) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header">
+      <div class="brand">
+        <img id="brandLogo" class="logo" alt="Logo"/>
+        <div>
+          <div class="title">RadSystems Portal</div>
+          <div class="muted" style="font-size:12px">Assistants · Heads · Admin · Google Sheets backend</div>
+        </div>
+      </div>
+      <div class="row wrap">
+        <span id="userChip" class="pill hidden"></span>
+        <button id="logoutBtn" class="btn ghost hidden">Logout</button>
+      </div>
+    </header>
+
+    <!-- Overlay loader (global) -->
+    <div class="overlay" id="pageLoader"><div class="loader"></div></div>
+
+    <!-- All views mount here -->
+    <main id="app-root"></main>
+  </div>
+
+  <!-- Your app entry (must be module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

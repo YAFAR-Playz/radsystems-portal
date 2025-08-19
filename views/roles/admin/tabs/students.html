@@ -1,0 +1,37 @@
+<div class="grid cols-2">
+  <div class="card">
+    <h3 id="s-titlebar">Create Student</h3>
+    <div id="s-edit-hint" class="muted hidden">Editing existing student. Updating will overwrite its values.</div>
+    <div class="stack">
+      <input type="hidden" id="s-id">
+      <div class="row">
+        <div class="field" style="flex:2"><label>Name</label><input id="s-name"></div>
+        <div class="field" style="flex:2"><label>Email</label><input id="s-email" type="email"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Phone</label><input id="s-phone"></div>
+        <div class="field"><label>Course</label>
+          <select id="s-course"><option value="">— pick course —</option></select>
+        </div>
+        <div class="field"><label>Unit</label><input id="s-unit" placeholder="U1"></div>
+      </div>
+      <div class="row">
+        <button id="s-create" class="btn primary"><span class="spinner hidden" id="s-create-spin"></span><span>Create</span></button>
+        <button id="s-update" class="btn primary hidden"><span class="spinner hidden" id="s-update-spin"></span><span>Update</span></button>
+        <button id="s-cancel" class="btn ghost hidden">Cancel edit</button>
+        <div id="s-msg" class="muted"></div>
+      </div>
+      <div class="muted" style="font-size:12px">ID is auto-generated. If course selected, student is enrolled and a corresponding “student” user is created (if email present).</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Students</h3>
+    <div class="row wrap">
+      <input id="s-search" placeholder="Search name/email" style="max-width:260px">
+      <button id="s-refresh" class="btn"><span class="spinner dark hidden" id="s-refresh-spin"></span><span>Refresh</span></button>
+    </div>
+    <div class="table-wrapper">
+      <table class="table" id="s-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,9 @@
-import { wireTabs } from '../../core/tabs.js';
+import { wireTabs } from '../core/tabs.js';
 import { $, $$, show, hide, showPageLoader, setLoading, downloadCSV } from '../../core/dom.js';
-import { api, uploadFileBase64 } from '../../core/api.js';
-import { state } from '../../core/state.js';
-import { formatDateDisplay, formatDateForInput } from '../../core/date.js';
-import { applyBranding } from '../../core/branding.js';
+import { api, uploadFileBase64 } from '../core/api.js';
+import { state } from '../core/state.js';
+import { formatDateDisplay, formatDateForInput } from '../core/date.js';
+import { applyBranding } from '../core/branding.js';
 
 // helpers
 function makeTable(el, headers, rows){
@@ -552,13 +552,13 @@ async function loadTabHtml(tabId, path){
 export async function init(){
   showPageLoader(true);
   try{
-    await loadTabHtml('adm-users',    '../../views/roles/admin/tabs/users.html');
-    await loadTabHtml('adm-students', '../../views/roles/admin/tabs/students.html');
-    await loadTabHtml('adm-courses',  '../../views/roles/admin/tabs/courses.html');
-    await loadTabHtml('adm-enroll',   '../../views/roles/admin/tabs/enrollments.html');
-    await loadTabHtml('adm-perms',    '../../views/roles/admin/tabs/perms.html');
-    await loadTabHtml('adm-data',     '../../views/roles/admin/tabs/data.html');
-    await loadTabHtml('adm-brand',    '../../views/roles/admin/tabs/brand.html');
+    await loadTabHtml('adm-users',    'views/roles/admin/tabs/users.html');
+    await loadTabHtml('adm-students', 'views/roles/admin/tabs/students.html');
+    await loadTabHtml('adm-courses',  'views/roles/admin/tabs/courses.html');
+    await loadTabHtml('adm-enroll',   'views/roles/admin/tabs/enrollments.html');
+    await loadTabHtml('adm-perms',    'views/roles/admin/tabs/perms.html');
+    await loadTabHtml('adm-data',     'views/roles/admin/tabs/data.html');
+    await loadTabHtml('adm-brand',    'views/roles/admin/tabs/brand.html');
 
     wireTabs('#view-admin');
 

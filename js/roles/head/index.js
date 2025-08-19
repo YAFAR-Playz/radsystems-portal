@@ -1,8 +1,8 @@
-import { wireTabs } from '../../core/tabs.js';
-import { $, $$, show, hide, showPageLoader, setLoading } from '../../core/dom.js';
-import { api, uploadFileBase64 } from '../../core/api.js';
-import { state } from '../../core/state.js';
-import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../../core/date.js';
+import { wireTabs } from '../core/tabs.js';
+import { $, $$, show, hide, showPageLoader, setLoading } from '../core/dom.js';
+import { api, uploadFileBase64 } from '../core/api.js';
+import { state } from '../core/state.js';
+import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../core/date.js';
 
 async function loadTabHtml(tabId, path){
   const host = document.getElementById(tabId);
@@ -251,10 +251,10 @@ export async function init(demo=false){
   showPageLoader(true);
   try{
     // load tab shells
-    await loadTabHtml('h-home',        '../../views/roles/head/tabs/home.html');
-    await loadTabHtml('h-assign',      '../../views/roles/head/tabs/assign.html');
-    await loadTabHtml('h-assignments', '../../views/roles/head/tabs/assignments.html');
-    await loadTabHtml('h-analytics',   '../../views/roles/head/tabs/analytics.html');
+    await loadTabHtml('h-home',        'views/roles/head/tabs/home.html');
+    await loadTabHtml('h-assign',      'views/roles/head/tabs/assign.html');
+    await loadTabHtml('h-assignments', 'views/roles/head/tabs/assignments.html');
+    await loadTabHtml('h-analytics',   'views/roles/head/tabs/analytics.html');
 
     wireTabs('#view-head');
     await loadHeadData(demo);

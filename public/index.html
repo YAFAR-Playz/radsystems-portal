@@ -1,25 +1,18 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>RadSystems Portal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>RadSystems — Portal</title>
 
-  <!-- Fonts & libs -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-  <!-- Styles -->
+  <!-- Base + core styles -->
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/core.css">
-  <!-- role-specific CSS will be injected dynamically -->
 
+  <!-- Chart.js (only loaded once at shell) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="overlay" id="pageLoader"><div class="loader"></div></div>
-
   <div class="container">
     <header class="app-header">
       <div class="brand">
@@ -35,10 +28,14 @@
       </div>
     </header>
 
-    <!-- Root view host -->
+    <!-- Overlay loader (global) -->
+    <div class="overlay" id="pageLoader"><div class="loader"></div></div>
+
+    <!-- All views mount here -->
     <main id="app-root"></main>
   </div>
 
+  <!-- Your app entry (must be module) -->
   <script type="module" src="../js/app.js"></script>
 </body>
 </html>

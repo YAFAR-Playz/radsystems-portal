@@ -1,0 +1,33 @@
+<div class="grid cols-2">
+  <div class="card">
+    <h3>Import CSV</h3>
+    <div class="stack">
+      <div class="field"><label>Type</label>
+        <select id="io-type">
+          <option value="users">Users (headers: email,role,displayName,course)</option>
+          <option value="students">Students (headers: studentName,email,phone,course,unit,assistantId,status)</option>
+        </select>
+      </div>
+      <div class="field"><label>CSV</label>
+        <textarea id="io-csv" rows="8" placeholder="email,role,displayName,course&#10;alice@example.com,assistant,Alice,Math"></textarea>
+      </div>
+      <div class="row">
+        <button id="io-import" class="btn primary"><span class="spinner hidden" id="io-import-spin"></span><span>Import</span></button>
+        <div id="io-msg" class="muted"></div>
+      </div>
+      <div class="muted" style="font-size:12px">
+        Tips: Use the exact header names shown above. IDs are generated automatically. For Students, <b>assistantId</b> is optional.
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Export / Templates</h3>
+    <div class="row" style="flex-wrap:wrap;gap:8px">
+      <button id="io-export-users" class="btn">Export Users</button>
+      <button id="io-export-students" class="btn">Export Students</button>
+      <button id="io-template-users" class="btn">Download User Template</button>
+      <button id="io-template-students" class="btn">Download Student Template</button>
+    </div>
+    <div class="muted" style="margin-top:8px">Downloads CSV text as a file.</div>
+  </div>
+</div>

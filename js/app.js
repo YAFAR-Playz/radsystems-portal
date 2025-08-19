@@ -76,11 +76,11 @@ async function mountRole(role, demo=false){
   document.getElementById(id)?.remove();
   const link = document.createElement('link');
   link.id = id; link.rel = 'stylesheet';
-  link.href = `../styles/role-${role}.css`;
+  link.href = `styles/role-${role}.css`;
   document.head.appendChild(link);
 
   // 2) layout
-  await loadView(`../views/roles/${role}/layout.html`);
+  await loadView(`views/roles/${role}/layout.html`);
 
   // 3) load tabs BEFORE any role code runs
   await loadTabsForRole(role);
@@ -100,7 +100,7 @@ async function mountRole(role, demo=false){
 }
 
 async function showLogin(){
-  await loadView('../views/roles/login.html'); // injects login partial into #app-root
+  await loadView('views/roles/login.html'); // injects login partial into #app-root
 
   // Hard guards for missing markup (prevents "reading 'value' of null")
   const emailEl = document.getElementById('loginEmail');

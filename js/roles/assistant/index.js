@@ -1,8 +1,8 @@
-import { wireTabs } from '../../core/tabs.js';
-import { $, $$, show, hide, showPageLoader } from '../../core/dom.js';
-import { api, uploadFileBase64 } from '../../core/api.js';
-import { state } from '../../core/state.js';
-import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../../core/date.js';
+import { wireTabs } from '../core/tabs.js';
+import { $, $$, show, hide, showPageLoader } from '../core/dom.js';
+import { api, uploadFileBase64 } from '../core/api.js';
+import { state } from '../core/state.js';
+import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../core/date.js';
 
 async function loadTabHtml(tabId, path){
   const host = document.getElementById(tabId);
@@ -198,9 +198,9 @@ export async function init(demo){
   showPageLoader(true);
   try{
     // load tab shells
-    await loadTabHtml('a-home',        '../../views/roles/assistant/tabs/home.html');
-    await loadTabHtml('a-students',    '../../views/roles/assistant/tabs/students.html');
-    await loadTabHtml('a-performance', '../../views/roles/assistant/tabs/performance.html');
+    await loadTabHtml('a-home',        'views/roles/assistant/tabs/home.html');
+    await loadTabHtml('a-students',    'views/roles/assistant/tabs/students.html');
+    await loadTabHtml('a-performance', 'views/roles/assistant/tabs/performance.html');
 
     wireTabs('#view-assistant');
     await loadAssistantData(demo);

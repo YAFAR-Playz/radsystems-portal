@@ -1,0 +1,30 @@
+<div class="grid cols-2">
+  <div class="card">
+    <h3>Branding</h3>
+    <div class="stack">
+      <div class="row" style="gap:12px">
+        <div class="field" style="flex:1"><label>Primary Color</label><input id="b-primary" type="color" value="#1F3C88"></div>
+        <div class="field" style="flex:1"><label>Accent Color</label><input id="b-accent" type="color" value="#6BCB77"></div>
+      </div>
+      <div class="field"><label>Date Format (display hint)</label><input id="b-date" placeholder="yyyy-MM-dd"></div>
+
+      <div class="field">
+        <label>Upload Logo (PNG / JPG / PDF)</label>
+        <input id="b-logo-file" type="file" accept=".png,.jpg,.jpeg,.pdf"/>
+      </div>
+
+      <div class="row">
+        <button id="b-save" class="btn primary"><span class="spinner hidden" id="b-save-spin"></span><span>Save & Apply</span></button>
+        <div id="b-msg" class="muted"></div>
+      </div>
+      <div class="muted" style="font-size:12px">Your logo file is stored and its URL applied automatically.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>CORS Allowlist</h3>
+    <div class="stack">
+      <div class="field"><label>Origins (comma separated)</label><input id="cors-origins" placeholder="*, https://yoursite.com"></div>
+      <div class="row"><button id="cors-save" class="btn primary"><span class="spinner hidden" id="cors-save-spin"></span><span>Save CORS</span></button><div id="cors-msg" class="muted"></div></div>
+    </div>
+  </div>
+</div>

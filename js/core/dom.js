@@ -16,3 +16,16 @@ export function downloadCSV(name, csv){
   const a = document.createElement('a'); a.href=url; a.download=name+'.csv'; a.click();
   URL.revokeObjectURL(url);
 }
+// Safe text setter (no-op if missing)
+export function setTextById(id, value){
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+// Safe html setter for tables/containers
+export function setHTMLBySel(sel, html){
+  const el = document.querySelector(sel);
+  if (el) el.innerHTML = html;
+}
+// Safe append helper (returns element or null)
+export function qs(sel){ return document.querySelector(sel); }
+export function qsa(sel){ return Array.from(document.querySelectorAll(sel)); }

@@ -247,21 +247,31 @@ async function loadHeadData(demo=false){
   }
 }
 
-export async function init(demo=false){
+// 1) Mount: load the tab shells + wire tabs (no data yet)
+export async function mount(){
   showPageLoader(true);
   try{
-    // load tab shells
     await loadTabHtml('h-home',        'views/roles/head/tabs/home.html');
     await loadTabHtml('h-assign',      'views/roles/head/tabs/assign.html');
     await loadTabHtml('h-assignments', 'views/roles/head/tabs/assignments.html');
     await loadTabHtml('h-analytics',   'views/roles/head/tabs/analytics.html');
-
     wireTabs('#view-head');
+  } finally {
+    showPageLoader(false);
+  }
+}
+
+// 2) Boot: fetch data and render + wire button handlers
+export async function boot(demo=false){
+  showPageLoader(true);
+  try{
     await loadHeadData(demo);
     renderHead();
     wireEvents();
-
-    // prefill course (same as original)
-    if (state.user?.role === 'head') { const inp = $('#h-a-course'); if(inp) inp.value = state.user.course || ''; }
-  } finally { showPageLoader(false); }
+    if (state.user?.role === 'head') {
+      const inp = $('#h-a-course'); if (inp) inp.value = state.user.course || '';
+    }
+  } finally {
+    showPageLoader(false);
+  }
 }

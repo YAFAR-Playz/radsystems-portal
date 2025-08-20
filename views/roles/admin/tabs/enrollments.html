@@ -26,8 +26,14 @@
   </div>
 
   <div class="card">
-    <h3>Enrollments</h3>
+    <div class="row wrap" style="justify-content:space-between; align-items:center">
+      <h3 style="margin:0">Enrollments</h3>
+      <button id="e-refresh" class="btn">
+        <span class="spinner dark hidden" id="e-refresh-spin"></span><span>Refresh</span>
+      </button>
+    </div>
     <div class="table-wrapper">
+      <!-- No ID column -->
       <table class="table" id="e-table"><thead></thead><tbody></tbody></table>
     </div>
   </div>

@@ -115,9 +115,22 @@ function renderUsersTable(){
     const id = b.getAttribute('data-id');
     try {
       const res = await api('admin.users.loginAs', { userId:id });
-      // Save token + reload as that user
-      localStorage.setItem('auth_token', res.token);
-      location.reload();
+      const t = res.token;
+
+      // store token broadly (covers older/newer code paths)
+      ['auth_token','token'].forEach(k=>{
+        try{ localStorage.setItem(k, t); }catch(_){}
+        try{ sessionStorage.setItem(k, t); }catch(_){}
+      });
+
+      // nuke any cached user payloads your app may keep
+      ['me','user','current_user'].forEach(k=>{
+        try{ localStorage.removeItem(k); }catch(_){}
+        try{ sessionStorage.removeItem(k); }catch(_){}
+      });
+
+      // force a full navigation so boot picks up the new token
+      location.replace(location.origin + location.pathname + location.search);
     } catch(e) {
       alert('Failed to login as user: '+e.message);
     }

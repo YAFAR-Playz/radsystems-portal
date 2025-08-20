@@ -1,5 +1,5 @@
 // js/app.js
-import { $, show, hide, showPageLoader } from './core/dom.js';
+import { $, show, hide, showPageLoader, setLoading } from './core/dom.js';
 import { state } from './core/state.js';
 import { api } from './core/api.js';
 import { loadBranding } from './core/branding.js';
@@ -34,7 +34,7 @@ const ROLE_TABS = {
 function setChip(){
   const chip = $('#userChip');
   const logout = $('#logoutBtn');
-  if (!chip || !logout) return; // header must exist; hard guard
+  if (!chip || !logout) return;
   if (state.user) {
     chip.textContent = `${state.user.displayName} · ${state.user.role}`;
     chip.classList.remove('hidden');
@@ -73,14 +73,6 @@ async function loadTabsForRole(role){
   }
 }
 
-/**
- * Mount + boot a role safely:
- *  1) inject role-specific CSS
- *  2) load role layout
- *  3) load ALL tab partials (so the DOM exists)
- *  4) wire tabs
- *  5) try to import optional role module and call its boot(demo)
- */
 async function mountRole(role, demo=false){
   // 1) role CSS
   const id = 'role-style';
@@ -99,35 +91,36 @@ async function mountRole(role, demo=false){
   // 4) wire tabs now that HTML is in place
   wireTabs(`#view-${role}`);
 
-  // 5) optional role module (won’t crash if missing or minimal)
+  // 5) optional role module
   try{
     const mod = await import(`./roles/${role}/index.js`);
-    if (typeof mod.mount === 'function') await mod.mount(); // if you want extra per-role mounting
+    if (typeof mod.mount === 'function') await mod.mount();
     if (typeof mod.boot  === 'function') await mod.boot(!!demo);
-    else if (typeof mod.init === 'function') await mod.init(!!demo); // support older naming
-  }catch(_err){
-    // no role module or it’s not needed — that’s fine
-  }
+    else if (typeof mod.init === 'function') await mod.init(!!demo);
+  }catch(_err){}
 }
 
 async function showLogin(){
-  await loadView('views/roles/login.html'); // injects login partial into #app-root
+  await loadView('views/roles/login.html');
 
-  // Hard guards for missing markup (prevents "reading 'value' of null")
   const emailEl = document.getElementById('loginEmail');
-  const roleEl  = document.getElementById('loginRole');
+  const passEl  = document.getElementById('loginPassword');
   const btnLogin = document.getElementById('btnLogin');
   const btnDemo  = document.getElementById('btnDemo');
-  if (!emailEl || !roleEl || !btnLogin || !btnDemo) {
-    throw new Error('login.html is missing required IDs (loginEmail, loginRole, btnLogin, btnDemo)');
+  const spin     = document.getElementById('loginSpin');
+  if (!emailEl || !passEl || !btnLogin || !btnDemo || !spin) {
+    throw new Error('login.html is missing required IDs (loginEmail, loginPassword, btnLogin, btnDemo, loginSpin)');
   }
 
   btnLogin.addEventListener('click', async ()=>{
     const email = emailEl.value.trim();
-    const role  = roleEl.value;
+    const password = passEl.value;
+    if (!email || !password){ alert('Enter email and password'); return; }
+
+    setLoading(btnLogin, true, spin);
     showPageLoader(true);
     try{
-      const res = await api('login',{email, role});
+      const res = await api('login',{ email, password });
       if (!res || !res.token) throw new Error('Invalid login');
       localStorage.setItem('token', res.token);
       state.user = res.user;
@@ -137,23 +130,25 @@ async function showLogin(){
     }catch(err){
       alert('Login failed: ' + err.message);
     }finally{
+      setLoading(btnLogin, false, spin);
       showPageLoader(false);
+      passEl.value = '';
     }
   });
 
+  // Demo: still works, but now role is inferred by email
   btnDemo.addEventListener('click', async ()=>{
-    const role = roleEl.value;
-    state.user = {
-      assistant:{ userId:'a-1', role:'assistant', displayName:'Sara Ali', course:'Math' },
-      head:{ userId:'h-1', role:'head', displayName:'Mr. Hany', course:'Math' },
-      admin:{ userId:'ad-1', role:'admin', displayName:'Admin User', course:'' }
-    }[role];
+    const demoEmail = (emailEl.value || '').trim().toLowerCase();
+    let user;
+    if (demoEmail.includes('admin'))      user = { userId:'ad-1', role:'admin', displayName:'Admin User', course:'' };
+    else if (demoEmail.includes('head'))  user = { userId:'h-1', role:'head', displayName:'Mr. Hany', course:'Math' };
+    else                                  user = { userId:'a-1', role:'assistant', displayName:'Sara Ali', course:'Math' };
+    state.user = user;
     setChip();
     await loadBranding();
-    await mountRole(role, /*demo=*/true);
+    await mountRole(state.user.role, /*demo=*/true);
   });
 
-  // header logout (header is outside #app-root, so it survives view swaps)
   $('#logoutBtn')?.addEventListener('click', async ()=>{
     localStorage.removeItem('token');
     state.user = null;
@@ -162,7 +157,22 @@ async function showLogin(){
   });
 }
 
+// Attempt session resume
+async function tryResume(){
+  const token = localStorage.getItem('token') || '';
+  if (!token) return false;
+  try{
+    const r = await api('me', {});
+    state.user = r.user;
+    setChip();
+    await loadBranding();
+    await mountRole(state.user.role, /*demo=*/false);
+    return true;
+  }catch(_){ return false; }
+}
+
 (async function init(){
   await loadBranding();
-  await showLogin();
+  const resumed = await tryResume();
+  if (!resumed) await showLogin();
 })();

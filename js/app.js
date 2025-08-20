@@ -46,9 +46,20 @@ function setChip(){
 }
 
 async function loadView(htmlPath){
-  const res = await fetch(htmlPath);
-  if (!res.ok) throw new Error(`Failed to load ${htmlPath}`);
-  root.innerHTML = await res.text();
+  try {
+    const res = await fetch(htmlPath, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const html = await res.text();
+    root.innerHTML = html;
+  } catch (err) {
+    console.error('loadView failed for', htmlPath, err);
+    root.innerHTML = `
+      <div class="card">
+        <h3>Failed to load view</h3>
+        <div class="muted">Path: ${htmlPath}</div>
+        <div class="badge danger">${String(err)}</div>
+      </div>`;
+  }
 }
 
 async function loadTabsForRole(role){

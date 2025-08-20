@@ -118,11 +118,11 @@ function openChangePasswordModal(){
   const n1  = document.getElementById('cpNew1');
   const n2  = document.getElementById('cpNew2');
 
-  modal.style.display = 'flex';
+  modal.classList.remove('hidden');
   n1.value=''; n2.value=''; cur.value='';
   setTimeout(()=> cur.focus(), 0);
 
-  const close = ()=> { modal.style.display='none'; };
+  const close = () => { modal.classList.add('hidden'); }; // <-- was: style.display='none'
 
   btnCancel.onclick = close;
   modal.addEventListener('click', (e)=> {

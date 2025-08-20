@@ -1,9 +1,9 @@
-import { wireTabs } from '../core/tabs.js';
+import { wireTabs } from '../../core/tabs.js';
 import { $, $$, show, hide, showPageLoader, setLoading, downloadCSV } from '../../core/dom.js';
-import { api, uploadFileBase64 } from '../core/api.js';
-import { state } from '../core/state.js';
-import { formatDateDisplay, formatDateForInput } from '../core/date.js';
-import { applyBranding } from '../core/branding.js';
+import { api, uploadFileBase64 } from '../../core/api.js';
+import { state } from '../../core/state.js';
+import { formatDateDisplay, formatDateForInput } from '../../core/date.js';
+import { applyBranding } from '../../core/branding.js';
 
 // helpers
 function makeTable(el, headers, rows){

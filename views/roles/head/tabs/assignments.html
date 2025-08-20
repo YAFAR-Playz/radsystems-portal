@@ -1,4 +1,4 @@
-<div class="grid cols-2">
+<div class="stack">
   <div class="card">
     <h3 id="h-a-titlebar">Create Assignment</h3>
     <div id="h-a-edit-hint" class="muted hidden">Editing existing assignment. Updating will overwrite its values.</div>
@@ -8,7 +8,6 @@
         <div class="field" style="flex:1"><label>Course</label><input id="h-a-course" placeholder="Course" disabled></div>
         <div class="field" style="flex:1"><label>Unit</label><input id="h-a-unit" placeholder="Unit 3"></div>
       </div>
-
       <div class="grid cols-2">
         <div class="card">
           <h4>Student Phase</h4>
@@ -25,17 +24,14 @@
           </div>
         </div>
       </div>
-
       <div class="row" style="gap:16px;flex-wrap:wrap">
         <label class="row" style="gap:8px"><input id="h-a-requireGrade" type="checkbox" checked> Grade required</label>
         <label class="row" style="gap:8px"><input id="h-a-salary" type="checkbox"> Count in salary</label>
       </div>
-
       <div class="field">
         <label>Student File (PDF/Img/Doc)</label>
         <input id="h-a-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.ppt,.pptx,.xls,.xlsx"/>
       </div>
-
       <div class="row">
         <button id="h-create-assignment" class="btn primary"><span class="spinner hidden" id="h-create-spin"></span><span>Create</span></button>
         <button id="h-update-assignment" class="btn primary hidden"><span class="spinner hidden" id="h-update-spin"></span><span>Update</span></button>

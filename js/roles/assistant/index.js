@@ -1,8 +1,8 @@
-import { wireTabs } from '../core/tabs.js';
-import { $, $$, show, hide, showPageLoader } from '../core/dom.js';
-import { api, uploadFileBase64 } from '../core/api.js';
-import { state } from '../core/state.js';
-import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../core/date.js';
+import { wireTabs } from '../../core/tabs.js';
+import { $, $$, show, hide, showPageLoader } from '../../core/dom.js';
+import { api, uploadFileBase64 } from '../../core/api.js';
+import { state } from '../../core/state.js';
+import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../../core/date.js';
 
 async function loadTabHtml(tabId, path){
   const host = document.getElementById(tabId);

@@ -12,6 +12,13 @@
         <div class="field"><label>Subgroup</label><input id="e-subgroupId" placeholder="optional (e.g. Section A)"></div>
         <div class="field"><label>Start</label><input id="e-start" type="date"></div>
         <div class="field"><label>End</label><input id="e-end" type="date"></div>
+        <div class="field"><label>Status</label>
+    <select id="e-status">
+      <option value="active">Active</option>
+      <option value="completed">Completed</option>
+      <option value="dropped">Dropped</option>
+    </select>
+  </div>
       </div>
       <div class="row">
         <button id="e-create" class="btn primary"><span class="spinner hidden" id="e-create-spin"></span><span>Create</span></button>

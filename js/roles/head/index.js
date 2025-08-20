@@ -1,17 +1,31 @@
+// js/roles/head/index.js
 import { wireTabs } from '../../core/tabs.js';
 import { $, $$, show, hide, showPageLoader, setLoading } from '../../core/dom.js';
 import { api, uploadFileBase64 } from '../../core/api.js';
 import { state } from '../../core/state.js';
 import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../../core/date.js';
 
+// ===================== module state/guards ===================== //
+let _wired = false;          // ensure we wire events only once
+let _lastDemo = false;       // remember whether we booted in demo mode
+const inflight = {           // in-flight locks per action
+  create: false,
+  update: false,
+  delete: false,
+  reassign: false,
+};
+
+// ===================== partial loader ===================== //
 async function loadTabHtml(tabId, path){
   const host = document.getElementById(tabId);
+  if (!host) return;
   if (!host.dataset.loaded){
     host.innerHTML = await (await fetch(path)).text();
     host.dataset.loaded = '1';
   }
 }
 
+// ===================== helpers ===================== //
 function assistantOpenNow(asg){
   const open = (asg.assistantOpen===true || String(asg.assistantOpen)==='true');
   if (!open) return false;
@@ -22,15 +36,20 @@ function assistantOpenNow(asg){
   return true;
 }
 
+// ===================== render ===================== //
 function renderHead(){
   const h = state.head;
-  $('#h-kpi-assistants').textContent = h.assistants.length;
-  $('#h-kpi-students').textContent   = h.students.length;
+
+  // KPIs
+  const kAsst = $('#h-kpi-assistants'); if (kAsst) kAsst.textContent = h.assistants.length;
+  const kStud = $('#h-kpi-students');   if (kStud) kStud.textContent = h.students.length;
   const openCount = h.assignments.filter(a=> assistantOpenNow(a)).length;
-  $('#h-kpi-assignments').textContent = openCount;
+  const kAssign = $('#h-kpi-assignments'); if (kAssign) kAssign.textContent = openCount;
 
   // roster
-  const rt = $('#h-roster tbody'); if(rt){ rt.innerHTML='';
+  const rt = $('#h-roster tbody');
+  if (rt){
+    rt.innerHTML='';
     h.students.forEach(s=>{
       const asst = h.assistants.find(a=>a.userId===s.assistantId);
       const tr=document.createElement('tr');
@@ -40,17 +59,31 @@ function renderHead(){
   }
 
   // selectors
-  const sSel = $('#h-studentSelect'); if(sSel){ sSel.innerHTML='';
-    h.students.forEach(s=>{ const o=document.createElement('option'); o.value=s.studentId; o.textContent=`${s.studentName} · ${s.unit}`; sSel.appendChild(o); });
+  const sSel = $('#h-studentSelect');
+  if (sSel){
+    sSel.innerHTML='';
+    h.students.forEach(s=>{
+      const o=document.createElement('option');
+      o.value=s.studentId; o.textContent=`${s.studentName} · ${s.unit}`;
+      sSel.appendChild(o);
+    });
   }
-  const aSel = $('#h-assistantSelect'); if(aSel){ aSel.innerHTML='';
-    h.assistants.forEach(a=>{ const o=document.createElement('option'); o.value=a.userId; o.textContent=a.displayName; aSel.appendChild(o); });
+  const aSel = $('#h-assistantSelect');
+  if (aSel){
+    aSel.innerHTML='';
+    h.assistants.forEach(a=>{
+      const o=document.createElement('option');
+      o.value=a.userId; o.textContent=a.displayName;
+      aSel.appendChild(o);
+    });
   }
 
-  // assignments table (read-only view with actions)
-  const at = $('#h-assignments-table tbody'); if(at){ at.innerHTML='';
+  // assignments table (read-only)
+  const at = $('#h-assignments-table tbody');
+  if (at){
+    at.innerHTML='';
     h.assignments.forEach(x=>{
-      const stuDL = formatDateDisplay(x.studentDeadline || x.deadline || '', state.branding.dateFormat);
+      const stuDL  = formatDateDisplay(x.studentDeadline || x.deadline || '', state.branding.dateFormat);
       const asstDL = formatDateDisplay(x.assistantDeadline || '', state.branding.dateFormat);
       const tr=document.createElement('tr');
       tr.innerHTML = `
@@ -69,55 +102,75 @@ function renderHead(){
         </td>`;
       at.appendChild(tr);
     });
+
+    // attach row-level actions (kept here, but guarded)
+    $$('.h-edit').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.getAttribute('data-id');
+        const asg = state.head.assignments.find(a=>a.assignmentId===id);
+        if (!asg) return;
+        state.head.editingId = id;
+        $('#h-a-titlebar').textContent = 'Edit Assignment';
+        $('#h-a-edit-hint').classList.remove('hidden');
+        hide($('#h-create-assignment')); show($('#h-update-assignment')); show($('#h-cancel-edit'));
+
+        $('#h-a-title').value = asg.title || '';
+        $('#h-a-unit').value = asg.unit || '';
+        $('#h-a-stu-open').checked = !!(asg.studentOpen===true || String(asg.studentOpen)==='true');
+        $('#h-a-asst-open').checked = !!(asg.assistantOpen===true || String(asg.assistantOpen)==='true');
+        $('#h-a-stu-deadline').value = formatDateForInput(asg.studentDeadline || asg.deadline || '');
+        $('#h-a-asst-deadline').value = formatDateForInput(asg.assistantDeadline || '');
+        $('#h-a-requireGrade').checked = !!(asg.requireGrade===true || String(asg.requireGrade)==='true');
+        $('#h-a-salary').checked = !!(asg.countInSalary===true || String(asg.countInSalary)==='true');
+        $('#h-a-file').value = '';
+        $('#h-create-msg').textContent = 'Editing…';
+      });
+    });
+
+    $$('.h-del').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if (inflight.delete) return;
+        if(!confirm('Delete this assignment?')) return;
+
+        inflight.delete = true;
+        const id = btn.getAttribute('data-id');
+        try{
+          btn.disabled = true;
+          await api('deleteAssignment',{assignmentId:id});
+          await reloadHeadUI(); // refresh data without rewiring
+        }catch(e){
+          alert('Delete failed: '+e.message);
+        }finally{
+          inflight.delete = false;
+          btn.disabled = false;
+        }
+      });
+    });
   }
 
   // charts (demo)
   const ctx = $('#h-bar'); if(ctx){ if(ctx._chart) ctx._chart.destroy();
     const assistNames = h.assistants.map(a=>a.displayName);
     const counts = assistNames.map(()=> Math.floor(Math.random()*30)+5);
+    // Chart is global from <script src="...chart.js"> in index.html
+    // eslint-disable-next-line no-undef
     ctx._chart = new Chart(ctx,{type:'bar',data:{labels:assistNames,datasets:[{label:'Checked papers',data:counts}]}})
   }
   const d1 = $('#h-donut'); if(d1){ if(d1._chart) d1._chart.destroy();
+    // eslint-disable-next-line no-undef
     d1._chart = new Chart(d1,{type:'doughnut',data:{labels:['Checked','Missing','Redo'],datasets:[{data:[60,25,15]}]}}) }
   const l1 = $('#h-line'); if(l1){ if(l1._chart) l1._chart.destroy();
+    // eslint-disable-next-line no-undef
     l1._chart = new Chart(l1,{type:'line',data:{labels:['W1','W2','W3','W4'],datasets:[{label:'Avg Grade',data:[72,78,81,85]}]}}) }
-
-  // actions
-  $$('.h-edit').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.getAttribute('data-id');
-      const asg = state.head.assignments.find(a=>a.assignmentId===id);
-      if (!asg) return;
-      state.head.editingId = id;
-      $('#h-a-titlebar').textContent = 'Edit Assignment';
-      $('#h-a-edit-hint').classList.remove('hidden');
-      hide($('#h-create-assignment')); show($('#h-update-assignment')); show($('#h-cancel-edit'));
-
-      $('#h-a-title').value = asg.title || '';
-      $('#h-a-unit').value = asg.unit || '';
-      $('#h-a-stu-open').checked = !!(asg.studentOpen===true || String(asg.studentOpen)==='true');
-      $('#h-a-asst-open').checked = !!(asg.assistantOpen===true || String(asg.assistantOpen)==='true');
-      $('#h-a-stu-deadline').value = formatDateForInput(asg.studentDeadline || asg.deadline || '');
-      $('#h-a-asst-deadline').value = formatDateForInput(asg.assistantDeadline || '');
-      $('#h-a-requireGrade').checked = !!(asg.requireGrade===true || String(asg.requireGrade)==='true');
-      $('#h-a-salary').checked = !!(asg.countInSalary===true || String(asg.countInSalary)==='true');
-      $('#h-a-file').value = '';
-      $('#h-create-msg').textContent = 'Editing…';
-    });
-  });
-  $$('.h-del').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      if(!confirm('Delete this assignment?')) return;
-      const id = btn.getAttribute('data-id');
-      try{
-        btn.disabled = true;
-        await api('deleteAssignment',{assignmentId:id}); await init(); // reload
-      }catch(e){ alert('Delete failed: '+e.message); }
-      finally{ btn.disabled = false; }
-    });
-  });
 }
 
+// ===================== small refresh (no rewiring) ===================== //
+async function reloadHeadUI() {
+  await loadHeadData(_lastDemo);
+  renderHead();
+}
+
+// ===================== uploads ===================== //
 async function headUploadFileMaybe(assignmentId){
   const inp = $('#h-a-file');
   if (inp && inp.files && inp.files[0]){
@@ -128,8 +181,15 @@ async function headUploadFileMaybe(assignmentId){
   }
 }
 
+// ===================== events (wired once) ===================== //
 function wireEvents(){
+  if (_wired) return;     // guard against double-wiring
+  _wired = true;
+
   $('#h-reassign')?.addEventListener('click', async()=>{
+    if (inflight.reassign) return;
+    inflight.reassign = true;
+
     const btn = $('#h-reassign'); const spin = $('#h-reassign-spin');
     setLoading(btn,true,spin);
     const studentId = $('#h-studentSelect').value;
@@ -137,15 +197,19 @@ function wireEvents(){
     try{
       await api('reassignStudent',{studentId, assistantId});
       $('#h-reassign-msg').textContent='Reassigned ✅';
-      await init();
+      await reloadHeadUI();
     }catch(err){
       $('#h-reassign-msg').textContent='Failed: '+err.message;
     }finally{
+      inflight.reassign = false;
       setLoading(btn,false,spin);
     }
   });
 
   $('#h-create-assignment')?.addEventListener('click', async()=>{
+    if (inflight.create) return;
+    inflight.create = true;
+
     const btn = $('#h-create-assignment'); const spin = $('#h-create-spin');
     setLoading(btn,true,spin);
     const title=$('#h-a-title').value.trim();
@@ -159,13 +223,19 @@ function wireEvents(){
     const countInSalary=$('#h-a-salary').checked;
 
     try{
+      // idempotency key (good to pass through to backend)
+      const clientRequestId =
+        (crypto?.randomUUID?.() ?? `cid-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
       const createRes = await api('createAssignment',{
         title, course, unit,
         deadline: studentDeadline,
         studentOpen, studentDeadline,
         assistantOpen, assistantDeadline,
-        requireGrade, countInSalary
+        requireGrade, countInSalary,
+        clientRequestId
       });
+
       const assignmentId = createRes.assignmentId;
       await headUploadFileMaybe(assignmentId);
 
@@ -175,12 +245,20 @@ function wireEvents(){
       $('#h-a-stu-open').checked=true; $('#h-a-asst-open').checked=true;
       $('#h-a-requireGrade').checked=true; $('#h-a-salary').checked=false;
       $('#h-a-file').value='';
-      await init();
-    }catch(err){ $('#h-create-msg').textContent='Failed: '+err.message }
-    finally{ setLoading(btn,false,spin); }
+
+      await reloadHeadUI();
+    }catch(err){
+      $('#h-create-msg').textContent='Failed: '+err.message;
+    }finally{
+      inflight.create = false;
+      setLoading(btn,false,spin);
+    }
   });
 
   $('#h-update-assignment')?.addEventListener('click', async()=>{
+    if (inflight.update) return;
+    inflight.update = true;
+
     const btn = $('#h-update-assignment'); const spin = $('#h-update-spin');
     setLoading(btn,true,spin);
     try{
@@ -198,6 +276,8 @@ function wireEvents(){
       await api('updateAssignment',{assignmentId:id, patch});
       await headUploadFileMaybe(id);
       $('#h-create-msg').textContent='Updated ✅';
+
+      // reset edit state
       state.head.editingId = null;
       $('#h-a-titlebar').textContent='Create Assignment';
       $('#h-a-edit-hint').classList.add('hidden');
@@ -207,9 +287,14 @@ function wireEvents(){
       $('#h-a-stu-open').checked=true; $('#h-a-asst-open').checked=true;
       $('#h-a-requireGrade').checked=true; $('#h-a-salary').checked=false;
       $('#h-a-file').value='';
-      await init();
-    }catch(e){ $('#h-create-msg').textContent='Failed: '+e.message; }
-    finally{ setLoading(btn,false,spin); }
+
+      await reloadHeadUI();
+    }catch(e){
+      $('#h-create-msg').textContent='Failed: '+e.message;
+    }finally{
+      inflight.update = false;
+      setLoading(btn,false,spin);
+    }
   });
 
   $('#h-cancel-edit')?.addEventListener('click', ()=>{
@@ -226,6 +311,7 @@ function wireEvents(){
   });
 }
 
+// ===================== data ===================== //
 async function loadHeadData(demo=false){
   if(demo){
     state.head.assistants=[
@@ -247,6 +333,7 @@ async function loadHeadData(demo=false){
   }
 }
 
+// ===================== lifecycle ===================== //
 // 1) Mount: load the tab shells + wire tabs (no data yet)
 export async function mount(){
   showPageLoader(true);
@@ -261,13 +348,14 @@ export async function mount(){
   }
 }
 
-// 2) Boot: fetch data and render + wire button handlers
+// 2) Boot: fetch data and render; wire events only once
 export async function boot(demo=false){
+  _lastDemo = !!demo;
   showPageLoader(true);
   try{
-    await loadHeadData(demo);
+    await loadHeadData(_lastDemo);
     renderHead();
-    wireEvents();
+    wireEvents(); // guarded by _wired
     if (state.user?.role === 'head') {
       const inp = $('#h-a-course'); if (inp) inp.value = state.user.course || '';
     }

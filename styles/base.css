@@ -59,3 +59,14 @@ display:none;align-items:center;justify-content:center;z-index:999}
   .grid.cols-3{grid-template-columns:1fr}
   .grid.cols-2{grid-template-columns:1fr}
 }
+/* settings dropdown */
+.settings-wrap { position: relative; margin: 0 8px; }
+.icon-btn { background: transparent; border: 0; cursor: pointer; font-size: 18px; line-height: 1; }
+.menu { position: absolute; right: 0; top: 36px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+.menu.hidden { display: none; }
+.menu .menu-item { display:block; width: 180px; text-align:left; background:transparent; border:0; padding:8px 10px; cursor:pointer; }
+.menu .menu-item:hover { background:#f6f6f6; }
+
+/* modal */
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index: 9999; }
+.modal { width: 420px; max-width: 92vw; }

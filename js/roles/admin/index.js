@@ -394,7 +394,8 @@ function wireStudentEvents(){
   status: $('#s-status').value || 'Active'
 });
       $('#s-msg').textContent='Created ✅';
-      $('#s-name').value=''; $('#s-email').value=''; $('#s-phone').value=''; $('#s-course').value=''; $('#s-unit').value='';
+      $('#s-name').value=''; $('#s-email').value=''; $('#s-phone').value=''; $('#s-course').value=''; $('#s-unit').value='';$('#s-assistant').value = '';
+$('#s-status').value = 'Active';
       await loadStudents(); fillStudentSelect($('#e-studentId')); await loadEnrollments();
     }catch(e){ $('#s-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
@@ -427,7 +428,8 @@ function wireStudentEvents(){
     $('#s-titlebar').textContent='Create Student';
     $('#s-edit-hint').classList.add('hidden');
     show($('#s-create')); hide($('#s-update')); hide($('#s-cancel'));
-    $('#s-id').value=''; $('#s-name').value=''; $('#s-email').value=''; $('#s-phone').value=''; $('#s-course').value=''; $('#s-unit').value='';
+    $('#s-id').value=''; $('#s-name').value=''; $('#s-email').value=''; $('#s-phone').value=''; $('#s-course').value=''; $('#s-unit').value='';$('#s-assistant').value = '';
+$('#s-status').value = 'Active';
   });
   $('#s-refresh')?.addEventListener('click', loadStudents);
   $('#s-search')?.addEventListener('input', ()=>{
@@ -490,7 +492,7 @@ function wireEnrollEvents(){
   status: $('#e-status').value || 'Active'
 });
       $('#e-msg').textContent='Created ✅';
-      $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';
+      $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';$('#e-status').value = 'Active';
       await loadEnrollments();
     }catch(e){ $('#e-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
@@ -525,7 +527,7 @@ function wireEnrollEvents(){
     $('#e-titlebar').textContent='Create Enrollment';
     $('#e-edit-hint').classList.add('hidden');
     show($('#e-create')); hide($('#e-update')); hide($('#e-cancel'));
-    $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';
+    $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';$('#e-status').value = 'Active';
   });
   $('#e-refresh')?.addEventListener('click', async ()=>{
     const btn = $('#e-refresh'); const spin = $('#e-refresh-spin');

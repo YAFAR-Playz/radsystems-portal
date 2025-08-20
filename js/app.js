@@ -44,6 +44,16 @@ function setChip(){
     logout.classList.add('hidden');
   }
 }
+function wireHeader() {
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (!logoutBtn) return;
+  logoutBtn.onclick = async () => {
+    localStorage.removeItem('token');
+    state.user = null;
+    setChip();
+    await showLogin();
+  };
+}
 
 async function loadView(htmlPath){
   try {
@@ -204,14 +214,6 @@ async function showLogin(){
     await loadBranding();
     await mountRole(state.user.role, true);
   });
-
-  // header logout
-  $('#logoutBtn')?.addEventListener('click', async ()=>{
-    localStorage.removeItem('token');
-    state.user = null;
-    setChip();
-    await showLogin();
-  });
 }
 // Attempt session resume
 async function tryResume(){
@@ -229,6 +231,7 @@ async function tryResume(){
 
 (async function init(){
   await loadBranding();
+  wireHeader();
   const resumed = await tryResume();
   if (!resumed) await showLogin();
 })();

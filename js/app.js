@@ -34,24 +34,121 @@ const ROLE_TABS = {
 function setChip(){
   const chip = $('#userChip');
   const logout = $('#logoutBtn');
+  const settingsWrap = $('#settingsWrap');
   if (!chip || !logout) return;
   if (state.user) {
     chip.textContent = `${state.user.displayName} · ${state.user.role}`;
     chip.classList.remove('hidden');
     logout.classList.remove('hidden');
+    settingsWrap?.classList.remove('hidden');
   } else {
     chip.classList.add('hidden');
     logout.classList.add('hidden');
+    settingsWrap?.classList.add('hidden');
   }
 }
 function wireHeader() {
   const logoutBtn = document.getElementById('logoutBtn');
-  if (!logoutBtn) return;
-  logoutBtn.onclick = async () => {
-    localStorage.removeItem('token');
-    state.user = null;
-    setChip();
-    await showLogin();
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      localStorage.removeItem('token');
+      state.user = null;
+      setChip();
+      await showLogin();
+    };
+  }
+
+  const settingsBtn  = document.getElementById('settingsBtn');
+  const settingsMenu = document.getElementById('settingsMenu');
+  const changePassBtn= document.getElementById('changePassBtn');
+
+  if (settingsBtn && settingsMenu) {
+    // toggle menu
+    settingsBtn.onclick = (e) => {
+      e.stopPropagation();
+      settingsMenu.classList.toggle('hidden');
+    };
+    // click outside to close
+    document.addEventListener('click', () => settingsMenu.classList.add('hidden'));
+  }
+
+  // open change password modal
+  if (changePassBtn) {
+    changePassBtn.onclick = (e) => {
+      e.stopPropagation();
+      settingsMenu?.classList.add('hidden');
+      openChangePasswordModal();
+    };
+  }
+}
+function openChangePasswordModal(){
+  // create modal once
+  if (!document.getElementById('cpModal')){
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div id="cpModal" class="modal-backdrop">
+        <div class="modal card stack">
+          <h3>Change password</h3>
+          <div class="field">
+            <label>Current password</label>
+            <input id="cpCurrent" type="password" autocomplete="current-password" />
+          </div>
+          <div class="field">
+            <label>New password</label>
+            <input id="cpNew1" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
+          </div>
+          <div class="field">
+            <label>Confirm new password</label>
+            <input id="cpNew2" type="password" autocomplete="new-password" />
+          </div>
+          <div class="row">
+            <button id="cpSave" class="btn primary"><span class="spinner hidden" id="cpSpin"></span><span>Save</span></button>
+            <button id="cpCancel" class="btn">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap.firstElementChild);
+  }
+
+  const modal = document.getElementById('cpModal');
+  const btnSave = document.getElementById('cpSave');
+  const btnCancel = document.getElementById('cpCancel');
+  const spin = document.getElementById('cpSpin');
+  const cur = document.getElementById('cpCurrent');
+  const n1  = document.getElementById('cpNew1');
+  const n2  = document.getElementById('cpNew2');
+
+  modal.style.display = 'flex';
+  n1.value=''; n2.value=''; cur.value='';
+  setTimeout(()=> cur.focus(), 0);
+
+  const close = ()=> { modal.style.display='none'; };
+
+  btnCancel.onclick = close;
+  modal.addEventListener('click', (e)=> {
+    if (e.target === modal) close();
+  });
+
+  btnSave.onclick = async ()=>{
+    const currentPassword = (cur.value || '').trim();
+    const newPassword = (n1.value || '').trim();
+    const confirm = (n2.value || '').trim();
+
+    if (!currentPassword){ alert('Enter current password'); return; }
+    if (newPassword.length < 6){ alert('New password must be at least 6 characters'); return; }
+    if (newPassword !== confirm){ alert('New passwords do not match'); return; }
+
+    setLoading(btnSave, true, spin);
+    try{
+      // call backend
+      await api('auth.changePassword', { currentPassword, newPassword });
+      alert('Password updated');
+      close();
+    }catch(err){
+      alert('Could not change password: ' + err.message);
+    }finally{
+      setLoading(btnSave, false, spin);
+    }
   };
 }
 

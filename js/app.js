@@ -103,52 +103,109 @@ async function mountRole(role, demo=false){
 async function showLogin(){
   await loadView('views/roles/login.html');
 
-  const emailEl = document.getElementById('loginEmail');
-  const passEl  = document.getElementById('loginPassword');
-  const btnLogin = document.getElementById('btnLogin');
-  const btnDemo  = document.getElementById('btnDemo');
-  const spin     = document.getElementById('loginSpin');
-  if (!emailEl || !passEl || !btnLogin || !btnDemo || !spin) {
-    throw new Error('login.html is missing required IDs (loginEmail, loginPassword, btnLogin, btnDemo, loginSpin)');
-  }
+  const emailEl   = document.getElementById('loginEmail');
+  const passEl    = document.getElementById('loginPassword');
+  const newPass   = document.getElementById('newPass');
+  const newPass2  = document.getElementById('newPass2');
 
-  btnLogin.addEventListener('click', async ()=>{
-    const email = emailEl.value.trim();
-    const password = passEl.value;
-    if (!email || !password){ alert('Enter email and password'); return; }
+  const stepEmail   = document.getElementById('step-email');
+  const stepExist   = document.getElementById('step-existing');
+  const stepNewPass = document.getElementById('step-newpass');
 
-    setLoading(btnLogin, true, spin);
+  const btnContinue   = document.getElementById('btnContinue');
+  const btnSignIn     = document.getElementById('btnSignIn');
+  const btnSetPass    = document.getElementById('btnSetPassword');
+  const btnBack1      = document.getElementById('btnBack1');
+  const btnBack2      = document.getElementById('btnBack2');
+  const btnDemo       = document.getElementById('btnDemo');
+
+  const spinCont  = document.getElementById('continueSpin');
+  const spinSign  = document.getElementById('signinSpin');
+  const spinSet   = document.getElementById('setpassSpin');
+
+  if(!emailEl || !btnContinue || !btnDemo) throw new Error('login.html missing required IDs');
+
+  const go = (a,b,c)=>{ a.classList.remove('hidden'); b.classList.add('hidden'); c.classList.add('hidden'); };
+
+  btnContinue.addEventListener('click', async ()=>{
+    const email = (emailEl.value||'').trim();
+    if (!email){ alert('Enter your email'); return; }
+    setLoading(btnContinue, true, spinCont);
+    try{
+      const r = await api('auth.checkEmail', { email });
+      if (!r.exists) { alert('No account found for this email'); return; }
+      if (r.hasPassword) {
+        passEl.value = '';
+        go(stepExist, stepEmail, stepNewPass);
+        setTimeout(()=> passEl.focus(), 0);
+      } else {
+        newPass.value=''; newPass2.value='';
+        go(stepNewPass, stepEmail, stepExist);
+        setTimeout(()=> newPass.focus(), 0);
+      }
+    }catch(e){ alert('Error: '+e.message); }
+    finally{ setLoading(btnContinue, false, spinCont); }
+  });
+
+  btnBack1?.addEventListener('click', ()=> go(stepEmail, stepExist, stepNewPass));
+  btnBack2?.addEventListener('click', ()=> go(stepEmail, stepExist, stepNewPass));
+
+  btnSignIn?.addEventListener('click', async ()=>{
+    const email = (emailEl.value||'').trim();
+    const password = passEl?.value || '';
+    if (!password){ alert('Enter your password'); return; }
+    setLoading(btnSignIn, true, spinSign);
     showPageLoader(true);
     try{
       const res = await api('login',{ email, password });
-      if (!res || !res.token) throw new Error('Invalid login');
       localStorage.setItem('token', res.token);
       state.user = res.user;
       setChip();
       await loadBranding();
-      await mountRole(state.user.role, /*demo=*/false);
-    }catch(err){
-      alert('Login failed: ' + err.message);
-    }finally{
-      setLoading(btnLogin, false, spin);
-      showPageLoader(false);
-      passEl.value = '';
-    }
+      await mountRole(state.user.role, false);
+    }catch(err){ alert('Login failed: '+err.message); }
+    finally{ setLoading(btnSignIn,false,spinSign); showPageLoader(false); }
   });
 
-  // Demo: still works, but now role is inferred by email
+  btnSetPass?.addEventListener('click', async ()=>{
+    const email = (emailEl.value||'').trim();
+    const p1 = newPass?.value || '', p2 = newPass2?.value || '';
+    if (p1.length < 6) { alert('Password must be at least 6 characters'); return; }
+    if (p1 !== p2) { alert('Passwords do not match'); return; }
+    setLoading(btnSetPass, true, spinSet);
+    showPageLoader(true);
+    try{
+      await api('auth.setPassword', { email, password:p1 });
+      // Auto sign-in after setting password
+      const res = await api('login',{ email, password:p1 });
+      localStorage.setItem('token', res.token);
+      state.user = res.user;
+      setChip();
+      await loadBranding();
+      await mountRole(state.user.role, false);
+    }catch(err){ alert('Could not set password: '+err.message); }
+    finally{ setLoading(btnSetPass,false,spinSet); showPageLoader(false); }
+  });
+
+  // Demo mode remains
   btnDemo.addEventListener('click', async ()=>{
-    const demoEmail = (emailEl.value || '').trim().toLowerCase();
-    let user;
-    if (demoEmail.includes('admin'))      user = { userId:'ad-1', role:'admin', displayName:'Admin User', course:'' };
-    else if (demoEmail.includes('head'))  user = { userId:'h-1', role:'head', displayName:'Mr. Hany', course:'Math' };
-    else                                  user = { userId:'a-1', role:'assistant', displayName:'Sara Ali', course:'Math' };
-    state.user = user;
+    const email = (emailEl.value || '').trim().toLowerCase();
+    let role = 'assistant';
+    if (email.includes('admin')) role='admin';
+    else if (email.includes('head')) role='head';
+
+    state.user = {
+      admin:{ userId:'ad-1', role:'admin', displayName:'Admin User', course:'' },
+      head:{ userId:'h-1', role:'head', displayName:'Mr. Hany', course:'Math' },
+      assistant:{ userId:'a-1', role:'assistant', displayName:'Sara Ali', course:'Math' }
+    }[role];
+
     setChip();
     await loadBranding();
-    await mountRole(state.user.role, /*demo=*/true);
+    await mountRole(state.user.role, true);
   });
 
+  // header logout
   $('#logoutBtn')?.addEventListener('click', async ()=>{
     localStorage.removeItem('token');
     state.user = null;
@@ -156,7 +213,6 @@ async function showLogin(){
     await showLogin();
   });
 }
-
 // Attempt session resume
 async function tryResume(){
   const token = localStorage.getItem('token') || '';

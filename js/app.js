@@ -63,54 +63,33 @@ function wireHeader() {
   const changePassBtn= document.getElementById('changePassBtn');
 
   if (settingsBtn && settingsMenu) {
-    // toggle menu
-    settingsBtn.onclick = (e) => {
+    settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       settingsMenu.classList.toggle('hidden');
-    };
-    // click outside to close
-    document.addEventListener('click', () => settingsMenu.classList.add('hidden'));
+    });
+
+  // Close when clicking outside of the menu OR the settings button
+    document.addEventListener('click', (e) => {
+      const withinMenu = settingsMenu.contains(e.target);
+      const onButton = settingsBtn.contains(e.target);
+      if (!withinMenu && !onButton) settingsMenu.classList.add('hidden');
+    });
   }
 
-  // open change password modal
   if (changePassBtn) {
-    changePassBtn.onclick = (e) => {
+    changePassBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       settingsMenu?.classList.add('hidden');
       openChangePasswordModal();
-    };
+    });
   }
 }
 function openChangePasswordModal(){
-  // create modal once
-  if (!document.getElementById('cpModal')){
-    const wrap = document.createElement('div');
-    wrap.innerHTML = `
-      <div id="cpModal" class="modal-backdrop">
-        <div class="modal card stack">
-          <h3>Change password</h3>
-          <div class="field">
-            <label>Current password</label>
-            <input id="cpCurrent" type="password" autocomplete="current-password" />
-          </div>
-          <div class="field">
-            <label>New password</label>
-            <input id="cpNew1" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
-          </div>
-          <div class="field">
-            <label>Confirm new password</label>
-            <input id="cpNew2" type="password" autocomplete="new-password" />
-          </div>
-          <div class="row">
-            <button id="cpSave" class="btn primary"><span class="spinner hidden" id="cpSpin"></span><span>Save</span></button>
-            <button id="cpCancel" class="btn">Cancel</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(wrap.firstElementChild);
-  }
-
   const modal = document.getElementById('cpModal');
+  if (!modal) { console.error('cpModal not found'); return; }  // guard
+
   const btnSave = document.getElementById('cpSave');
   const btnCancel = document.getElementById('cpCancel');
   const spin = document.getElementById('cpSpin');
@@ -122,25 +101,22 @@ function openChangePasswordModal(){
   n1.value=''; n2.value=''; cur.value='';
   setTimeout(()=> cur.focus(), 0);
 
-  const close = () => { modal.classList.add('hidden'); }; // <-- was: style.display='none'
+  const close = () => modal.classList.add('hidden');
 
+  // (Re)wire lightweight handlers each open (safe + simple)
   btnCancel.onclick = close;
-  modal.addEventListener('click', (e)=> {
-    if (e.target === modal) close();
-  });
+  modal.onclick = (e)=> { if (e.target === modal) close(); };
 
   btnSave.onclick = async ()=>{
     const currentPassword = (cur.value || '').trim();
     const newPassword = (n1.value || '').trim();
     const confirm = (n2.value || '').trim();
-
     if (!currentPassword){ alert('Enter current password'); return; }
     if (newPassword.length < 6){ alert('New password must be at least 6 characters'); return; }
     if (newPassword !== confirm){ alert('New passwords do not match'); return; }
 
     setLoading(btnSave, true, spin);
     try{
-      // call backend
       await api('auth.changePassword', { currentPassword, newPassword });
       alert('Password updated');
       close();

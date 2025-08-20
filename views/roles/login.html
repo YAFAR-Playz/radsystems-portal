@@ -1,26 +1,30 @@
 <section id="view-login" class="grid cols-2" style="margin-top:18px">
   <div class="card stack">
     <h3>Login</h3>
-    <div class="row" style="gap:8px">
-      <div class="field" style="flex:1">
+    <div class="stack">
+      <div class="field">
         <label>Email</label>
-        <input id="loginEmail" type="email" placeholder="user@school.edu"/>
+        <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
       </div>
-      <div class="field" style="width:200px">
-        <label>Role</label>
-        <select id="loginRole">
-          <option value="assistant">Assistant</option>
-          <option value="head">Head</option>
-          <option value="admin">Admin</option>
-        </select>
+      <div class="field">
+        <label>Password</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div class="row">
+        <button id="btnLogin" class="btn primary">
+          <span class="spinner hidden" id="loginSpin"></span><span>Sign in</span>
+        </button>
+        <button id="btnDemo" class="btn">Demo Login</button>
+      </div>
+      <div class="muted" style="font-size:12px">
+        Demo accounts (from seed):<br>
+        admin@school.edu / admin123<br>
+        head.math@school.edu / head123<br>
+        assistant.sara@school.edu / assistant123
       </div>
     </div>
-    <div class="row">
-      <button id="btnLogin" class="btn primary">Sign in</button>
-      <button id="btnDemo" class="btn">Demo Login</button>
-    </div>
-    <div class="muted" style="font-size:12px">Demo skips passwords; backend mints session tokens.</div>
   </div>
+
   <div class="card stack">
     <h3>How it works</h3>
     <ul class="muted" style="margin:0 0 6px 18px;line-height:1.5">

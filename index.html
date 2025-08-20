@@ -39,28 +39,28 @@
 
     <!-- All views mount here -->
     <main id="app-root"></main>
+    </div> <!-- end .container -->
     <div id="cpModal" class="modal-backdrop hidden">
-      <div class="modal card stack">
-      <h3>Change password</h3>
-      <div class="field">
-        <label>Current password</label>
-        <input id="cpCurrent" type="password" autocomplete="current-password" />
-      </div>
-      <div class="field">
-        <label>New password</label>
-        <input id="cpNew1" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
-      </div>
-      <div class="field">
-        <label>Confirm new password</label>
-        <input id="cpNew2" type="password" autocomplete="new-password" />
-      </div>
-      <div class="row">
-        <button id="cpSave" class="btn primary"><span class="spinner hidden" id="cpSpin"></span><span>Save</span></button>
-        <button id="cpCancel" class="btn">Cancel</button>
-        </div>
-      </div>
+  <div class="modal card stack">
+    <h3>Change password</h3>
+    <div class="field">
+      <label>Current password</label>
+      <input id="cpCurrent" type="password" autocomplete="current-password" />
     </div>
+    <div class="field">
+      <label>New password</label>
+      <input id="cpNew1" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
     </div>
+    <div class="field">
+      <label>Confirm new password</label>
+      <input id="cpNew2" type="password" autocomplete="new-password" />
+    </div>
+    <div class="row">
+      <button id="cpSave" class="btn primary"><span class="spinner hidden" id="cpSpin"></span><span>Save</span></button>
+      <button id="cpCancel" class="btn">Cancel</button>
+    </div>
+  </div>
+</div>
   <!-- Your app entry (must be module) -->
   <script type="module" src="js/app.js"></script>
 </body>

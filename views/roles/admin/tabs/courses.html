@@ -1,4 +1,4 @@
-<div class="grid cols-2">
+<div class="stack">
   <div class="card">
     <h3 id="c-titlebar">Create Course</h3>
     <div id="c-edit-hint" class="muted hidden">Editing existing course. Updating will overwrite its values.</div>
@@ -9,7 +9,9 @@
         <div class="field"><label>Code</label><input id="c-code"></div>
       </div>
       <div class="row">
-        <div class="field"><label>Status</label><select id="c-status"><option>Active</option><option>Inactive</option></select></div>
+        <div class="field"><label>Status</label>
+          <select id="c-status"><option>Active</option><option>Inactive</option></select>
+        </div>
         <div class="row right">
           <button id="c-create" class="btn primary"><span class="spinner hidden" id="c-create-spin"></span><span>Create</span></button>
           <button id="c-update" class="btn primary hidden"><span class="spinner hidden" id="c-update-spin"></span><span>Update</span></button>
@@ -19,6 +21,7 @@
       <div id="c-msg" class="muted"></div>
     </div>
   </div>
+
   <div class="card">
     <h3>Courses</h3>
     <div class="table-wrapper">

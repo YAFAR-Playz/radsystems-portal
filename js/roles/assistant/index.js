@@ -1,5 +1,5 @@
 import { wireTabs } from '../../core/tabs.js';
-import { $, $$, show, hide, showPageLoader } from '../../core/dom.js';
+import { $, $$, show, hide, showPageLoader, bindAsyncClick } from '../../core/dom.js';
 import { api, uploadFileBase64 } from '../../core/api.js';
 import { state } from '../../core/state.js';
 import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../../core/date.js';
@@ -52,9 +52,19 @@ function enforceGradeRules(){
   const asg = state.assistant.assignments.find(x=> x.assignmentId===id);
   const gradeRequired = !asg ? true : (asg.requireGrade===true || String(asg.requireGrade)==='true');
 
-  if (!gradeRequired){ gradeEl.value=''; gradeEl.disabled = true; gradeEl.placeholder = 'Disabled for this assignment'; return; }
-  if (status === 'missing'){ gradeEl.value = ''; gradeEl.disabled = true; gradeEl.placeholder = 'Disabled for Missing'; }
-  else { gradeEl.disabled = false; gradeEl.placeholder = 'e.g. 18/20 or 90%'; }
+  if (!gradeRequired){
+    gradeEl.value=''; gradeEl.disabled = true;
+    gradeEl.placeholder = 'Disabled for this assignment';
+    return;
+  }
+  if (status === 'missing'){
+    gradeEl.value = '';
+    gradeEl.disabled = true;
+    gradeEl.placeholder = 'Disabled for Missing';
+  } else {
+    gradeEl.disabled = false;
+    gradeEl.placeholder = 'e.g. 18/20 or 90%';
+  }
 }
 
 function applyAssignmentPolicyToForm(){
@@ -63,12 +73,20 @@ function applyAssignmentPolicyToForm(){
   const gradeWrap = $('#a-grade-field'); const gradeEl = $('#a-grade'); const msg = $('#a-assignment-policy');
   let notes = [];
   if (!asg){ gradeWrap.classList.remove('hidden'); gradeEl.disabled=false; msg.textContent=''; return; }
+
+  // grade required?
   if (String(asg.requireGrade)==='false' || asg.requireGrade===false){
     gradeWrap.classList.add('hidden');
     gradeEl.value=''; gradeEl.disabled=true;
     notes.push('Grades are disabled for this assignment.');
-  } else { gradeWrap.classList.remove('hidden'); gradeEl.disabled=false; }
-  const openNow = assistantOpenNow(asg); let blocked = !openNow;
+  } else {
+    gradeWrap.classList.remove('hidden');
+    gradeEl.disabled=false;
+  }
+
+  // assistant phase open & deadline
+  const openNow = assistantOpenNow(asg);
+  let blocked = !openNow;
   if (!openNow){
     if (!(asg.assistantOpen===true || String(asg.assistantOpen)==='true')) notes.push('Assistant submissions are closed.');
     const dl = parseMaybeISO(asg.assistantDeadline);
@@ -163,34 +181,48 @@ function wireEvents(){
     $('#a-status').value = 'Checked'; $('#a-grade').value=''; $('#a-comment').value='';
   });
 
-  $('#a-submit')?.addEventListener('click', async()=>{
+  // Save (Check/Edit) — with loading + dedupe + correct success message
+  bindAsyncClick('#a-submit', async ()=>{
     const assignmentId = $('#a-assignmentSelect').value;
     const asg = state.assistant.assignments.find(x=> x.assignmentId===assignmentId);
     const studentId = $('#a-studentSelect').value;
-    const status = $('#a-status').value; const grade = $('#a-grade').value.trim();
+    const status = $('#a-status').value;
+    const grade = $('#a-grade').value.trim();
     const comment = $('#a-comment').value.trim();
     const fileInput = $('#a-file');
     let fileUrl = '';
 
-    try{
-      if (!assignmentId) { $('#a-submit-msg').textContent = 'Choose an assignment.'; return; }
-      if (!studentId) { $('#a-submit-msg').textContent = 'Choose a student.'; return; }
-      const open = (asg?.assistantOpen===true || String(asg?.assistantOpen)==='true');
-      const dl = parseMaybeISO(asg?.assistantDeadline);
-      if (!open){ $('#a-submit-msg').textContent='Assistant submissions are closed by head.'; return; }
-      if (dl && new Date() > dl){ $('#a-submit-msg').textContent='Assistant deadline has passed.'; return; }
-      if((status.toLowerCase()==='missing' || (asg && (asg.requireGrade===false || String(asg.requireGrade)==='false'))) && grade){
-        $('#a-submit-msg').textContent='Grade not allowed for this status/assignment.'; return;
-      }
-      if(fileInput?.files && fileInput.files[0]){
-        fileUrl = (await uploadFileBase64(fileInput.files[0], { action:'uploadFile', studentId, assignmentId })).fileUrl;
-      }
-      const r = await api('submitCheck',{ assignmentId, studentId, status, grade, comment, fileUrl });
-      $('#a-submit-msg').textContent = r?.updated ? 'Updated ✏️' : (r?.created ? 'Created ✅' : 'Saved ✅');
-      await init(false); // refresh
-      if ($('#a-file')) $('#a-file').value='';
-      $('#a-edit-hint')?.classList.add('hidden'); $('#a-cancel')?.classList.add('hidden');
-    }catch(err){ $('#a-submit-msg').textContent = 'Failed to save: '+err.message; }
+    const msg = $('#a-submit-msg');
+
+    // Validations (unchanged)
+    if (!assignmentId){ msg.textContent = 'Choose an assignment.'; return; }
+    if (!studentId){ msg.textContent = 'Choose a student.'; return; }
+    const open = (asg?.assistantOpen===true || String(asg?.assistantOpen)==='true');
+    const dl = parseMaybeISO(asg?.assistantDeadline);
+    if (!open){ msg.textContent='Assistant submissions are closed by head.'; return; }
+    if (dl && new Date() > dl){ msg.textContent='Assistant deadline has passed.'; return; }
+    if((status.toLowerCase()==='missing' || (asg && (asg.requireGrade===false || String(asg.requireGrade)==='false'))) && grade){
+      msg.textContent='Grade not allowed for this status/assignment.'; return;
+    }
+
+    if(fileInput?.files && fileInput.files[0]){
+      const up = await uploadFileBase64(fileInput.files[0], { action:'uploadFile', studentId, assignmentId });
+      fileUrl = up.fileUrl || '';
+    }
+
+    const r = await api('submitCheck',{ assignmentId, studentId, status, grade, comment, fileUrl });
+
+    // Prefer "Created" over "Updated" to stop the flicker
+    if (r?.created)      msg.textContent = 'Created ✅';
+    else if (r?.updated) msg.textContent = 'Updated ✏️';
+    else                 msg.textContent = 'Saved ✅';
+
+    if ($('#a-file')) $('#a-file').value='';
+    $('#a-edit-hint')?.classList.add('hidden');
+    $('#a-cancel')?.classList.add('hidden');
+
+    // If you want a full refresh keep this; bindAsyncClick prevents double-binding
+    await init(false);
   });
 }
 
@@ -205,17 +237,18 @@ export async function init(demo){
     wireTabs('#view-assistant');
     await loadAssistantData(demo);
     renderHome();
-    // you can initialize charts here for performance tab, etc.
     wireEvents();
 
     // fill selects for students tab
-    const asSel = $('#a-assignmentSelect'); asSel.innerHTML='';
+    const asSel = $('#a-assignmentSelect'); if (asSel) asSel.innerHTML='';
     state.assistant.assignments.filter(assistantOpenNow).forEach(x=>{
       const opt=document.createElement('option'); opt.value=x.assignmentId;
       const dl = x.assistantDeadline ? ` · DL ${formatDateDisplay(x.assistantDeadline)}` : '';
-      opt.textContent=`${x.title} · ${x.unit}${dl}`; asSel.appendChild(opt);
+      opt.textContent=`${x.title} · ${x.unit}${dl}`; asSel?.appendChild(opt);
     });
     refreshAssistantStudentLists();
     applyAssignmentPolicyToForm();
-  } finally { showPageLoader(false); }
+  } finally {
+    showPageLoader(false);
+  }
 }

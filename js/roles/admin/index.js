@@ -27,6 +27,25 @@ function fillStudentSelect(selectEl){
   });
   if (prev) selectEl.value = prev;
 }
+function fillAssistantSelectForCourse(selectEl, courseId){
+  const prev = selectEl.value;
+  selectEl.innerHTML = '<option value="">— select assistant —</option>';
+
+  const course = state.admin.courses.find(c => c.courseId === courseId);
+  const courseName = course ? course.name : '';
+
+  const list = (state.admin.assistants || [])
+    .filter(a => a.role === 'assistant' && (a.course||'') === courseName);
+
+  list.forEach(a=>{
+    const o = document.createElement('option');
+    o.value = a.userId;
+    o.textContent = a.displayName || a.email || a.userId;
+    selectEl.appendChild(o);
+  });
+
+  if (prev) selectEl.value = prev;
+}
 
 // LOAD DATA
 async function loadAssistants(){
@@ -61,6 +80,7 @@ function renderUsersTable(){
       <td class="cell-actions">
         <button class="btn u-edit" data-id="${u.userId}">Edit</button>
         <button class="btn ghost u-del" data-id="${u.userId}">Delete</button>
+        <button class="btn ghost u-loginas" data-id="${u.userId}">Login As</button>
       </td>`;
     tbody.appendChild(tr);
   });
@@ -90,6 +110,19 @@ function renderUsersTable(){
       finally{ b.disabled = false; }
     });
   });
+  $$('.u-loginas').forEach(b=>{
+  b.addEventListener('click', async ()=>{
+    const id = b.getAttribute('data-id');
+    try {
+      const res = await api('admin.users.loginAs', { userId:id });
+      // Save token + reload as that user
+      localStorage.setItem('auth_token', res.token);
+      location.reload();
+    } catch(e) {
+      alert('Failed to login as user: '+e.message);
+    }
+  });
+});
 }
 async function loadStudents(){
   setLoading($('#s-refresh'), true, $('#s-refresh-spin'));
@@ -135,6 +168,9 @@ function renderStudentsTable(){
       const c = state.admin.courses.find(cc=> cc.name===s.course || cc.courseId===s.course);
       $('#s-course').value = c ? c.courseId : '';
       $('#s-unit').value = s.unit || '';
+      fillAssistantSelectForCourse($('#s-assistant'), $('#s-course').value);
+      $('#s-assistant').value = s.assistantId || '';
+      $('#s-status').value = s.status || 'Active';
       $('#s-msg').textContent = 'Editing…';
     });
   });
@@ -224,6 +260,7 @@ async function loadEnrollments(){
     $('#e-subgroupId').value = en.subgroupId || '';
     $('#e-start').value = formatDateForInput(en.startDate || '');
     $('#e-end').value = formatDateForInput(en.endDate || '');
+    $('#e-status').value = en.status || 'Active';
     $('#e-msg').textContent='Editing…';
   }));
 }
@@ -350,7 +387,12 @@ function wireStudentEvents(){
         const c = state.admin.courses.find(cc=>cc.courseId===courseId);
         courseForStudent = c ? c.courseId : '';
       }
-      await api('admin.students.create',{studentName:name, email, phone, course:courseForStudent, unit, status:'Active'});
+      await api('admin.students.create',{
+  studentName:name, email, phone,
+  course:courseForStudent, unit,
+  assistantId: $('#s-assistant').value,
+  status: $('#s-status').value || 'Active'
+});
       $('#s-msg').textContent='Created ✅';
       $('#s-name').value=''; $('#s-email').value=''; $('#s-phone').value=''; $('#s-course').value=''; $('#s-unit').value='';
       await loadStudents(); fillStudentSelect($('#e-studentId')); await loadEnrollments();
@@ -363,12 +405,14 @@ function wireStudentEvents(){
     try{
       const id = $('#s-id').value;
       const patch = {
-        studentName: $('#s-name').value.trim(),
-        email: $('#s-email').value.trim(),
-        phone: $('#s-phone').value.trim(),
-        course: $('#s-course').value,
-        unit: $('#s-unit').value.trim()
-      };
+  studentName: $('#s-name').value.trim(),
+  email: $('#s-email').value.trim(),
+  phone: $('#s-phone').value.trim(),
+  course: $('#s-course').value,
+  unit: $('#s-unit').value.trim(),
+  assistantId: $('#s-assistant').value,
+  status: $('#s-status').value
+};
       await api('admin.students.update',{studentId:id, patch});
       $('#s-msg').textContent='Updated ✅';
       $('#s-titlebar').textContent='Create Student';
@@ -394,6 +438,9 @@ function wireStudentEvents(){
       row.style.display = text.includes(q)? '' : 'none';
     });
   });
+  $('#s-course')?.addEventListener('change', ()=>{
+  fillAssistantSelectForCourse($('#s-assistant'), $('#s-course').value);
+});
 }
 function wireCourseEvents(){
   $('#c-create')?.addEventListener('click', async()=>{
@@ -438,7 +485,10 @@ function wireEnrollEvents(){
       const studentId=$('#e-studentId').value, courseId=$('#e-courseId').value;
       const subgroupId=$('#e-subgroupId').value.trim(), startDate=$('#e-start').value, endDate=$('#e-end').value;
       if(!studentId || !courseId){ $('#e-msg').textContent='Student & Course required'; return; }
-      await api('admin.enroll.create',{studentId, courseId, subgroupId, startDate, endDate, status:'Active'});
+      await api('admin.enroll.create',{
+  studentId, courseId, subgroupId, startDate, endDate,
+  status: $('#e-status').value || 'Active'
+});
       $('#e-msg').textContent='Created ✅';
       $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';
       await loadEnrollments();
@@ -446,29 +496,31 @@ function wireEnrollEvents(){
     finally{ setLoading(btn,false,spin); }
   });
   $('#e-update')?.addEventListener('click', async()=>{
-    const btn = $('#e-update'); const spin = $('#e-update-spin');
-    setLoading(btn,true,spin);
-    try{
-      const id = $('#e-id').value;
-      const patch = {
-        studentId: $('#e-studentId').value,
-        courseId: $('#e-courseId').value,
-        subgroupId: $('#e-subgroupId').value.trim(),
-        startDate: $('#e-start').value,
-        endDate: $('#e-end').value,
-        status: $('#e-end').value ? 'Closed' : 'Active'
-      };
-      await api('admin.enroll.delete',{enrollmentId:id});
-      await api('admin.enroll.create', patch);
-      $('#e-msg').textContent='Updated ✅';
-      $('#e-titlebar').textContent='Create Enrollment';
-      $('#e-edit-hint').classList.add('hidden');
-      show($('#e-create')); hide($('#e-update')); hide($('#e-cancel'));
-      $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';
-      await loadEnrollments();
-    }catch(e){ $('#e-msg').textContent='Failed: '+e.message; }
-    finally{ setLoading(btn,false,spin); }
-  });
+  const btn = $('#e-update'); const spin = $('#e-update-spin');
+  setLoading(btn,true,spin);
+  try{
+    const id = $('#e-id').value;
+    const patch = {
+      studentId: $('#e-studentId').value,
+      courseId: $('#e-courseId').value,
+      subgroupId: $('#e-subgroupId').value.trim(),
+      startDate: $('#e-start').value,
+      endDate: $('#e-end').value,
+      status: $('#e-status').value || 'Active'
+    };
+    await api('admin.enroll.update', { enrollmentId:id, patch }); // ✅ correct shape
+
+    $('#e-msg').textContent='Updated ✅';
+    $('#e-titlebar').textContent='Create Enrollment';
+    $('#e-edit-hint').classList.add('hidden');
+    show($('#e-create')); hide($('#e-update')); hide($('#e-cancel'));
+    $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value='';
+    $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';
+    $('#e-status').value='Active';
+    await loadEnrollments();
+  }catch(e){ $('#e-msg').textContent='Failed: '+e.message; }
+  finally{ setLoading(btn,false,spin); }
+});
   $('#e-cancel')?.addEventListener('click', ()=>{
     $('#e-titlebar').textContent='Create Enrollment';
     $('#e-edit-hint').classList.add('hidden');
@@ -582,6 +634,7 @@ export async function init(){
     await Promise.all([loadBrandingUI(), loadCors(), loadCourses(), loadAssistants(), loadUsers(), loadStudents(), loadEnrollments(), loadRoles()]);
     fillCourseSelect($('#u-course'));
     fillCourseSelect($('#s-course'));
+    fillAssistantSelectForCourse($('#s-assistant'), $('#s-course').value);
     fillCourseSelect($('#e-courseId'));
     fillStudentSelect($('#e-studentId'));
 

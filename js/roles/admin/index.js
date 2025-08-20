@@ -180,30 +180,37 @@ async function loadCourses(){
 async function loadEnrollments(){
   const res = await api('admin.enroll.list', {});
   state.admin.enrollments = res.enrollments || [];
+
+  // Build rows WITHOUT the ID column
   const rows = state.admin.enrollments.map(en=>{
-    const course = state.admin.courses.find(c=>c.courseId===en.courseId);
+    const course  = state.admin.courses.find(c=>c.courseId===en.courseId);
     const student = state.admin.students.find(s=>s.studentId===en.studentId);
     return [
-      `<b>${en.enrollmentId}</b>`,
-      `${student?student.studentName:en.studentId}`,
-      `${course?course.name:en.courseId}`,
-      en.subgroupId||'',
+      `${student ? student.studentName : (en.studentId || '')}`,
+      `${course ? course.name : (en.courseId || '')}`,
+      en.subgroupId || '',
       `${formatDateDisplay(en.startDate, state.branding.dateFormat)} → ${formatDateDisplay(en.endDate, state.branding.dateFormat)}`,
-      en.status||'',
+      en.status || '',
       `<button data-id="${en.enrollmentId}" class="btn e-edit">Edit</button>
        <button data-id="${en.enrollmentId}" class="btn ghost e-del">Delete</button>`
     ];
   });
-  makeTable($('#e-table'), ['ID','Student','Course','Subgroup','Period','Status','Actions'], rows);
+
+  makeTable($('#e-table'), ['Student','Course','Subgroup','Period','Status','Actions'], rows);
+
+  // wire delete / edit (unchanged logic)
   $$('#e-table .e-del').forEach(b=> b.addEventListener('click', async e=>{
     const id = e.target.getAttribute('data-id');
     if (!confirm('Delete this enrollment?')) return;
     try{
       e.target.disabled = true;
-      await api('admin.enroll.delete',{enrollmentId:id}); $('#e-msg').textContent='Deleted ✅'; await loadEnrollments();
+      await api('admin.enroll.delete',{enrollmentId:id});
+      $('#e-msg').textContent='Deleted ✅';
+      await loadEnrollments();
     }catch(e2){ $('#e-msg').textContent='Failed: '+e2.message; }
     finally{ e.target.disabled = false; }
   }));
+
   $$('#e-table .e-edit').forEach(b=> b.addEventListener('click', ()=>{
     const id = b.getAttribute('data-id');
     const en = state.admin.enrollments.find(x=>x.enrollmentId===id);
@@ -467,6 +474,15 @@ function wireEnrollEvents(){
     $('#e-edit-hint').classList.add('hidden');
     show($('#e-create')); hide($('#e-update')); hide($('#e-cancel'));
     $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';
+  });
+  $('#e-refresh')?.addEventListener('click', async ()=>{
+    const btn = $('#e-refresh'); const spin = $('#e-refresh-spin');
+    setLoading(btn, true, spin);
+    try{
+      await loadEnrollments();
+    } finally {
+      setLoading(btn, false, spin);
+    }
   });
 }
 function wirePermsEvents(){

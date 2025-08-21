@@ -22,55 +22,83 @@ function assistantOpenNow(asg){
   return true;
 }
 
-function findStudentSubmission(assignmentId, studentId){
-  const arr = (state.assistant && Array.isArray(state.assistant.submissions))
-    ? state.assistant.submissions
-    : [];
-  return arr.find(s => s.assignmentId === assignmentId && s.studentId === studentId) || null;
+// --- Student submissions placeholder (infra-ready) ---
+function findStudentSubmission(asg, studentId){
+  // Return null for now (no student-submission table yet).
+  // Later, plug in: lookup by { assignmentId: asg.assignmentId, studentId }
+  // e.g., from state.assistant.submissions
+  return null;
+}
+
+function studentSubmissionStatus(asg, submission){
+  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  if (submission){
+    const t = parseMaybeISO(submission.submittedAtISO || submission.createdAt || submission.updatedAt);
+    const late = dl && t && t > dl;
+    return late ? 'late' : 'submitted';
+  }
+  if (dl && new Date() > dl) return 'missing';
+  return 'pending';
+}
+
+/**
+ * Checked column rules:
+ * - If a check record exists, mirror its status (checked/missing/redo/...).
+ * - If NO check record:
+ *    • "Unchecked" if there WAS a student submission and the assistant deadline has passed.
+ *    • Otherwise "Pending".
+ */
+function checkedStatus(asg, studentId){
+  const c = (state.assistant?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===studentId);
+  if (c){
+    const s = String(c.status||'').trim().toLowerCase();
+    if (s==='checked') return 'checked';
+    if (s==='missing') return 'missing';
+    if (s==='redo')    return 'redo';
+    return s || 'checked';
+  }
+  const submission = findStudentSubmission(asg, studentId); // null for now
+  const asstDL = parseMaybeISO(asg.assistantDeadline);
+  const deadlinePassed = !!(asstDL && new Date() > asstDL);
+  if (submission && deadlinePassed) return 'unchecked';
+  return 'pending';
 }
 
 function buildPerStudentAssignmentsTable(st){
   const a = state.assistant;
-  // Only assignments from the student's course
   const asgs = a.assignments.filter(x => (x.course||'') === (st.course||''));
-  const checks = a.checks.filter(c => c.studentId === st.studentId);
-  const byAsg = new Map(checks.map(c => [c.assignmentId, c]));
 
   let rows = '';
   asgs.forEach(asg => {
-    const ck = byAsg.get(asg.assignmentId) || null;
-
-    // Student Submission status (placeholder until real student uploads are wired)
-    const submission = studentStatusFor(asg, ck); // pending / submitted / submitted late / missing
-    const submissionBadge = badgeHtmlByKey(submission.key);
-
-    // NEW: Student Submission File (will use real student uploads later)
-    const sub = findStudentSubmission(asg.assignmentId, st.studentId);
-    const submissionFile = sub?.fileUrl
-      ? `<a href="${sub.fileUrl}" target="_blank" rel="noopener">file</a>`
+    // Student submission (infra-ready)
+    const submission = findStudentSubmission(asg, st.studentId); // null for now
+    const subKey = studentSubmissionStatus(asg, submission);
+    const subFile = submission?.fileUrl
+      ? `<a href="${submission.fileUrl}" target="_blank" rel="noopener">file</a>`
       : '<span class="muted">—</span>';
 
-    // Checked (assistant’s check status)
-    const checkedBadge = ck ? checkBadgeFromStatus(ck.status) : '<span class="muted">—</span>';
+    // Checked column (new Pending/Unchecked logic)
+    const chkKey = checkedStatus(asg, st.studentId);
 
-    // Checked File (assistant-uploaded file tied to the check)
-    const checkedFile = ck?.fileUrl
-      ? `<a href="${ck.fileUrl}" target="_blank" rel="noopener">file</a>`
+    // Assistant check record (if any) for grade/comment/file
+    const check = (a.checks || []).find(c => c.assignmentId===asg.assignmentId && c.studentId===st.studentId) || null;
+    const grade = check?.grade || '<span class="muted">—</span>';
+    const comment = check?.comment ? String(check.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>';
+    const checkFile = check?.fileUrl
+      ? `<a href="${check.fileUrl}" target="_blank" rel="noopener">file</a>`
       : '<span class="muted">—</span>';
 
-    const grade = ck?.grade || '';
-    const comment = ck?.comment || '';
-    const stuDL = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding.dateFormat) || '<span class="muted">—</span>';
+    const stuDL  = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding.dateFormat) || '<span class="muted">—</span>';
 
     rows += `
       <tr>
         <td>${asg.title}</td>
-        <td>${submissionBadge}</td>
-        <td>${submissionFile}</td>
-        <td>${checkedBadge}</td>
-        <td>${grade || '<span class="muted">—</span>'}</td>
-        <td>${comment ? comment.replace(/</g,'&lt;') : '<span class="muted">—</span>'}</td>
-        <td>${checkedFile}</td>
+        <td>${badgeHtmlByKey(subKey)}</td>
+        <td>${subFile}</td>
+        <td>${badgeHtmlByKey(chkKey)}</td>
+        <td>${grade}</td>
+        <td>${comment}</td>
+        <td>${checkFile}</td>
         <td>${stuDL}</td>
       </tr>`;
   });
@@ -82,7 +110,7 @@ function buildPerStudentAssignmentsTable(st){
           <tr>
             <th>Assignment</th>
             <th>Submission Status</th>
-            <th>Student Submission File</th> <!-- NEW, before Checked -->
+            <th>Student Submission File</th>
             <th>Checking Status</th>
             <th>Grade</th>
             <th>Comment</th>
@@ -94,7 +122,6 @@ function buildPerStudentAssignmentsTable(st){
       </table>
     </div>`;
 }
-
 function studentStatusFor(asg, check){
   const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
   if (check && String(check.status||'').trim()){

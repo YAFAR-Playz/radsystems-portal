@@ -9,6 +9,11 @@ const root = document.getElementById('app-root'); // must exist in public/index.
 
 /** Map of all tab panes per role => relative partial paths */
 const ROLE_TABS = {
+  student: [
+    ['s-home',        'views/roles/student/tabs/home.html'],
+    ['s-assignments', 'views/roles/student/tabs/assignments.html'],
+    ['s-profile',     'views/roles/student/tabs/profile.html'],
+  ],
   assistant: [
     ['a-home',        'views/roles/assistant/tabs/home.html'],
     ['a-students',    'views/roles/assistant/tabs/students.html'],
@@ -276,11 +281,13 @@ async function showLogin(){
     let role = 'assistant';
     if (email.includes('admin')) role='admin';
     else if (email.includes('head')) role='head';
+    else if (email.includes('student')) role='student';
 
     state.user = {
       admin:{ userId:'ad-1', role:'admin', displayName:'Admin User', course:'' },
       head:{ userId:'h-1', role:'head', displayName:'Mr. Hany', course:'Math' },
-      assistant:{ userId:'a-1', role:'assistant', displayName:'Sara Ali', course:'Math' }
+      assistant:{ userId:'a-1', role:'assistant', displayName:'Sara Ali', course:'Math' },
+      student:{ userId:'st-1', role:'student', displayName:'Omar Hassan', course:'Math', unit:'U1', email:'omar@school.edu' }
     }[role];
 
     setChip();

@@ -26,6 +26,149 @@ async function loadTabHtml(tabId, path){
 }
 
 // ===================== helpers ===================== //
+
+// ---------- Students tab helpers ----------
+function _assistantNameByIdMap(){
+  const map = new Map();
+  (state.head?.assistants || []).forEach(a => map.set(a.userId, a.displayName || a.userId));
+  return map;
+}
+function _latestCheckForStudent(studentId){
+  const checks = (state.head?.checks || []).filter(c => c.studentId === studentId);
+  if (!checks.length) return null;
+  // pick most recent by updatedAt then createdAt
+  const toTime = c => new Date(c.updatedAt || c.createdAt || 0).getTime();
+  checks.sort((a,b)=> toTime(b) - toTime(a));
+  return checks[0];
+}
+function _recentChecks(studentId, limit=3){
+  const checks = (state.head?.checks || []).filter(c => c.studentId === studentId);
+  const toTime = c => new Date(c.updatedAt || c.createdAt || 0).getTime();
+  checks.sort((a,b)=> toTime(b) - toTime(a));
+  return checks.slice(0, limit);
+}
+function _fmtDateShort(iso){
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return String(iso);
+  const m = (d.getMonth()+1).toString().padStart(2,'0');
+  const day = d.getDate().toString().padStart(2,'0');
+  return `${m}/${day}`;
+}
+
+// ---------- Students tab renderer ----------
+function renderStudentsTab(){
+  const byAsst = _assistantNameByIdMap();
+  const tbody = document.querySelector('#h-students-table tbody');
+  if (!tbody) return;
+
+  const q = (document.querySelector('#h-stu-search')?.value || '').trim().toLowerCase();
+
+  // filter by name/email (if search)
+  const all = (state.head?.students || []).filter(s=>{
+    if (!q) return true;
+    return (s.studentName||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q);
+  });
+
+  tbody.innerHTML = '';
+
+  all.forEach(s=>{
+    const latest = _latestCheckForStudent(s.studentId);
+    const status = latest?.status || '—';
+    const grade  = latest?.grade || '—';
+    const updated= latest ? _fmtDateShort(latest.updatedAt || latest.createdAt) : '—';
+
+    // main row
+    const tr = document.createElement('tr');
+    tr.className = 'row-toggle';
+    tr.setAttribute('data-student-id', s.studentId);
+    tr.innerHTML = `
+      <td class="chev">▸</td>
+      <td><b>${s.studentName || '—'}</b><div class="muted">${s.email || ''}</div></td>
+      <td>${byAsst.get(s.assistantId) || '—'}</td>
+      <td>${s.course || '—'}</td>
+      <td>${s.unit || '—'}</td>
+      <td>${status
+            ? (status.toLowerCase()==='checked' ? '<span class="badge ok">Checked</span>' :
+               status.toLowerCase()==='missing' ? '<span class="badge warn">Missing</span>' :
+               status.toLowerCase()==='redo'    ? '<span class="badge danger">Redo</span>' :
+               `<span class="badge">${status}</span>`)
+            : '—'}</td>
+      <td>${grade ? grade : '—'}</td>
+      <td>${updated}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // details row (hidden by default)
+    const details = document.createElement('tr');
+    details.className = 'details-row hidden';
+    details.innerHTML = `
+      <td></td>
+      <td colspan="7">
+        <div class="details card">
+          <div class="muted" style="margin-bottom:8px">Recent checks</div>
+          <div class="table-wrapper">
+            <table class="table slim">
+              <thead>
+                <tr>
+                  <th>Assignment</th>
+                  <th>Status</th>
+                  <th>Grade</th>
+                  <th>Comment</th>
+                  <th>File</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${_recentChecks(s.studentId, 3).map(c=>{
+                  const asg = (state.head?.assignments || []).find(a=> a.assignmentId === c.assignmentId);
+                  const st  = String(c.status||'');
+                  const badge =
+                    st.toLowerCase()==='checked' ? '<span class="badge ok">Checked</span>' :
+                    st.toLowerCase()==='missing' ? '<span class="badge warn">Missing</span>' :
+                    st.toLowerCase()==='redo'    ? '<span class="badge danger">Redo</span>' :
+                    `<span class="badge">${st||'—'}</span>`;
+                  const file = c.fileUrl ? `<a href="${c.fileUrl}" target="_blank" rel="noopener">file</a>` : '<span class="muted">none</span>';
+                  const dStr = _fmtDateShort(c.updatedAt || c.createdAt);
+                  return `
+                    <tr>
+                      <td><b>${asg?.title || '—'}</b><div class="muted">${asg?.unit || ''}</div></td>
+                      <td>${badge}</td>
+                      <td>${c.grade || '—'}</td>
+                      <td>${c.comment || ''}</td>
+                      <td>${file}</td>
+                      <td>${dStr}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(details);
+  });
+
+  // Wire toggles (click main row to expand/collapse its details row)
+  tbody.querySelectorAll('tr.row-toggle').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const next = row.nextElementSibling;
+      const chev = row.querySelector('.chev');
+      if (!next || !next.classList.contains('details-row')) return;
+      next.classList.toggle('hidden');
+      if (chev) chev.classList.toggle('open');
+    });
+  });
+
+  // Wire search (once)
+  const search = document.querySelector('#h-stu-search');
+  if (search && !search._wired){
+    search._wired = true;
+    search.addEventListener('input', ()=> renderStudentsTab());
+  }
+}
+
 function assistantOpenNow(asg){
   const open = (asg.assistantOpen===true || String(asg.assistantOpen)==='true');
   if (!open) return false;
@@ -299,6 +442,7 @@ function renderHead(){
   }
   // charts (real data)
   renderHeadAnalytics();
+  renderStudentsTab(); // ADDED
 }
   
 

@@ -98,6 +98,10 @@ function applyAssignmentPolicyToForm(){
 }
 
 function refreshAssistantStudentLists(){
+  const curLine = $('#a-file-current');
+  if (curLine) curLine.textContent = '';
+  const finput = $('#a-file');
+  if (finput) { finput.value = ''; delete finput.dataset.currentUrl; }
   const a = state.assistant;
   const assignmentId = $('#a-assignmentSelect').value;
   const sSel = $('#a-studentSelect'); sSel.innerHTML='';
@@ -139,6 +143,17 @@ function refreshAssistantStudentLists(){
       $('#a-status').value = rec.status || 'Checked';
       $('#a-grade').value = rec.grade || '';
       $('#a-comment').value = rec.comment || '';
+      const finput = $('#a-file');
+      if (finput) {
+        finput.value = ''; // cannot prefill for security
+        finput.dataset.currentUrl = rec.fileUrl || '';
+      }
+      const cur = $('#a-file-current');
+      if (cur) {
+        cur.innerHTML = rec.fileUrl
+          ? `Current: <a href="${rec.fileUrl}" target="_blank" rel="noopener">file</a>`
+          : `<span class="muted">No file uploaded</span>`;
+      }
       if (![...$('#a-studentSelect').options].some(o=>o.value===studentId)){
         const st = state.assistant.students.find(s=> s.studentId===studentId);
         const opt=document.createElement('option');
@@ -185,6 +200,8 @@ function wireEvents(){
   $('#a-cancel')?.addEventListener('click', ()=>{
     $('#a-edit-hint').classList.add('hidden'); $('#a-cancel').classList.add('hidden'); $('#a-submit-msg').textContent='';
     $('#a-status').value = 'Checked'; $('#a-grade').value=''; $('#a-comment').value='';
+    if ($('#a-file')) { $('#a-file').value=''; delete $('#a-file').dataset.currentUrl; }
+    const curLine = $('#a-file-current'); if (curLine) curLine.textContent='';
   });
 
   // Save (Check/Edit) — with loading + dedupe + correct success message
@@ -196,7 +213,6 @@ function wireEvents(){
     const grade = $('#a-grade').value.trim();
     const comment = $('#a-comment').value.trim();
     const fileInput = $('#a-file');
-    let fileUrl = '';
 
     const msg = $('#a-submit-msg');
 
@@ -211,19 +227,24 @@ function wireEvents(){
       msg.textContent='Grade not allowed for this status/assignment.'; return;
     }
 
-    if(fileInput?.files && fileInput.files[0]){
+    // Build payload; only include fileUrl if user picked a new file
+    const payload = { assignmentId, studentId, status, grade, comment };
+    if (fileInput?.files && fileInput.files[0]) {
       const up = await uploadFileBase64(fileInput.files[0], { action:'uploadFile', studentId, assignmentId });
-      fileUrl = up.fileUrl || '';
+      if (up?.fileUrl) payload.fileUrl = up.fileUrl;
     }
-
-    const r = await api('submitCheck',{ assignmentId, studentId, status, grade, comment, fileUrl });
+    const r = await api('submitCheck', payload);
 
     // Prefer "Created" over "Updated" to stop the flicker
     if (r?.created)      msg.textContent = 'Created ✅';
     else if (r?.updated) msg.textContent = 'Updated ✏️';
     else                 msg.textContent = 'Saved ✅';
 
-    if ($('#a-file')) $('#a-file').value='';
+    if ($('#a-file')) {
+      $('#a-file').value='';
+      delete $('#a-file').dataset.currentUrl;
+    }
+    const curLine = $('#a-file-current'); if (curLine) curLine.textContent='';
     $('#a-edit-hint')?.classList.add('hidden');
     $('#a-cancel')?.classList.add('hidden');
 

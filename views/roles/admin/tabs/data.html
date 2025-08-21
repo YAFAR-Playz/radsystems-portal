@@ -30,4 +30,44 @@
     </div>
     <div class="muted" style="margin-top:8px">Downloads CSV text as a file.</div>
   </div>
+  <div class="card">
+  <h3>Sync from Google Sheet</h3>
+  <div class="stack">
+    <div class="field"><label>Type</label>
+      <!-- reuse same IDs/values as CSV import for consistency -->
+      <select id="gs-type">
+        <option value="users">Users (headers: email,role,displayName,course)</option>
+        <option value="students">Students (headers: studentName,email,phone,course,unit,assistantId,status)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Google Sheet URL (or ID)</label>
+      <input id="gs-url" placeholder="https://docs.google.com/spreadsheets/d/… or 1AbCDeFghiJKL…" />
+    </div>
+
+    <div class="row wrap" style="gap:12px">
+      <div class="field" style="flex:1;min-width:220px">
+        <label>Tab name (optional)</label>
+        <input id="gs-tab" placeholder="e.g., Sheet1">
+      </div>
+      <div class="field" style="flex:1;min-width:220px">
+        <label>Range (optional)</label>
+        <input id="gs-range" placeholder="e.g., A1:G (leave blank to use used range)">
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="gs-sync" class="btn primary">
+        <span class="spinner hidden" id="gs-sync-spin"></span><span>Sync Now</span>
+      </button>
+      <div id="gs-msg" class="muted"></div>
+    </div>
+
+    <div class="muted" style="font-size:12px">
+      The first row must be the header and must match the CSV template headers shown above.
+      Data is <b>upserted</b> by email (existing rows are updated, new rows are created).
+    </div>
+  </div>
+</div>
 </div>

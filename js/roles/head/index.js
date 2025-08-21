@@ -56,6 +56,117 @@ function _fmtDateShort(iso){
   return `${m}/${day}`;
 }
 
+// --- HEAD Students: shared helpers (mirror Assistant) ---
+function badgeHtmlByKey(key, fallback=''){
+  if (key==='submitted') return '<span class="badge ok">Submitted</span>';
+  if (key==='late')      return '<span class="badge warn">Submitted Late</span>';
+  if (key==='missing')   return '<span class="badge danger">Missing</span>';
+  if (key==='pending')   return '<span class="badge">Pending</span>';
+  if (key==='unchecked') return '<span class="badge warn">Unchecked</span>';
+  if (key==='checked')   return '<span class="badge ok">Checked</span>';
+  if (key==='redo')      return '<span class="badge danger">Redo</span>';
+  return fallback || '<span class="badge">—</span>';
+}
+
+// Placeholder for future student submissions table.
+// For now returns null (no submission). When you wire the real table, return
+// { fileUrl, submittedAtISO } if the student uploaded a submission.
+function findStudentSubmission(asg, studentId){
+  // e.g., if later you store in state.head.submissions:
+  // const s = (state.head?.submissions || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===studentId);
+  // return s || null;
+  return null;
+}
+
+function studentSubmissionStatus(asg, submission){
+  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  if (submission){
+    const t = parseMaybeISO(submission.submittedAtISO || submission.createdAt || submission.updatedAt);
+    const late = dl && t && t > dl;
+    return late ? 'late' : 'submitted';
+  }
+  if (dl && new Date() > dl) return 'missing';
+  return 'pending';
+}
+
+function checkedStatus(asg, studentId){
+  // If we have a check, mirror its status; otherwise:
+  const c = (state.head?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===studentId);
+  if (c){
+    const s = String(c.status||'').trim().toLowerCase();
+    if (s==='checked') return 'checked';
+    if (s==='missing') return 'missing';
+    if (s==='redo')    return 'redo';
+    return s || 'checked';
+  }
+  // No check record: Pending vs Unchecked (deadline passed and there WAS a submission)
+  const submission = findStudentSubmission(asg, studentId);
+  const asstDL = parseMaybeISO(asg.assistantDeadline);
+  const deadlinePassed = !!(asstDL && new Date() > asstDL);
+  if (submission && deadlinePassed) return 'unchecked';
+  return 'pending';
+}
+
+// Builds the expanded table per student (assignment rows)
+function buildPerStudentAssignmentsTable_Head(st){
+  const a = state.head;
+  const asgs = (a?.assignments || []).filter(x => (x.course||'') === (st.course||''));
+
+  let rows = '';
+  asgs.forEach(asg=>{
+    const submission = findStudentSubmission(asg, st.studentId); // null for now (infra ready)
+    const subKey = studentSubmissionStatus(asg, submission);
+    const subFile = submission?.fileUrl
+      ? `<a href="${submission.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
+
+    // Checked cell: shows Checked/Redo/Missing OR Pending/Unchecked (per rules)
+    const chkKey = checkedStatus(asg, st.studentId);
+    const check = (state.head?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===st.studentId) || null;
+    const grade = check?.grade || '<span class="muted">—</span>';
+    const comment = check?.comment ? String(check.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>';
+    const checkFile = check?.fileUrl
+      ? `<a href="${check.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
+
+    const stuDL  = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding.dateFormat) || '<span class="muted">—</span>';
+    const asstDL = formatDateDisplay(asg.assistantDeadline || '', state.branding.dateFormat) || '<span class="muted">—</span>';
+
+    rows += `
+      <tr>
+        <td>${asg.title}</td>
+        <td>${badgeHtmlByKey(subKey)}</td>
+        <td>${subFile}</td>
+        <td>${badgeHtmlByKey(chkKey)}</td>
+        <td>${grade}</td>
+        <td>${comment}</td>
+        <td>${checkFile}</td>
+        <td>${stuDL}</td>
+        <td>${asstDL}</td>
+      </tr>`;
+  });
+
+  return `
+    <div class="table-wrapper" style="margin:8px 0">
+      <table class="table compact">
+        <thead>
+          <tr>
+            <th>Assignment</th>
+            <th>Submission Status</th>
+            <th>Student Submission File</th>
+            <th>Checking Status</th>
+            <th>Grade</th>
+            <th>Comment</th>
+            <th>Checked File</th>
+            <th>Student DL</th>
+            <th>Assistant DL</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="9"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
 // ---------- Students tab renderer ----------
 function renderStudentsTab(){
   const byAsst = _assistantNameByIdMap();
@@ -64,108 +175,54 @@ function renderStudentsTab(){
 
   const q = (document.querySelector('#h-stu-search')?.value || '').trim().toLowerCase();
 
-  // filter by name/email (if search)
-  const all = (state.head?.students || []).filter(s=>{
-    if (!q) return true;
-    return (s.studentName||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q);
-  });
+  let students = (state.head?.students || []).slice();
+  if (q) {
+    students = students.filter(s =>
+      (s.studentName||'').toLowerCase().includes(q) ||
+      (s.email||'').toLowerCase().includes(q)
+    );
+  }
 
   tbody.innerHTML = '';
 
-  all.forEach(s=>{
-    const latest = _latestCheckForStudent(s.studentId);
-    const status = latest?.status || '—';
-    const grade  = latest?.grade || '—';
-    const updated= latest ? _fmtDateShort(latest.updatedAt || latest.createdAt) : '—';
-
-    // main row
+  students.forEach(st=>{
     const tr = document.createElement('tr');
-    tr.className = 'row-toggle';
-    tr.setAttribute('data-student-id', s.studentId);
     tr.innerHTML = `
-      <td class="chev">▸</td>
-      <td><b>${s.studentName || '—'}</b><div class="muted">${s.email || ''}</div></td>
-      <td>${byAsst.get(s.assistantId) || '—'}</td>
-      <td>${s.course || '—'}</td>
-      <td>${s.unit || '—'}</td>
-      <td>${status
-            ? (status.toLowerCase()==='checked' ? '<span class="badge ok">Checked</span>' :
-               status.toLowerCase()==='missing' ? '<span class="badge warn">Missing</span>' :
-               status.toLowerCase()==='redo'    ? '<span class="badge danger">Redo</span>' :
-               `<span class="badge">${status}</span>`)
-            : '—'}</td>
-      <td>${grade ? grade : '—'}</td>
-      <td>${updated}</td>
+      <td><button class="btn ghost h-roster-expand" data-id="${st.studentId}" aria-expanded="false" title="Expand">►</button></td>
+      <td><b>${st.studentName || '—'}</b></td>
+      <td>${st.email || ''}</td>
+      <td>${byAsst.get(st.assistantId) || '—'}</td>
+      <td>${st.course || ''}</td>
+      <td>${st.unit || ''}</td>
+      <td><span class="badge ${String(st.status||'Active').toLowerCase()==='active' ? 'ok' : 'warn'}">${st.status||'Active'}</span></td>
     `;
     tbody.appendChild(tr);
 
-    // details row (hidden by default)
-    const details = document.createElement('tr');
-    details.className = 'details-row hidden';
-    details.innerHTML = `
-      <td></td>
-      <td colspan="7">
-        <div class="details card">
-          <div class="muted" style="margin-bottom:8px">Recent checks</div>
-          <div class="table-wrapper">
-            <table class="table slim">
-              <thead>
-                <tr>
-                  <th>Assignment</th>
-                  <th>Status</th>
-                  <th>Grade</th>
-                  <th>Comment</th>
-                  <th>File</th>
-                  <th>Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${_recentChecks(s.studentId, 3).map(c=>{
-                  const asg = (state.head?.assignments || []).find(a=> a.assignmentId === c.assignmentId);
-                  const st  = String(c.status||'');
-                  const badge =
-                    st.toLowerCase()==='checked' ? '<span class="badge ok">Checked</span>' :
-                    st.toLowerCase()==='missing' ? '<span class="badge warn">Missing</span>' :
-                    st.toLowerCase()==='redo'    ? '<span class="badge danger">Redo</span>' :
-                    `<span class="badge">${st||'—'}</span>`;
-                  const file = c.fileUrl ? `<a href="${c.fileUrl}" target="_blank" rel="noopener">file</a>` : '<span class="muted">none</span>';
-                  const dStr = _fmtDateShort(c.updatedAt || c.createdAt);
-                  return `
-                    <tr>
-                      <td><b>${asg?.title || '—'}</b><div class="muted">${asg?.unit || ''}</div></td>
-                      <td>${badge}</td>
-                      <td>${c.grade || '—'}</td>
-                      <td>${c.comment || ''}</td>
-                      <td>${file}</td>
-                      <td>${dStr}</td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(details);
+    const tr2 = document.createElement('tr');
+    tr2.className = 'h-roster-expand-row hidden';
+    tr2.dataset.for = st.studentId;
+    tr2.innerHTML = `<td colspan="7">${buildPerStudentAssignmentsTable_Head(st)}</td>`;
+    tbody.appendChild(tr2);
   });
 
-  // Wire toggles (click main row to expand/collapse its details row)
-  tbody.querySelectorAll('tr.row-toggle').forEach(row=>{
-    row.addEventListener('click', ()=>{
-      const next = row.nextElementSibling;
-      const chev = row.querySelector('.chev');
-      if (!next || !next.classList.contains('details-row')) return;
-      next.classList.toggle('hidden');
-      if (chev) chev.classList.toggle('open');
-    });
-  });
+  // Event delegation: toggle expanders
+  tbody.onclick = (e)=>{
+    const btn = e.target.closest('.h-roster-expand');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const row = tbody.querySelector(`tr.h-roster-expand-row[data-for="${id}"]`);
+    if (!row) return;
+    const isHidden = row.classList.contains('hidden');
+    row.classList.toggle('hidden', !isHidden);
+    btn.textContent = isHidden ? '▼' : '►';
+    btn.setAttribute('aria-expanded', String(isHidden));
+  };
 
-  // Wire search (once)
+  // Wire search (only once)
   const search = document.querySelector('#h-stu-search');
   if (search && !search._wired){
     search._wired = true;
-    search.addEventListener('input', ()=> renderStudentsTab());
+    search.addEventListener('input', renderStudentsTab);
   }
 }
 

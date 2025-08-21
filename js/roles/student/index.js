@@ -1,53 +1,19 @@
 // js/roles/student/index.js
 import { wireTabs } from '../../core/tabs.js';
-import { $, $$, show, hide, showPageLoader, bindAsyncClick } from '../../core/dom.js';
+import { $, $$, showPageLoader, setLoading } from '../../core/dom.js';
 import { api, uploadFileBase64 } from '../../core/api.js';
 import { state } from '../../core/state.js';
-import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../../core/date.js';
+import { formatDateDisplay, parseMaybeISO } from '../../core/date.js';
 
-// ===================== partial loader ===================== //
 async function loadTabHtml(tabId, path){
   const host = document.getElementById(tabId);
-  if (!host) return;
-  if (!host.dataset.loaded){
+  if (!host?.dataset.loaded){
     host.innerHTML = await (await fetch(path)).text();
     host.dataset.loaded = '1';
   }
 }
 
-// ===================== helpers ===================== //
-function studentOpenNow(asg){
-  const open = (asg.studentOpen === true || String(asg.studentOpen) === 'true');
-  if (!open) return false;
-  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
-  if (dl && new Date() > dl) return false;
-  return true;
-}
-function assistantOpenNow(asg){
-  const open = (asg.assistantOpen===true || String(asg.assistantOpen)==='true');
-  if (!open) return false;
-  if (asg.assistantDeadline){
-    const dl = parseMaybeISO(asg.assistantDeadline);
-    if (dl && new Date() > dl) return false;
-  }
-  return true;
-}
-
-// Show submission status from the student's perspective
-// submission = { fileUrl, submittedAtISO }
-// checks[] are assistant feedback records for this student/assignment
-function submissionStatus(asg, submission){
-  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
-  if (submission){
-    const t = parseMaybeISO(submission.submittedAtISO || submission.createdAt || submission.updatedAt);
-    const late = dl && t && t > dl;
-    return late ? 'late' : 'submitted';
-  }
-  if (dl && new Date() > dl) return 'missing';
-  return 'pending';
-}
-
-// Mirrors style in other roles
+// ------------ helpers ------------
 function badgeHtmlByKey(key, fallback=''){
   const k = String(key||'').toLowerCase();
   if (k==='submitted') return '<span class="badge ok">Submitted</span>';
@@ -56,244 +22,230 @@ function badgeHtmlByKey(key, fallback=''){
   if (k==='pending')   return '<span class="badge info">Pending</span>';
   if (k==='checked')   return '<span class="badge ok">Checked</span>';
   if (k==='redo')      return '<span class="badge warn">Redo</span>';
-  if (k==='unchecked') return '<span class="badge danger">Unchecked</span>'; // for visibility if shown
   if (k==='open')      return '<span class="badge ok">Open</span>';
   if (k==='closed')    return '<span class="badge warn">Closed</span>';
   if (k==='-')         return '<span class="muted">—</span>';
   return fallback || '<span class="badge">—</span>';
 }
 
-// ===================== data ===================== //
-// state.student shape (server): { me:{studentId, name, course}, assignments[], submissions[], checks[] }
-async function loadStudentData(demo=false){
-  if (demo){
-    state.student = state.student || {};
-    state.student.me = { studentId:'s1', studentName:'Omar Hassan', course:'Math' };
-    state.student.assignments = [
-      { assignmentId:'as1', title:'Homework 5', course:'Math', unit:'U1',
-        requireGrade:true, studentOpen:true, assistantOpen:true,
-        studentDeadline:'2025-09-10', assistantDeadline:'2025-09-12', studentFileUrl:'' },
-      { assignmentId:'as2', title:'Quiz 2 Review', course:'Math', unit:'U2',
-        requireGrade:false, studentOpen:true, assistantOpen:true,
-        studentDeadline:'2025-09-15', assistantDeadline:'', studentFileUrl:'' },
-    ];
-    // One submitted, one not
-    state.student.submissions = [
-      { assignmentId:'as1', studentId:'s1', fileUrl:'', submittedAtISO:new Date(Date.now()-1*86400e3).toISOString() }
-    ];
-    // Assistant feedback on as1
-    state.student.checks = [
-      { checkId:'c1', assignmentId:'as1', studentId:'s1', status:'Checked', grade:'18/20', comment:'Great work', fileUrl:'' }
-    ];
-    return;
-  }
-  const res = await api('getStudentDashboard',{}); // <- implement server
-  Object.assign(state.student, res);
+function studentOpenNow(asg){
+  const open = (asg.studentOpen === true || String(asg.studentOpen)==='true');
+  if (!open) return false;
+  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  if (dl && new Date() > dl) return false;
+  return true;
 }
 
 function mySubmissionFor(asg){
-  return (state.student?.submissions || []).find(s => s.assignmentId===asg.assignmentId) || null;
+  // Placeholder: when wired, search state.student.submissions
+  // return { fileUrl, submittedAtISO } if exists
+  if (!Array.isArray(state.student?.submissions)) return null;
+  return state.student.submissions.find(s => s.assignmentId===asg.assignmentId) || null;
 }
-function myCheckFor(asg){
-  return (state.student?.checks || []).find(c => c.assignmentId===asg.assignmentId) || null;
-}
 
-// ===================== renderers ===================== //
-function renderHome(){
-  const st = state.student || { assignments:[], submissions:[], checks:[] };
-  const asgs = st.assignments || [];
-  const subs = st.submissions || [];
-  const checks = st.checks || [];
-
-  const openCount = asgs.filter(studentOpenNow).length;
-  const submittedThisWeek = subs.filter(s=>{
-    const t = new Date(s.submittedAtISO || s.createdAt || 0).getTime();
-    return Date.now() - t < 7*86400e3;
-  }).length;
-  const missingNow = asgs.filter(a=>{
-    const dl = parseMaybeISO(a.studentDeadline || a.deadline);
-    const hasSub = !!mySubmissionFor(a);
-    return (dl && new Date() > dl && !hasSub);
-  }).length;
-
-  $('#s-kpi-open')?.replaceChildren(document.createTextNode(openCount));
-  $('#s-kpi-week')?.replaceChildren(document.createTextNode(submittedThisWeek));
-  $('#s-kpi-missing')?.replaceChildren(document.createTextNode(missingNow));
-
-  // Recent feedback list (optional, if a container exists)
-  const fb = $('#s-recent-feedback');
-  if (fb){
-    fb.innerHTML = '';
-    // sort by recency
-    const recent = [...checks].sort((a,b)=>{
-      const ta = new Date(a.updatedAt || a.createdAt || 0).getTime();
-      const tb = new Date(b.updatedAt || b.createdAt || 0).getTime();
-      return tb - ta;
-    }).slice(0,5);
-    if (!recent.length){
-      fb.innerHTML = '<div class="muted">No feedback yet.</div>';
-    } else {
-      recent.forEach(c=>{
-        const asg = asgs.find(a=>a.assignmentId===c.assignmentId);
-        const li = document.createElement('div');
-        li.className='item';
-        li.innerHTML = `<b>${asg?asg.title:c.assignmentId}</b>
-                        <div>${badgeHtmlByKey((c.status||'').toLowerCase())} · ${c.grade||'—'}</div>
-                        <div class="muted">${c.comment||''}</div>`;
-        fb.appendChild(li);
-      });
-    }
+function mySubmissionStatus(asg){
+  const sub = mySubmissionFor(asg);
+  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  if (sub){
+    const t = parseMaybeISO(sub.submittedAtISO || sub.createdAt || sub.updatedAt);
+    const late = dl && t && t > dl;
+    return late ? 'late' : 'submitted';
   }
+  if (dl && new Date() > dl) return 'missing';
+  return 'pending';
 }
 
-// Assignments list (read + submit inline)
+function feedbackFor(asg){
+  // Assistant check visible to student
+  if (!Array.isArray(state.student?.checks)) return null;
+  return state.student.checks.find(c => c.assignmentId===asg.assignmentId) || null;
+}
+
+// ------------ renderers ------------
+function renderHome(){
+  const s = state.student || { assignments: [], submissions: [], checks: [] };
+  const open = s.assignments.filter(studentOpenNow);
+
+  // KPIs
+  const dueThisWeek = open.filter(a=>{
+    const dl = parseMaybeISO(a.studentDeadline || a.deadline);
+    if (!dl) return false;
+    const now = new Date();
+    const in7 = new Date(); in7.setDate(now.getDate()+7);
+    return dl >= now && dl <= in7;
+  }).length;
+
+  const submittedCount = s.assignments.filter(a => mySubmissionStatus(a)==='submitted' || mySubmissionStatus(a)==='late').length;
+
+  $('#s-kpi-open')?.append(document.createTextNode(String(open.length)));
+  $('#s-kpi-due')?.append(document.createTextNode(String(dueThisWeek)));
+  $('#s-kpi-submitted')?.append(document.createTextNode(String(submittedCount)));
+
+  // Upcoming table
+  const tbody = $('#s-home-upcoming');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  open
+    .slice() // copy
+    .sort((a,b)=>{
+      const da = parseMaybeISO(a.studentDeadline||a.deadline)?.getTime() ?? 0;
+      const db = parseMaybeISO(b.studentDeadline||b.deadline)?.getTime() ?? 0;
+      return da - db;
+    })
+    .forEach(asg=>{
+      const due = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat);
+      const statusKey = mySubmissionStatus(asg);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><b>${asg.title}</b></td>
+        <td>${asg.course||''}</td>
+        <td>${asg.unit||''}</td>
+        <td>${due||''}</td>
+        <td>${badgeHtmlByKey(statusKey)}</td>
+        <td><a class="btn" href="#/student/assignments">Open</a></td>
+      `;
+      tbody.appendChild(tr);
+    });
+}
+
+function renderProfile(){
+  const u = state.user || {};
+  $('#s-prof-name')?.append(document.createTextNode(u.displayName || u.name || '—'));
+  $('#s-prof-email')?.append(document.createTextNode(u.email || '—'));
+  $('#s-prof-course')?.append(document.createTextNode(u.course || '—'));
+  $('#s-prof-unit')?.append(document.createTextNode(u.unit || '—'));
+}
+
 function renderAssignments(){
-  const st = state.student || { assignments:[] };
+  const s = state.student || { assignments: [] };
   const tbody = $('#s-assignments-table tbody');
   if (!tbody) return;
-
   tbody.innerHTML = '';
-  (st.assignments||[]).forEach(asg=>{
-    const mySub = mySubmissionFor(asg);
-    const myChk = myCheckFor(asg);
-    const subKey = submissionStatus(asg, mySub);
 
-    const stuDL  = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat);
-    const asstDL = formatDateDisplay(asg.assistantDeadline || '', state.branding?.dateFormat);
+  s.assignments.forEach(asg=>{
+    const sub = mySubmissionFor(asg);
+    const fb  = feedbackFor(asg);
 
-    const myFile = mySub?.fileUrl
-      ? `<a href="${mySub.fileUrl}" target="_blank" rel="noopener">file</a>`
+    const due = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat);
+    const subKey = mySubmissionStatus(asg);
+
+    const myFile = sub?.fileUrl
+      ? `<a href="${sub.fileUrl}" target="_blank" rel="noopener">file</a>`
       : '<span class="muted">—</span>';
 
-    const grade = myChk?.grade || '<span class="muted">—</span>';
-    const comment = myChk?.comment ? String(myChk.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>';
-    const checkFile = myChk?.fileUrl
-      ? `<a href="${myChk.fileUrl}" target="_blank" rel="noopener">file</a>`
-      : '<span class="muted">—</span>';
+    const fbStatus = fb?.status ? String(fb.status).trim().toLowerCase() : '';
+    const fbBadge =
+      fbStatus ? badgeHtmlByKey(fbStatus) :
+      '<span class="muted">—</span>';
 
-    // upload control enabled only if student side is open
-    const open = studentOpenNow(asg);
-    const uploadCell = `
-      <div class="s-upload-wrap">
-        <input type="file" class="s-file" data-as="${asg.assignmentId}" ${open?'':'disabled'} />
-        <button class="btn s-upload" data-as="${asg.assignmentId}" ${open?'':'disabled'}>Submit</button>
-        <div class="muted s-upload-msg" data-as="${asg.assignmentId}"></div>
-      </div>`;
+    const fbFile = fb?.fileUrl
+      ? `<a href="${fb.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><b>${asg.title}</b><div class="muted">${asg.course} · ${asg.unit||''}</div></td>
+      <td>${asg.title}</td>
+      <td>${asg.course||''}</td>
+      <td>${asg.unit||''}</td>
+      <td>${due||''}</td>
       <td>${badgeHtmlByKey(subKey)}</td>
       <td>${myFile}</td>
-      <td>${grade}</td>
-      <td>${comment}</td>
-      <td>${checkFile}</td>
-      <td>${stuDL || '<span class="muted">—</span>'}</td>
-      <td>${asstDL || '<span class="muted">—</span>'}</td>
-      <td>${uploadCell}</td>`;
+      <td>${fbBadge}</td>
+      <td>${fb?.grade || '<span class="muted">—</span>'}</td>
+      <td>${fb?.comment ? String(fb.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>'}</td>
+      <td>${fbFile}</td>
+      <td>
+        <label class="btn">
+          Upload
+          <input type="file" class="s-upload" data-asg="${asg.assignmentId}" style="display:none;">
+        </label>
+      </td>
+    `;
     tbody.appendChild(tr);
   });
-}
 
-// Simple performance: donut of my statuses + list of grades
-function renderPerformance(){
-  const st = state.student || { assignments:[], submissions:[], checks:[] };
-  const asgs = st.assignments || [];
-  const subs = st.submissions || [];
+  // wire uploads
+  $$('.s-upload').forEach(inp=>{
+    inp.onchange = async ()=>{
+      const assignmentId = inp.getAttribute('data-asg');
+      const file = inp.files?.[0];
+      if (!file) return;
 
-  const counts = { Submitted:0, Late:0, Missing:0, Pending:0 };
-  asgs.forEach(a=>{
-    const s = submissionStatus(a, subs.find(x => x.assignmentId===a.assignmentId));
-    if (s==='submitted') counts.Submitted++;
-    else if (s==='late') counts.Late++;
-    else if (s==='missing') counts.Missing++;
-    else counts.Pending++;
-  });
+      const btn = inp.closest('label.btn');
+      const spin = null; // optional: add spinner span inside the label if you want
+      setLoading(btn, true, spin);
 
-  const donutEl = $('#s-donut');
-  if (donutEl) {
-    if (donutEl._chart) donutEl._chart.destroy();
-    // eslint-disable-next-line no-undef
-    donutEl._chart = new Chart(donutEl, {
-      type: 'doughnut',
-      data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts) }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-    });
-  }
-
-  // Grades table (if present)
-  const gt = $('#s-grades-table tbody');
-  if (gt){
-    gt.innerHTML='';
-    (st.checks || []).forEach(c=>{
-      const asg = asgs.find(a=>a.assignmentId===c.assignmentId);
-      const tr=document.createElement('tr');
-      tr.innerHTML = `
-        <td>${asg?asg.title:c.assignmentId}</td>
-        <td>${c.grade||'—'}</td>
-        <td>${(c.status||'')}</td>
-        <td>${formatDateDisplay(c.updatedAt || c.createdAt || '') || '—'}</td>`;
-      gt.appendChild(tr);
-    });
-  }
-}
-
-// ===================== actions/events ===================== //
-function wireEvents(){
-  // Submit buttons (delegated)
-  $('#s-assignments-table')?.addEventListener('click', async (e)=>{
-    const btn = e.target.closest('.s-upload');
-    if (!btn) return;
-
-    const assignmentId = btn.getAttribute('data-as');
-    const asg = (state.student?.assignments || []).find(a=>a.assignmentId===assignmentId);
-    if (!asg) return;
-
-    const fileInput = $('#s-assignments-table').querySelector(`.s-file[data-as="${assignmentId}"]`);
-    const msgEl = $('#s-assignments-table').querySelector(`.s-upload-msg[data-as="${assignmentId}"]`);
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-      if (msgEl) msgEl.textContent = 'Pick a file first.';
-      return;
-    }
-
-    // Guard: still open?
-    if (!studentOpenNow(asg)){
-      if (msgEl) msgEl.textContent = 'Submission window is closed.';
-      return;
-    }
-
-    try{
-      // upload and submit
-      const up = await uploadFileBase64(fileInput.files[0], { action:'student.uploadSubmission', assignmentId });
-      const payload = { assignmentId, fileUrl: up?.fileUrl || '' };
-      await api('submitStudentWork', payload); // implement server endpoint
-
-      if (msgEl) msgEl.textContent = 'Submitted ✅';
-      fileInput.value = '';
-      // refresh data + rerender
-      await init(false);
-    }catch(err){
-      if (msgEl) msgEl.textContent = 'Failed: '+ (err?.message || err);
-    }
+      try{
+        // Upload, then submit/update the student's submission record
+        const up = await uploadFileBase64(file, { action:'student.uploadSubmission', assignmentId });
+        const payload = { assignmentId, fileUrl: up?.fileUrl || null };
+        // If you later support delete, send null fileUrl to clear.
+        await api('submitStudentSubmission', payload);
+        $('#s-submit-msg').textContent = 'Uploaded ✅';
+        await reloadStudentUI();
+      }catch(e){
+        $('#s-submit-msg').textContent = 'Upload failed: ' + e.message;
+      }finally{
+        setLoading(btn, false, spin);
+        inp.value = '';
+      }
+    };
   });
 }
 
-// ===================== lifecycle ===================== //
-export async function init(demo=false){
+// ------------ data ------------
+async function loadStudentData(demo=false){
+  if (demo){
+    // Demo data mirrors the patterns in head/assistant
+    state.student = {
+      assignments: [
+        { assignmentId:'as1', title:'Homework 5', course:'Math', unit:'U1', studentOpen:true, assistantOpen:true, deadline:'2025-09-10', studentDeadline:'2025-09-10', assistantDeadline:'2025-09-12' },
+        { assignmentId:'as2', title:'Quiz 2 Review', course:'Math', unit:'U2', studentOpen:true, assistantOpen:true, deadline:'2025-09-15', studentDeadline:'2025-09-15', assistantDeadline:'' },
+      ],
+      submissions: [
+        { assignmentId:'as1', fileUrl:'', submittedAtISO: new Date(Date.now()-1*86400e3).toISOString() },
+      ],
+      checks: [
+        // becomes visible to student after assistant checks
+        { assignmentId:'as1', status:'Checked', grade:'18/20', comment:'Good job', fileUrl:'' },
+      ],
+    };
+  } else {
+    const res = await api('getStudentDashboard', {});
+    state.student = Object.assign({}, res);
+  }
+}
+
+// ------------ lifecycle ------------
+async function reloadStudentUI(){
+  await loadStudentData(reloadStudentUI._demo || false);
+  renderHome();
+  renderAssignments();
+  renderProfile();
+}
+
+export async function mount(){
   showPageLoader(true);
   try{
-    // Load tab shells (create these HTML files similar to other roles)
-    await loadTabHtml('s-home',        'views/roles/student/tabs/home.html');
-    await loadTabHtml('s-assignments', 'views/roles/student/tabs/assignments.html');
-    await loadTabHtml('s-performance', 'views/roles/student/tabs/performance.html');
-
+    await loadTabHtml('s-home',         'views/roles/student/tabs/home.html');
+    await loadTabHtml('s-assignments',  'views/roles/student/tabs/assignments.html');
+    await loadTabHtml('s-profile',      'views/roles/student/tabs/profile.html');
     wireTabs('#view-student');
+  } finally {
+    showPageLoader(false);
+  }
+}
 
-    await loadStudentData(demo);
+export async function boot(demo=false){
+  reloadStudentUI._demo = !!demo;
+  showPageLoader(true);
+  try{
+    await loadStudentData(!!demo);
     renderHome();
     renderAssignments();
-    renderPerformance();
-    wireEvents();
+    renderProfile();
   } finally {
     showPageLoader(false);
   }

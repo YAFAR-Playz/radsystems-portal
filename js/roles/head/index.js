@@ -135,7 +135,13 @@ function renderHead(){
         $('#h-a-asst-deadline').value = formatDateForInput(asg.assistantDeadline || '');
         $('#h-a-requireGrade').checked = !!(asg.requireGrade===true || String(asg.requireGrade)==='true');
         $('#h-a-salary').checked = !!(asg.countInSalary===true || String(asg.countInSalary)==='true');
-        $('#h-a-file').value = '';
+        $('#h-a-file').value = ''; // cannot prefill for security
+        const cur = $('#h-a-file-current');
+        if (cur) {
+          cur.innerHTML = asg.studentFileUrl
+            ? `Current: <a href="${asg.studentFileUrl}" target="_blank" rel="noopener">file</a>`
+            : `<span class="muted">No file uploaded</span>`;
+        }
         $('#h-create-msg').textContent = 'Editing…';
       });
     });
@@ -300,6 +306,7 @@ function wireEvents(){
       $('#h-a-stu-open').checked=true; $('#h-a-asst-open').checked=true;
       $('#h-a-requireGrade').checked=true; $('#h-a-salary').checked=false;
       $('#h-a-file').value='';
+      const cur = $('#h-a-file-current'); if (cur) cur.textContent='';
 
       await reloadHeadUI();
     }catch(e){
@@ -321,6 +328,7 @@ function wireEvents(){
     $('#h-a-stu-open').checked=true; $('#h-a-asst-open').checked=true;
     $('#h-a-requireGrade').checked=true; $('#h-a-salary').checked=false;
     $('#h-a-file').value='';
+    const cur = $('#h-a-file-current'); if (cur) cur.textContent='';
   });
 }
 

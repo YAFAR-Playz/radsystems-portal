@@ -62,9 +62,9 @@ function badgeHtmlByKey(key, fallback=''){
   if (key==='late')      return '<span class="badge warn">Submitted Late</span>';
   if (key==='missing')   return '<span class="badge danger">Missing</span>';
   if (key==='pending')   return '<span class="badge">Pending</span>';
-  if (key==='unchecked') return '<span class="badge warn">Unchecked</span>';
+  if (key==='unchecked') return '<span class="badge danger">Unchecked</span>';
   if (key==='checked')   return '<span class="badge ok">Checked</span>';
-  if (key==='redo')      return '<span class="badge danger">Redo</span>';
+  if (key==='redo')      return '<span class="badge warn">Redo</span>';
   return fallback || '<span class="badge">—</span>';
 }
 

@@ -481,6 +481,7 @@ export async function mount(){
     await loadTabHtml('h-home',        'views/roles/head/tabs/home.html');
     await loadTabHtml('h-assign',      'views/roles/head/tabs/assign.html');
     await loadTabHtml('h-assignments', 'views/roles/head/tabs/assignments.html');
+    await loadTabHtml('h-students',   'views/roles/head/tabs/students.html');
     await loadTabHtml('h-analytics',   'views/roles/head/tabs/analytics.html');
     wireTabs('#view-head');
   } finally {

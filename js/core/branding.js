@@ -10,6 +10,10 @@ export function applyBranding(branding){
   const logo = document.getElementById('brandLogo');
   const src = state.branding.logoUrl || DEFAULT_LOGO_DATAURI;
   if (logo && src){ logo.src = src; logo.style.background='none'; }
+  const titleEl = document.querySelector('.brand .title');
+  if (titleEl){
+    titleEl.textContent = state.branding.teamName || 'RadSystems Portal';
+  }  
 }
 
 export async function loadBranding(){

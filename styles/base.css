@@ -136,3 +136,36 @@ label input[type="checkbox"]{ margin-right:6px; }
 
 /* Make canvas fill its box (Chart.js respects these when maintainAspectRatio:false) */
 .chart-box canvas { display: block; width: 100% !important; height: 100% !important; }
+
+/* Admin → Roles/Perms layout */
+#adm-perms .perms-grid{
+  display:grid;
+  grid-template-columns: 320px 1fr;   /* fixed role-picker, flexible table */
+  gap:16px;
+  align-items:start;
+}
+
+#adm-perms .perms-left{
+  position: sticky; top: 8px;         /* keep role picker visible while scrolling table */
+  align-self:start;
+}
+
+#adm-perms .perms-right .table-fixed{
+  max-height: 420px;                   /* comfy viewport */
+  overflow:auto;                       /* scroll the table body, not the page */
+  border:1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* kill the global min-width:960px just in this tab */
+#adm-perms .table{ min-width: 0; }
+
+/* slightly tighter table in this tab */
+#adm-perms .table.slim th,
+#adm-perms .table.slim td{ padding:8px 10px; }
+
+/* mobile: stack cards */
+@media (max-width: 960px){
+  #adm-perms .perms-grid{ grid-template-columns: 1fr; }
+  #adm-perms .perms-left{ position: static; }
+}

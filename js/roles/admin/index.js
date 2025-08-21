@@ -646,6 +646,28 @@ function wireDataIOEvents(){
   $('#io-template-students')?.addEventListener('click', async()=>{
     const r = await api('admin.export.templateStudents',{}); downloadCSV('students_template', r.csv||'');
   });
+    // --- Google Sheet sync ---
+  $('#gs-sync')?.addEventListener('click', async ()=>{
+    const btn = $('#gs-sync'); const spin = $('#gs-sync-spin');
+    setLoading(btn, true, spin);
+    try{
+      const type = $('#gs-type').value || 'users';
+      const url  = ($('#gs-url').value || '').trim();
+      const tab  = ($('#gs-tab').value || '').trim();
+      const range= ($('#gs-range').value || '').trim();
+      if (!url){ $('#gs-msg').textContent = 'Please paste a Google Sheet URL or ID.'; return; }
+
+      const res = await api('admin.import.fromSheet', { type, url, tab, range, mode:'upsert' });
+      const c = res?.countUpdated || 0, n = res?.countInserted || 0, skipped = res?.countSkipped || 0;
+      $('#gs-msg').textContent = `Synced ✅  Updated: ${c}, Inserted: ${n}${skipped?`, Skipped: ${skipped}`:''}`;
+
+      if (type==='users'){ await loadUsers(); } else { await Promise.all([loadStudents(), loadEnrollments()]); }
+    } catch(e){
+      $('#gs-msg').textContent = 'Failed: ' + e.message;
+    } finally{
+      setLoading(btn, false, spin);
+    }
+  });
 }
 function wireBrandingCorsEvents(){
   $('#b-save')?.addEventListener('click', async ()=>{

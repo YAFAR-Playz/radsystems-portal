@@ -35,6 +35,13 @@ function assistantOpenNow(asg){
   }
   return true;
 }
+function studentOpenNow(asg){
+  const open = (asg.studentOpen === true || String(asg.studentOpen) === 'true');
+  if (!open) return false;
+  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  if (dl && new Date() > dl) return false;
+  return true;
+}
 
 // ===================== render ===================== //
 function renderHead(){
@@ -91,10 +98,16 @@ function renderHead(){
         <td>${x.unit||''}</td>
         <td>${stuDL}</td>
         <td>${asstDL}</td>
-        <td>${(x.requireGrade?'Yes':'No')}</td>
-        <td>${(x.studentOpen?'Yes':'No')}</td>
-        <td>${(x.assistantOpen?'Yes':'No')}</td>
-        <td>${(x.countInSalary?'Yes':'No')}</td>
+        <td>${x.requireGrade
+              ? '<span class="badge ok">Yes</span>'
+              : '<span class="badge err">No</span>'}</td>
+        <td>${ studentOpenNow(x) ? '<span class="badge ok">Active</span>' 
+                         : '<span class="badge warn">Closed</span>' }</td>
+        <td>${ assistantOpenNow(x) ? '<span class="badge ok">Active</span>' 
+                           : '<span class="badge warn">Closed</span>' }</td>
+        <td>${x.countInSalary
+              ? '<span class="badge ok">Yes</span>'
+              : '<span class="badge err">No</span>'}</td>
         <td>${x.studentFileUrl? `<a href="${x.studentFileUrl}" target="_blank">File</a>` : '<span class="muted">none</span>'}</td>
         <td class="cell-actions">
           <button class="btn h-edit" data-id="${x.assignmentId}">Edit</button>

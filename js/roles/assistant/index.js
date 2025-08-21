@@ -63,8 +63,6 @@ function buildStudentTableHtml(asg){
       <tr>
         <td>${st.studentName}</td>
         <td>${badgeHtmlByKey(stStatus.key)}</td>
-        <td>${grade || '<span class="muted">—</span>'}</td>
-        <td>${comment ? comment.replace(/</g,'&lt;') : '<span class="muted">—</span>'}</td>
         <td>${studentFile}</td>
       </tr>`;
   });
@@ -76,8 +74,6 @@ function buildStudentTableHtml(asg){
           <tr>
             <th>Student</th>
             <th>Status</th>
-            <th>Grade</th>
-            <th>Comment</th>
             <th>Student File</th>
           </tr>
         </thead>

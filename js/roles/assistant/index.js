@@ -136,10 +136,12 @@ function studentStatusFor(asg, check){
 function badgeHtmlByKey(key, fallback=''){
   const k = String(key||'').toLowerCase();
   if (k === 'submitted') return '<span class="badge ok">Submitted</span>';
-  if (k === 'late')      return '<span class="badge warn">Submitted Late</span>'; // yellow
-  if (k === 'missing')   return '<span class="badge danger">Missing</span>';      // red
-  if (k === 'unchecked') return '<span class="badge danger">Unchecked</span>';    // red
-  if (k === 'pending')   return '<span class="badge info">Pending</span>';        // blue
+  if (k === 'late')      return '<span class="badge warn">Submitted Late</span>';
+  if (k === 'missing')   return '<span class="badge danger">Missing</span>';
+  if (k === 'unchecked') return '<span class="badge danger">Unchecked</span>';
+  if (k === 'pending')   return '<span class="badge info">Pending</span>';
+  if (k === 'checked')   return '<span class="badge ok">Checked</span>';   // ← add
+  if (k === 'redo')      return '<span class="badge warn">Redo</span>';    // ← add
   if (k === 'open')      return '<span class="badge ok">Open</span>';
   if (k === 'closed')    return '<span class="badge warn">Closed</span>';
   return fallback || '<span class="badge">Pending</span>';
@@ -147,12 +149,16 @@ function badgeHtmlByKey(key, fallback=''){
 
 function checkBadgeFromStatus(s=''){
   const k = String(s).trim().toLowerCase();
-  if (!k) return '<span class="muted">—</span>';
-  if (k === 'checked') return '<span class="badge ok">Checked</span>';
-  if (k === 'missing') return '<span class="badge danger">Missing</span>';
-  if (k === 'redo')    return '<span class="badge warn">Redo</span>';
+  if (!k)            return '<span class="muted">—</span>';
+  if (k==='checked') return '<span class="badge ok">Checked</span>';
+  if (k==='missing') return '<span class="badge danger">Missing</span>';
+  if (k==='redo')    return '<span class="badge warn">Redo</span>';
+  if (k==='unchecked') return '<span class="badge danger">Unchecked</span>'; // ← add
+  if (k==='pending')   return '<span class="badge info">Pending</span>';     // ← add
   return `<span class="badge">${s}</span>`;
 }
+// and in buildPerStudentAssignmentsTable row template:
+<td>${checkBadgeFromStatus(chkKey)}</td>
 
 function buildStudentTableHtml(asg){
   const a = state.assistant;

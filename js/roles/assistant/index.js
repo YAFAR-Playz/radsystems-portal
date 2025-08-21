@@ -113,9 +113,15 @@ function refreshAssistantStudentLists(){
   existing.forEach(c=>{
     const student = a.students.find(s=>s.studentId===c.studentId);
     const tr = document.createElement('tr');
+    const status = (c.status || '').trim().toLowerCase();
+    const statusBadge =
+      status === 'checked' ? '<span class="badge ok">Checked</span>' :
+      status === 'missing' ? '<span class="badge danger">Missing</span>' :
+      status === 'redo'    ? '<span class="badge warn">Redo</span>' :
+                         `<span class="badge">${c.status||''}</span>`;
     tr.innerHTML = `
       <td>${student?student.studentName:c.studentId}</td>
-      <td>${c.status||''}</td>
+      <td>${statusBadge}</td>
       <td>${c.grade||''}</td>
       <td>${c.comment||''}</td>
       <td>${c.fileUrl?`<a href="${c.fileUrl}" target="_blank">file</a>`:''}</td>

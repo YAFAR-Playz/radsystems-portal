@@ -80,7 +80,7 @@ function renderUsersTable(){
       <td class="cell-actions">
         <button class="btn u-edit" data-id="${u.userId}">Edit</button>
         <button class="btn ghost u-del" data-id="${u.userId}">Delete</button>
-        <button class="btn ghost u-loginas" data-id="${u.userId}"><span class="spinner hidden"></span><span>Login as</span></button>
+        <button class="btn ghost u-loginas" data-id="${u.userId}"><span class="spinner dark hidden"></span><span>Login as</span></button>
       </td>`;
     tbody.appendChild(tr);
   });

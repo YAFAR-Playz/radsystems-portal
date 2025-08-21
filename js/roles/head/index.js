@@ -93,7 +93,9 @@ function studentSubmissionStatus(asg, submission){
 
 function checkedStatus(asg, studentId){
   // If a check exists, mirror its status
-  const c = (state.head?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===studentId);
+  const c = (state.head?.checks || []).find(
+    x => x.assignmentId===asg.assignmentId && x.studentId===studentId
+  );
   if (c){
     const s = String(c.status||'').trim().toLowerCase();
     if (s==='checked') return 'checked';
@@ -102,12 +104,17 @@ function checkedStatus(asg, studentId){
     return s || 'checked';
   }
 
-  // No check: inspect submission vs deadlines
-  const submission = findStudentSubmission(asg, studentId);  // null for now
-  if (!submission) return '-';                               // ← show a dash
-
+  // No check
+  const submission = findStudentSubmission(asg, studentId);  
   const asstDL = parseMaybeISO(asg.assistantDeadline);
   const deadlinePassed = !!(asstDL && new Date() > asstDL);
+
+  if (!submission){
+    // --- 🔹 Your clarified rule
+    return deadlinePassed ? '-' : 'pending';
+  }
+
+  // submission exists but no check
   if (deadlinePassed) return 'unchecked';
   return 'pending';
 }

@@ -103,3 +103,23 @@ label input[type="checkbox"]{ margin-right:6px; }
 
 /* If a label sits inside a .row with big gap, don't inherit that inside the label */
 .row .label-inline { gap:6px; } /* keep it tight */
+
+/* status pills */
+.table .badge,
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:12px;
+  line-height:18px;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.badge.ok    { background-color:#e7f7ee; color:#0f7a3a; }
+.badge.warn  { background-color:#fff7e6; color:#a15c00; }
+.badge.danger{ background-color:#ffecec; color:#b00020; }
+
+/* if something else is stripping backgrounds, force it */
+.table td .badge{ background-clip:padding-box; }

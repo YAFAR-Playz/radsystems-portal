@@ -80,7 +80,7 @@ function renderUsersTable(){
       <td class="cell-actions">
         <button class="btn u-edit" data-id="${u.userId}">Edit</button>
         <button class="btn ghost u-del" data-id="${u.userId}">Delete</button>
-        <button class="btn ghost u-loginas" data-id="${u.userId}">Login As</button>
+        <button class="btn ghost u-loginas" data-id="${u.userId}"><span class="spinner hidden"></span><span>Login as</span></button>
       </td>`;
     tbody.appendChild(tr);
   });
@@ -113,26 +113,31 @@ function renderUsersTable(){
   $$('.u-loginas').forEach(b=>{
   b.addEventListener('click', async ()=>{
     const id = b.getAttribute('data-id');
+    const spin = b.querySelector('.spinner');
     try {
+      setLoading(b, true, spin);
+
       const res = await api('admin.users.loginAs', { userId:id });
       const t = res.token;
 
-      // store token broadly (covers older/newer code paths)
+      // store token broadly
       ['auth_token','token'].forEach(k=>{
         try{ localStorage.setItem(k, t); }catch(_){}
         try{ sessionStorage.setItem(k, t); }catch(_){}
       });
 
-      // nuke any cached user payloads your app may keep
+      // clear cached user payloads
       ['me','user','current_user'].forEach(k=>{
         try{ localStorage.removeItem(k); }catch(_){}
         try{ sessionStorage.removeItem(k); }catch(_){}
       });
 
-      // force a full navigation so boot picks up the new token
+      // reload with new token
       location.replace(location.origin + location.pathname + location.search);
     } catch(e) {
       alert('Failed to login as user: '+e.message);
+    } finally {
+      setLoading(b, false, spin);
     }
   });
 });

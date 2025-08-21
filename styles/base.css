@@ -124,6 +124,7 @@ label input[type="checkbox"]{ margin-right:6px; }
   background: #3498db; /* blue */
   color: white;
 }
+.badge.info { background: #e6f0ff; color: #1146a6; border-color: transparent; }
 
 /* if something else is stripping backgrounds, force it */
 .table td .badge{ background-clip:padding-box; }

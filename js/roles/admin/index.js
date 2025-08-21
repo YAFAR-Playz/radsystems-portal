@@ -363,12 +363,24 @@ async function loadBrandingUI(){
     $('#b-primary').value = b.primaryColor || state.branding.primaryColor;
     $('#b-accent').value  = b.accentColor || state.branding.accentColor;
     $('#b-date').value    = b.dateFormat || state.branding.dateFormat;
-    applyBranding({ logoUrl: b.logoUrl || state.branding.logoUrl, primaryColor:$('#b-primary').value, accentColor:$('#b-accent').value });
+    const team = b.teamName || state.branding.teamName || 'RadSystems Portal';
+    const teamEl = document.getElementById('b-team');
+    if (teamEl) teamEl.value = team;
+    
+    applyBranding({
+      logoUrl: b.logoUrl || state.branding.logoUrl,
+      primaryColor: $('#b-primary').value,
+      accentColor:  $('#b-accent').value,
+      teamName:     team
+    });
   }catch(e){
     try{
       const pub = await api('public.config', {});
       if (pub && pub.branding){
         applyBranding({ ...pub.branding, logoUrl: pub.branding.logoUrl || state.branding.logoUrl });
+        // Also prefill Team Name if admin lands here first
+        const teamEl = document.getElementById('b-team');
+        if (teamEl) teamEl.value = (pub.branding.teamName || 'RadSystems Portal');
       }
     }catch(_){}
   }
@@ -650,7 +662,8 @@ function wireBrandingCorsEvents(){
         primaryColor: $('#b-primary').value || '#1F3C88',
         accentColor:  $('#b-accent').value || '#6BCB77',
         dateFormat:   $('#b-date').value   || 'yyyy-MM-dd',
-        logoUrl:      logoUrl
+        logoUrl:      logoUrl,
+        teamName:     ($('#b-team').value || 'RadSystems Portal').trim() // NEW
       };
       await api('admin.branding.set',{branding});
       applyBranding(branding);

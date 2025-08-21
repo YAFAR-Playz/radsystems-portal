@@ -60,13 +60,13 @@ function _fmtDateShort(iso){
 function badgeHtmlByKey(key, fallback=''){
   const k = String(key||'').toLowerCase();
   if (k==='submitted') return '<span class="badge ok">Submitted</span>';
-  if (k==='late')      return '<span class="badge warn">Submitted Late</span>'; // yellow
-  if (k==='missing')   return '<span class="badge danger">Missing</span>';      // red
-  if (k==='unchecked') return '<span class="badge danger">Unchecked</span>';    // red
-  if (k==='pending')   return '<span class="badge info">Pending</span>';        // blue
+  if (k==='late')      return '<span class="badge warn">Submitted Late</span>';
+  if (k==='missing')   return '<span class="badge danger">Missing</span>';
+  if (k==='unchecked') return '<span class="badge danger">Unchecked</span>';
+  if (k==='pending')   return '<span class="badge info">Pending</span>';
   if (k==='checked')   return '<span class="badge ok">Checked</span>';
-  if (k==='redo')      return '<span class="badge warn">Redo</span>';           // yellow
-  if (k==='-')         return '<span class="muted">—</span>';                   // plain dash
+  if (k==='redo')      return '<span class="badge warn">Redo</span>';
+  if (k==='-')         return '<span class="muted">—</span>';   // ← dash, no pill
   return fallback || '<span class="badge">—</span>';
 }
 

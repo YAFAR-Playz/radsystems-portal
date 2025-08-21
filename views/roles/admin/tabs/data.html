@@ -53,7 +53,7 @@
       </div>
       <div class="field" style="flex:1;min-width:220px">
         <label>Range (optional)</label>
-        <input id="gs-range" placeholder="e.g., A1:G (leave blank to use used range)">
+        <input id="gs-range" placeholder="e.g., A1:G (leave blank to use last used range)">
       </div>
     </div>
 
@@ -65,6 +65,7 @@
     </div>
 
     <div class="muted" style="font-size:12px">
+      Sheet permissions must be set to Anyone with link can View.
       The first row must be the header and must match the CSV template headers shown above.
       Data is <b>upserted</b> by email (existing rows are updated, new rows are created).
     </div>

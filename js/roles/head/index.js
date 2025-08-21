@@ -44,6 +44,135 @@ function studentOpenNow(asg){
 }
 
 // ===================== render ===================== //
+
+// --- Charts: Head / Analytics (real data) ---
+function renderHeadAnalytics(){
+  const h = state.head || { assistants: [], checks: [] };
+
+  // ---------- Helpers ----------
+  const byId = new Map((h.assistants||[]).map(a => [a.userId, a.displayName || a.userId]));
+
+  // Parse grade to 0..100 (supports "18/20", "90%", "87")
+  const toPct = (g) => {
+    if (!g) return null;
+    const s = String(g).trim();
+    if (!s) return null;
+    if (s.endsWith('%')) {
+      const n = parseFloat(s.slice(0, -1));
+      return isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
+    }
+    if (s.includes('/')) {
+      const [a,b] = s.split('/').map(x=>parseFloat(x));
+      if (isFinite(a) && isFinite(b) && b > 0) return Math.max(0, Math.min(100, (a/b)*100));
+      return null;
+    }
+    const n = parseFloat(s);
+    return isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
+  };
+
+  // Month window for bar (same logic as backend summarizeAnalytics)
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+
+  // ---------- BAR: Checks per assistant (this month) ----------
+  const barAgg = {};
+  (h.checks||[]).forEach(c=>{
+    const t = new Date(c.updatedAt || c.createdAt || 0);
+    if (t >= monthStart) {
+      const id = c.assistantId || 'unknown';
+      barAgg[id] = (barAgg[id] || 0) + 1;
+    }
+  });
+  // keep assistants order consistent
+  const barLabels = (h.assistants||[]).map(a => byId.get(a.userId));
+  const barData = (h.assistants||[]).map(a => barAgg[a.userId] || 0);
+
+  const barEl = $('#h-bar');
+  if (barEl) {
+    if (barEl._chart) barEl._chart.destroy();
+    // eslint-disable-next-line no-undef
+    barEl._chart = new Chart(barEl, {
+      type: 'bar',
+      data: { labels: barLabels, datasets: [{ label: 'Checks (this month)', data: barData }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+  }
+
+  // ---------- DOUGHNUT: Status breakdown (all checks) ----------
+  const statusCounts = { Checked:0, Missing:0, Redo:0, Other:0 };
+  (h.checks||[]).forEach(c=>{
+    const s = String(c.status||'').trim().toLowerCase();
+    if (!s) return;
+    if (s==='checked') statusCounts.Checked++;
+    else if (s==='missing') statusCounts.Missing++;
+    else if (s==='redo') statusCounts.Redo++;
+    else statusCounts.Other++;
+  });
+
+  const donutEl = $('#h-donut');
+  if (donutEl) {
+    if (donutEl._chart) donutEl._chart.destroy();
+    // eslint-disable-next-line no-undef
+    donutEl._chart = new Chart(donutEl, {
+      type: 'doughnut',
+      data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts) }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  // ---------- LINE: Avg grade by week (last 8 weeks) ----------
+  const weeks = [];
+  const now = new Date();
+  const start = new Date(now); start.setDate(now.getDate() - 7*7); // ~7 weeks back, we’ll produce 8 buckets
+  start.setHours(0,0,0,0);
+
+  // Build week buckets starting from start’s Monday (or locale week start)
+  const weekStart = new Date(start);
+  const day = weekStart.getDay(); // 0..6 (Sun..Sat)
+  const deltaToMonday = (day === 0) ? -6 : (1 - day);
+  weekStart.setDate(weekStart.getDate() + deltaToMonday);
+
+  for (let i=0; i<8; i++){
+    const ws = new Date(weekStart); ws.setDate(weekStart.getDate() + i*7);
+    const we = new Date(ws); we.setDate(ws.getDate()+7);
+    weeks.push({ ws, we, sum:0, n:0 });
+  }
+
+  (h.checks||[]).forEach(c=>{
+    const t = new Date(c.updatedAt || c.createdAt || 0);
+    const g = toPct(c.grade);
+    if (g==null) return;
+    for (const w of weeks){
+      if (t >= w.ws && t < w.we){ w.sum += g; w.n += 1; break; }
+    }
+  });
+
+  const lineLabels = weeks.map(w=> {
+    const m = (w.ws.getMonth()+1).toString().padStart(2,'0');
+    const d = w.ws.getDate().toString().padStart(2,'0');
+    return `${m}/${d}`;
+  });
+  const lineData = weeks.map(w => w.n ? +(w.sum / w.n).toFixed(1) : 0);
+
+  const lineEl = $('#h-line');
+  if (lineEl) {
+    if (lineEl._chart) lineEl._chart.destroy();
+    // eslint-disable-next-line no-undef
+    lineEl._chart = new Chart(lineEl, {
+      type: 'line',
+      data: { labels: lineLabels, datasets: [{ label: 'Avg grade (%)', data: lineData, tension: 0.3, fill: false }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true } },
+        scales: { y: { beginAtZero: true, max: 100 } }
+      }
+    });
+  }
+}
+
 function renderHead(){
   const h = state.head;
 
@@ -166,22 +295,9 @@ function renderHead(){
       });
     });
   }
-
-  // charts (demo)
-  const ctx = $('#h-bar'); if(ctx){ if(ctx._chart) ctx._chart.destroy();
-    const assistNames = h.assistants.map(a=>a.displayName);
-    const counts = assistNames.map(()=> Math.floor(Math.random()*30)+5);
-    // Chart is global from <script src="...chart.js"> in index.html
-    // eslint-disable-next-line no-undef
-    ctx._chart = new Chart(ctx,{type:'bar',data:{labels:assistNames,datasets:[{label:'Checked papers',data:counts}]}})
-  }
-  const d1 = $('#h-donut'); if(d1){ if(d1._chart) d1._chart.destroy();
-    // eslint-disable-next-line no-undef
-    d1._chart = new Chart(d1,{type:'doughnut',data:{labels:['Checked','Missing','Redo'],datasets:[{data:[60,25,15]}]}}) }
-  const l1 = $('#h-line'); if(l1){ if(l1._chart) l1._chart.destroy();
-    // eslint-disable-next-line no-undef
-    l1._chart = new Chart(l1,{type:'line',data:{labels:['W1','W2','W3','W4'],datasets:[{label:'Avg Grade',data:[72,78,81,85]}]}}) }
-}
+  // charts (real data)
+  renderHeadAnalytics();
+  
 
 // ===================== small refresh (no rewiring) ===================== //
 async function reloadHeadUI() {

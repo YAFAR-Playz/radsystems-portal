@@ -134,11 +134,14 @@ function studentStatusFor(asg, check){
 }
 
 function badgeHtmlByKey(key, fallback=''){
-  if (key==='submitted') return '<span class="badge ok">Submitted</span>';
-  if (key==='late')      return '<span class="badge warn">Submitted Late</span>';
-  if (key==='missing')   return '<span class="badge danger">Missing</span>';
-  if (key==='open')      return '<span class="badge ok">Open</span>';
-  if (key==='closed')    return '<span class="badge warn">Closed</span>';
+  const k = String(key||'').toLowerCase();
+  if (k === 'submitted') return '<span class="badge ok">Submitted</span>';
+  if (k === 'late')      return '<span class="badge warn">Submitted Late</span>'; // yellow
+  if (k === 'missing')   return '<span class="badge danger">Missing</span>';      // red
+  if (k === 'unchecked') return '<span class="badge danger">Unchecked</span>';    // red
+  if (k === 'pending')   return '<span class="badge info">Pending</span>';        // blue
+  if (k === 'open')      return '<span class="badge ok">Open</span>';
+  if (k === 'closed')    return '<span class="badge warn">Closed</span>';
   return fallback || '<span class="badge">Pending</span>';
 }
 

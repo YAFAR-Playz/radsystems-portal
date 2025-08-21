@@ -22,6 +22,52 @@ function assistantOpenNow(asg){
   return true;
 }
 
+function buildPerStudentAssignmentsTable(st){
+  const a = state.assistant;
+  // Only assignments from the student's course
+  const asgs = a.assignments.filter(x => (x.course||'') === (st.course||''));
+  const checks = a.checks.filter(c => c.studentId === st.studentId);
+  const byAsg = new Map(checks.map(c => [c.assignmentId, c]));
+
+  let rows = '';
+  asgs.forEach(asg => {
+    const ck = byAsg.get(asg.assignmentId) || null;
+    const stStatus = studentStatusFor(asg, ck);
+
+    const grade = ck?.grade || '';
+    const comment = ck?.comment || '';
+    const file = ck?.fileUrl
+      ? `<a href="${ck.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
+    rows += `
+      <tr>
+        <td>${asg.title}</td>
+        <td>${badgeHtmlByKey(stStatus.key)}</td>
+        <td>${grade || '<span class="muted">—</span>'}</td>
+        <td>${comment ? comment.replace(/</g,'&lt;') : '<span class="muted">—</span>'}</td>
+        <td>${file}</td>
+        <td>${formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding.dateFormat) || '<span class="muted">—</span>'}</td>
+      </tr>`;
+  });
+
+  return `
+    <div class="table-wrapper" style="margin:8px 0">
+      <table class="table compact">
+        <thead>
+          <tr>
+            <th>Assignment</th>
+            <th>Status</th>
+            <th>Grade</th>
+            <th>Comment</th>
+            <th>Student File</th>
+            <th>Student DL</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="6"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
 function studentStatusFor(asg, check){
   const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
   if (check && String(check.status||'').trim()){
@@ -56,8 +102,6 @@ function buildStudentTableHtml(asg){
     const studentFile = ck?.fileUrl
       ? `<a href="${ck.fileUrl}" target="_blank" rel="noopener">file</a>`
       : '<span class="muted">—</span>';
-    const grade = ck?.grade || '';
-    const comment = ck?.comment || '';
 
     rows += `
       <tr>
@@ -149,6 +193,56 @@ function renderHome(){
     btn.textContent = isHidden ? '▼' : '►';
     btn.setAttribute('aria-expanded', String(isHidden));
   });
+}
+
+function renderRoster(){
+  const a = state.assistant;
+  const tb = $('#a-roster-table tbody');
+  const empty = $('#a-roster-empty');
+  const q = ($('#a-roster-search')?.value || '').trim().toLowerCase();
+
+  let students = a.students.slice();
+  if (q) {
+    students = students.filter(s =>
+      (s.studentName||'').toLowerCase().includes(q) ||
+      (s.email||'').toLowerCase().includes(q)
+    );
+  }
+
+  tb.innerHTML = '';
+  empty.style.display = students.length ? 'none' : 'block';
+
+  students.forEach(st=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><button class="btn ghost a-roster-expand" data-id="${st.studentId}" aria-expanded="false" title="Expand">►</button></td>
+      <td>${st.studentName}</td>
+      <td>${st.email || ''}</td>
+      <td>${st.course || ''}</td>
+      <td>${st.unit || ''}</td>
+      <td><span class="badge ${String(st.status||'Active').toLowerCase()==='active' ? 'ok' : 'warn'}">${st.status||'Active'}</span></td>
+    `;
+    tb.appendChild(tr);
+
+    const tr2 = document.createElement('tr');
+    tr2.className = 'a-roster-expand-row hidden';
+    tr2.dataset.for = st.studentId;
+    tr2.innerHTML = `<td colspan="6">${buildPerStudentAssignmentsTable(st)}</td>`;
+    tb.appendChild(tr2);
+  });
+
+  // Event delegation: toggle expanders
+  tb.onclick = (e)=>{
+    const btn = e.target.closest('.a-roster-expand');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const row = tb.querySelector(`tr.a-roster-expand-row[data-for="${id}"]`);
+    if (!row) return;
+    const isHidden = row.classList.contains('hidden');
+    row.classList.toggle('hidden', !isHidden);
+    btn.textContent = isHidden ? '▼' : '►';
+    btn.setAttribute('aria-expanded', String(isHidden));
+  };
 }
 
 // --- Charts: Assistant / Performance tab ---
@@ -439,6 +533,7 @@ export async function init(demo){
   try{
     // load tab shells
     await loadTabHtml('a-home',        'views/roles/assistant/tabs/home.html');
+    await loadTabHtml('a-roster',      'views/roles/assistant/tabs/roster.html'); // NEW
     await loadTabHtml('a-students',    'views/roles/assistant/tabs/students.html');
     await loadTabHtml('a-performance', 'views/roles/assistant/tabs/performance.html');
 
@@ -447,6 +542,8 @@ export async function init(demo){
     renderHome();
     renderPerformance();
     wireEvents();
+    renderRoster();
+    $('#a-roster-search')?.addEventListener('input', renderRoster);
 
     // fill selects for students tab
     const asSel = $('#a-assignmentSelect'); if (asSel) asSel.innerHTML='';

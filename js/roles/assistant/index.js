@@ -49,7 +49,9 @@ function studentSubmissionStatus(asg, submission){
  *    • Otherwise "Pending".
  */
 function checkedStatus(asg, studentId){
-  const c = (state.assistant?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===studentId);
+  const c = (state.assistant?.checks || []).find(
+    x => x.assignmentId===asg.assignmentId && x.studentId===studentId
+  );
   if (c){
     const s = String(c.status||'').trim().toLowerCase();
     if (s==='checked') return 'checked';
@@ -57,10 +59,16 @@ function checkedStatus(asg, studentId){
     if (s==='redo')    return 'redo';
     return s || 'checked';
   }
+
   const submission = findStudentSubmission(asg, studentId); // null for now
   const asstDL = parseMaybeISO(asg.assistantDeadline);
   const deadlinePassed = !!(asstDL && new Date() > asstDL);
-  if (submission && deadlinePassed) return 'unchecked';
+
+  // No check + no submission
+  if (!submission) return deadlinePassed ? '-' : 'pending';
+
+  // Submission exists + no check
+  if (deadlinePassed) return 'unchecked';
   return 'pending';
 }
 
@@ -150,6 +158,7 @@ function badgeHtmlByKey(key, fallback=''){
 function checkBadgeFromStatus(s=''){
   const k = String(s).trim().toLowerCase();
   if (!k)            return '<span class="muted">—</span>';
+  if (k==='-')       return '<span class="muted">—</span>';
   if (k==='checked') return '<span class="badge ok">Checked</span>';
   if (k==='missing') return '<span class="badge danger">Missing</span>';
   if (k==='redo')    return '<span class="badge warn">Redo</span>';

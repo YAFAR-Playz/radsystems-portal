@@ -120,6 +120,10 @@ label input[type="checkbox"]{ margin-right:6px; }
 .badge.ok    { background-color:#e7f7ee; color:#0f7a3a; }
 .badge.warn  { background-color:#fff7e6; color:#a15c00; }
 .badge.danger{ background-color:#ffecec; color:#b00020; }
+.badge.info {
+  background: #3498db; /* blue */
+  color: white;
+}
 
 /* if something else is stripping backgrounds, force it */
 .table td .badge{ background-clip:padding-box; }

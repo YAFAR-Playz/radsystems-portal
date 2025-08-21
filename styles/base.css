@@ -95,3 +95,11 @@ display:none;align-items:center;justify-content:center;z-index:999}
   align-items: center;
   gap: 4px; /* small spacing only between box and text */
 }
+/* Tighten spacing between checkbox and its text everywhere */
+label input[type="checkbox"]{ margin-right:6px; }
+
+/* Use a compact inline-flex label when desired */
+.label-inline { display:inline-flex; align-items:center; gap:6px; }
+
+/* If a label sits inside a .row with big gap, don't inherit that inside the label */
+.row .label-inline { gap:6px; } /* keep it tight */

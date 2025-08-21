@@ -196,12 +196,26 @@ function renderHome(){
 }
 
 function renderRoster(){
-  const a = state.assistant;
-  const tb = $('#a-roster-table tbody');
-  const empty = $('#a-roster-empty');
-  const q = ($('#a-roster-search')?.value || '').trim().toLowerCase();
+  // 0) Data guards
+  if (!state.assistant) {
+    console.warn('[Roster] state.assistant is missing');
+    const host = document.getElementById('a-roster');
+    if (host) host.innerHTML = '<div class="card"><div class="muted">No assistant data loaded.</div></div>';
+    return;
+  }
 
-  let students = a.students.slice();
+  // 1) DOM guards — if HTML not yet loaded, do nothing (caller will re-run after load)
+  const table = document.querySelector('#a-roster-table tbody');
+  const empty = document.getElementById('a-roster-empty');
+
+  if (!table || !empty) {
+    console.warn('[Roster] Missing DOM (#a-roster-table or #a-roster-empty). Did roster.html load?');
+    return;
+  }
+
+  const q = (document.getElementById('a-roster-search')?.value || '').trim().toLowerCase();
+
+  let students = (state.assistant.students || []).slice();
   if (q) {
     students = students.filter(s =>
       (s.studentName||'').toLowerCase().includes(q) ||
@@ -209,7 +223,7 @@ function renderRoster(){
     );
   }
 
-  tb.innerHTML = '';
+  table.innerHTML = '';
   empty.style.display = students.length ? 'none' : 'block';
 
   students.forEach(st=>{
@@ -222,29 +236,30 @@ function renderRoster(){
       <td>${st.unit || ''}</td>
       <td><span class="badge ${String(st.status||'Active').toLowerCase()==='active' ? 'ok' : 'warn'}">${st.status||'Active'}</span></td>
     `;
-    tb.appendChild(tr);
+    table.appendChild(tr);
 
     const tr2 = document.createElement('tr');
     tr2.className = 'a-roster-expand-row hidden';
     tr2.dataset.for = st.studentId;
     tr2.innerHTML = `<td colspan="6">${buildPerStudentAssignmentsTable(st)}</td>`;
-    tb.appendChild(tr2);
+    table.appendChild(tr2);
   });
 
   // Event delegation: toggle expanders
-  tb.onclick = (e)=>{
+  table.onclick = (e)=>{
     const btn = e.target.closest('.a-roster-expand');
     if (!btn) return;
     const id = btn.dataset.id;
-    const row = tb.querySelector(`tr.a-roster-expand-row[data-for="${id}"]`);
+    const row = table.parentElement.querySelector(`tr.a-roster-expand-row[data-for="${id}"]`);
     if (!row) return;
     const isHidden = row.classList.contains('hidden');
     row.classList.toggle('hidden', !isHidden);
     btn.textContent = isHidden ? '▼' : '►';
     btn.setAttribute('aria-expanded', String(isHidden));
   };
-}
 
+  console.log('[Roster] Rendered', { count: students.length });
+}
 // --- Charts: Assistant / Performance tab ---
 function renderPerformance(){
   const a = state.assistant || { checks: [], assignments: [] };
@@ -534,6 +549,7 @@ export async function init(demo){
     // load tab shells
     await loadTabHtml('a-home',        'views/roles/assistant/tabs/home.html');
     await loadTabHtml('a-roster',      'views/roles/assistant/tabs/roster.html'); // NEW
+    console.log('[Roster] HTML loaded');
     await loadTabHtml('a-students',    'views/roles/assistant/tabs/students.html');
     await loadTabHtml('a-performance', 'views/roles/assistant/tabs/performance.html');
 

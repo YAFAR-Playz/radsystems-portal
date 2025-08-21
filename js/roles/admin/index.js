@@ -6,6 +6,41 @@ import { formatDateDisplay, formatDateForInput } from '../../core/date.js';
 import { applyBranding } from '../../core/branding.js';
 
 // helpers
+// ---- status mapping & pills ----
+const MAP_STU_to_ENR = { Active:'Active', Left:'Dropped', Inactive:'Completed' };
+const MAP_ENR_to_STU = { Active:'Active', Dropped:'Left',   Completed:'Inactive' };
+
+function badgeForStatus(kind, val){
+  // kind: 'student' | 'enroll'
+  const cls =
+    (kind==='student')
+      ? (val==='Active' ? 'ok' : val==='Left' ? 'danger' : 'warn')
+      : (val==='Active' ? 'ok' : val==='Dropped' ? 'danger' : 'warn');
+  return `<span class="badge ${cls}">${val||''}</span>`;
+}
+
+// keep both sides in sync
+async function syncEnrollmentsFromStudent(studentId, studentStatus){
+  const target = MAP_STU_to_ENR[studentStatus];
+  if (!target) return;
+  // ensure we have enrollments loaded
+  const list = state.admin.enrollments?.filter(e=> e.studentId===studentId) || [];
+  await Promise.all(list.map(e=>{
+    if (e.status !== target){
+      return api('admin.enroll.update', { enrollmentId: e.enrollmentId, patch:{ status: target } });
+    }
+  }));
+}
+
+async function syncStudentFromEnrollment(studentId, enrStatus){
+  const target = MAP_ENR_to_STU[enrStatus];
+  if (!target) return;
+  const s = (state.admin.students||[]).find(x=> x.studentId===studentId);
+  if (s && s.status !== target){
+    await api('admin.students.update', { studentId, patch:{ status: target } });
+  }
+}
+
 function makeTable(el, headers, rows){
   const thead = el.querySelector('thead'); const tbody = el.querySelector('tbody');
   thead.innerHTML = '<tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';
@@ -164,7 +199,7 @@ function renderStudentsTable(){
       <td>${s.course||''}</td>
       <td>${s.unit||''}</td>
       <td>${asst ? (asst.displayName||asst.email) : '—'}</td>
-      <td>${s.status||''}</td>
+      <td>${badgeForStatus('student', s.status||'')}</td>
       <td class="cell-actions">
         <button class="btn s-edit" data-id="${s.studentId}">Edit</button>
       </td>`;
@@ -244,7 +279,7 @@ async function loadEnrollments(){
       `${course ? course.name : (en.courseId || '')}`,
       en.subgroupId || '',
       `${formatDateDisplay(en.startDate, state.branding.dateFormat)} → ${formatDateDisplay(en.endDate, state.branding.dateFormat)}`,
-      en.status || '',
+      badgeForStatus('enroll', en.status || ''),
       `<button data-id="${en.enrollmentId}" class="btn e-edit">Edit</button>
        <button data-id="${en.enrollmentId}" class="btn ghost e-del">Delete</button>`
     ];
@@ -398,7 +433,7 @@ function wireStudentEvents(){
     setLoading(btn,true,spin);
     try{
       const name=$('#s-name').value.trim(), email=$('#s-email').value.trim();
-      const phone=$('#s-phone').value.trim(), courseId=$('#s-course').value, unit=$('#s-unit').value.trim();
+      const phone=$('#s-phone').value.trim(), courseId=$('#s-course').value, unit=$('#s-unit').value.trim();const selStatus = $('#s-status').value || 'Active';   // <- capture before clearing
       if(!name){ $('#s-msg').textContent='Name required'; return; }
       let courseForStudent = '';
       if (courseId){
@@ -409,12 +444,17 @@ function wireStudentEvents(){
   studentName:name, email, phone,
   course:courseForStudent, unit,
   assistantId: $('#s-assistant').value,
-  status: $('#s-status').value || 'Active'
+  status: selStatus
 });
       $('#s-msg').textContent='Created ✅';
       $('#s-name').value=''; $('#s-email').value=''; $('#s-phone').value=''; $('#s-course').value=''; $('#s-unit').value='';$('#s-assistant').value = '';
 $('#s-status').value = 'Active';
-      await loadStudents(); fillStudentSelect($('#e-studentId')); await loadEnrollments();
+      await Promise.all([loadStudents(), loadEnrollments(), fillStudentSelect($('#e-studentId'))]);
+    const created = (state.admin.students||[]).find(ss => ss.email===email && ss.studentName===name);
+    if (created) {
+      await syncEnrollmentsFromStudent(created.studentId, selStatus);
+      await Promise.all([loadStudents(), loadEnrollments()]); // show the new status pills everywhere
+    }
     }catch(e){ $('#s-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
   });
@@ -433,6 +473,7 @@ $('#s-status').value = 'Active';
   status: $('#s-status').value
 };
       await api('admin.students.update',{studentId:id, patch});
+      await syncEnrollmentsFromStudent(id, $('#s-status').value);
       $('#s-msg').textContent='Updated ✅';
       $('#s-titlebar').textContent='Create Student';
       $('#s-edit-hint').classList.add('hidden');
@@ -509,9 +550,10 @@ function wireEnrollEvents(){
   studentId, courseId, subgroupId, startDate, endDate,
   status: $('#e-status').value || 'Active'
 });
+      await syncStudentFromEnrollment($('#e-studentId').value, $('#e-status').value || 'Active');
+      await Promise.all([loadEnrollments(), loadStudents()]);
       $('#e-msg').textContent='Created ✅';
       $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value=''; $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';$('#e-status').value = 'Active';
-      await loadEnrollments();
     }catch(e){ $('#e-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
   });
@@ -529,6 +571,8 @@ function wireEnrollEvents(){
       status: $('#e-status').value || 'Active'
     };
     await api('admin.enroll.update', { enrollmentId:id, patch }); // ✅ correct shape
+    await syncStudentFromEnrollment($('#e-studentId').value, $('#e-status').value || 'Active');
+    await Promise.all([loadEnrollments(), loadStudents()]);
 
     $('#e-msg').textContent='Updated ✅';
     $('#e-titlebar').textContent='Create Enrollment';
@@ -537,7 +581,6 @@ function wireEnrollEvents(){
     $('#e-id').value=''; $('#e-studentId').value=''; $('#e-courseId').value='';
     $('#e-subgroupId').value=''; $('#e-start').value=''; $('#e-end').value='';
     $('#e-status').value='Active';
-    await loadEnrollments();
   }catch(e){ $('#e-msg').textContent='Failed: '+e.message; }
   finally{ setLoading(btn,false,spin); }
 });

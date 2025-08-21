@@ -100,6 +100,7 @@ function renderHome(){
 
   const tb = $('#a-assignments-table tbody'); tb.innerHTML='';
   a.assignments.forEach(x=>{
+    const openNow = assistantOpenNow(x);
     const stuDL = formatDateDisplay(x.studentDeadline || x.deadline, state.branding.dateFormat);
     const asstDL = formatDateDisplay(x.assistantDeadline || '', state.branding.dateFormat);
     const statusBadge = openNow ? badgeHtmlByKey('open') : badgeHtmlByKey('closed');

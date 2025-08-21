@@ -45,6 +45,81 @@ function renderHome(){
   });
 }
 
+// --- Charts: Assistant / Performance tab ---
+function renderPerformance(){
+  const a = state.assistant || { checks: [], assignments: [] };
+
+  // ----- Line: Weekly checks over the last 7 days -----
+  const days = [];
+  const counts = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - i);
+    days.push(d);
+    const next = new Date(d); next.setDate(d.getDate() + 1);
+    const n = a.checks.filter(c=>{
+      const t = new Date(c.updatedAt || c.createdAt || 0);
+      return t >= d && t < next && String((c.status||'').trim()).length;
+    }).length;
+    counts.push(n);
+  }
+  const lineLabels = days.map(d => {
+    // Short, readable labels: e.g., "Tue" or "9/01"
+    return d.toLocaleDateString(undefined, { weekday:'short' });
+  });
+
+  const lineEl = $('#a-line');
+  if (lineEl) {
+    if (lineEl._chart) lineEl._chart.destroy();
+    // eslint-disable-next-line no-undef
+    lineEl._chart = new Chart(lineEl, {
+      type: 'line',
+      data: {
+        labels: lineLabels,
+        datasets: [{
+          label: 'Checks (last 7 days)',
+          data: counts,
+          tension: 0.3,
+          fill: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true } },
+        scales: { y: { beginAtZero: true, ticks: { precision:0 } } }
+      }
+    });
+  }
+
+  // ----- Donut: Status breakdown (all checks) -----
+  const statusCounts = { Checked:0, Missing:0, Redo:0, Other:0 };
+  a.checks.forEach(c=>{
+    const s = String(c.status||'').trim().toLowerCase();
+    if (s === 'checked') statusCounts.Checked++;
+    else if (s === 'missing') statusCounts.Missing++;
+    else if (s === 'redo') statusCounts.Redo++;
+    else if (s) statusCounts.Other++;
+  });
+
+  const donutEl = $('#a-donut');
+  if (donutEl) {
+    if (donutEl._chart) donutEl._chart.destroy();
+    // eslint-disable-next-line no-undef
+    donutEl._chart = new Chart(donutEl, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(statusCounts),
+        datasets: [{ data: Object.values(statusCounts) }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+}
+
 function enforceGradeRules(){
   const status = $('#a-status').value.trim().toLowerCase();
   const gradeEl = $('#a-grade');
@@ -264,6 +339,7 @@ export async function init(demo){
     wireTabs('#view-assistant');
     await loadAssistantData(demo);
     renderHome();
+    renderPerformance();
     wireEvents();
 
     // fill selects for students tab

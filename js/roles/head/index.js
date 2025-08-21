@@ -47,7 +47,9 @@ function studentOpenNow(asg){
 
 // --- Charts: Head / Analytics (real data) ---
 function renderHeadAnalytics(){
-  const h = state.head || { assistants: [], checks: [] };
+  const h = state.head && typeof state.head === 'object' ? state.head : { assistants: [], checks: [] };
+  h.assistants = Array.isArray(h.assistants) ? h.assistants : [];
+  h.checks     = Array.isArray(h.checks) ? h.checks : [];
 
   // ---------- Helpers ----------
   const byId = new Map((h.assistants||[]).map(a => [a.userId, a.displayName || a.userId]));

@@ -12,7 +12,7 @@ const ROLE_TABS = {
   student: [
     ['s-home',        'views/roles/student/tabs/home.html'],
     ['s-assignments', 'views/roles/student/tabs/assignments.html'],
-    ['s-analytics',   'views/roles/student/tabs/analytics.html'],
+    ['s-analytics',   'views/roles/student/tabs/performance.html'],
     ['s-profile',     'views/roles/student/tabs/profile.html'],
   ],
   assistant: [

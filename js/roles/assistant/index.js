@@ -157,8 +157,6 @@ function checkBadgeFromStatus(s=''){
   if (k==='pending')   return '<span class="badge info">Pending</span>';     // ← add
   return `<span class="badge">${s}</span>`;
 }
-// and in buildPerStudentAssignmentsTable row template:
-<td>${checkBadgeFromStatus(chkKey)}</td>
 
 function buildStudentTableHtml(asg){
   const a = state.assistant;

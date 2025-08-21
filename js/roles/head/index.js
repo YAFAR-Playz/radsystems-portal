@@ -58,13 +58,15 @@ function _fmtDateShort(iso){
 
 // --- HEAD Students: shared helpers (mirror Assistant) ---
 function badgeHtmlByKey(key, fallback=''){
-  if (key==='submitted') return '<span class="badge ok">Submitted</span>';
-  if (key==='late')      return '<span class="badge warn">Submitted Late</span>';
-  if (key==='missing')   return '<span class="badge danger">Missing</span>';
-  if (key==='pending')   return '<span class="badge">Pending</span>';
-  if (key==='unchecked') return '<span class="badge danger">Unchecked</span>';
-  if (key==='checked')   return '<span class="badge ok">Checked</span>';
-  if (key==='redo')      return '<span class="badge warn">Redo</span>';
+  const k = String(key||'').toLowerCase();
+  if (k==='submitted') return '<span class="badge ok">Submitted</span>';
+  if (k==='late')      return '<span class="badge warn">Submitted Late</span>'; // yellow
+  if (k==='missing')   return '<span class="badge danger">Missing</span>';      // red
+  if (k==='unchecked') return '<span class="badge danger">Unchecked</span>';    // red
+  if (k==='pending')   return '<span class="badge info">Pending</span>';        // blue
+  if (k==='checked')   return '<span class="badge ok">Checked</span>';
+  if (k==='redo')      return '<span class="badge warn">Redo</span>';           // yellow
+  if (k==='-')         return '<span class="muted">—</span>';                   // plain dash
   return fallback || '<span class="badge">—</span>';
 }
 
@@ -90,7 +92,7 @@ function studentSubmissionStatus(asg, submission){
 }
 
 function checkedStatus(asg, studentId){
-  // If we have a check, mirror its status; otherwise:
+  // If a check exists, mirror its status
   const c = (state.head?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===studentId);
   if (c){
     const s = String(c.status||'').trim().toLowerCase();
@@ -99,11 +101,14 @@ function checkedStatus(asg, studentId){
     if (s==='redo')    return 'redo';
     return s || 'checked';
   }
-  // No check record: Pending vs Unchecked (deadline passed and there WAS a submission)
-  const submission = findStudentSubmission(asg, studentId);
+
+  // No check: inspect submission vs deadlines
+  const submission = findStudentSubmission(asg, studentId);  // null for now
+  if (!submission) return '-';                               // ← show a dash
+
   const asstDL = parseMaybeISO(asg.assistantDeadline);
   const deadlinePassed = !!(asstDL && new Date() > asstDL);
-  if (submission && deadlinePassed) return 'unchecked';
+  if (deadlinePassed) return 'unchecked';
   return 'pending';
 }
 

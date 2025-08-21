@@ -7,7 +7,13 @@ export const DEFAULT_LOGO_DATAURI =
 
 export const state = {
   user:null,
-  branding:{ dateFormat:'yyyy-MM-dd', primaryColor:'#1F3C88', accentColor:'#6BCB77', logoUrl: DEFAULT_LOGO_DATAURI },
+  branding:{
+  dateFormat:'yyyy-MM-dd',
+  primaryColor:'#1F3C88',
+  accentColor:'#6BCB77',
+  logoUrl: DEFAULT_LOGO_DATAURI,
+  teamName:'RadSystems Portal'  // NEW
+},
   assistant:{ students:[], assignments:[], checks:[] },
   head:{ assistants:[], students:[], assignments:[], analytics:{}, editingId:null },
   admin:{ users:[], assistants:[], students:[], courses:[], enrollments:[], roles:[], perms:[], currentRole:'' }

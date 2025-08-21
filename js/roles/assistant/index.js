@@ -22,6 +22,13 @@ function assistantOpenNow(asg){
   return true;
 }
 
+function findStudentSubmission(assignmentId, studentId){
+  const arr = (state.assistant && Array.isArray(state.assistant.submissions))
+    ? state.assistant.submissions
+    : [];
+  return arr.find(s => s.assignmentId === assignmentId && s.studentId === studentId) || null;
+}
+
 function buildPerStudentAssignmentsTable(st){
   const a = state.assistant;
   // Only assignments from the student's course
@@ -32,21 +39,39 @@ function buildPerStudentAssignmentsTable(st){
   let rows = '';
   asgs.forEach(asg => {
     const ck = byAsg.get(asg.assignmentId) || null;
-    const stStatus = studentStatusFor(asg, ck);
+
+    // Student Submission status (placeholder until real student uploads are wired)
+    const submission = studentStatusFor(asg, ck); // pending / submitted / submitted late / missing
+    const submissionBadge = badgeHtmlByKey(submission.key);
+
+    // NEW: Student Submission File (will use real student uploads later)
+    const sub = findStudentSubmission(asg.assignmentId, st.studentId);
+    const submissionFile = sub?.fileUrl
+      ? `<a href="${sub.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
+
+    // Checked (assistant’s check status)
+    const checkedBadge = ck ? checkBadgeFromStatus(ck.status) : '<span class="muted">—</span>';
+
+    // Checked File (assistant-uploaded file tied to the check)
+    const checkedFile = ck?.fileUrl
+      ? `<a href="${ck.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
 
     const grade = ck?.grade || '';
     const comment = ck?.comment || '';
-    const file = ck?.fileUrl
-      ? `<a href="${ck.fileUrl}" target="_blank" rel="noopener">file</a>`
-      : '<span class="muted">—</span>';
+    const stuDL = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding.dateFormat) || '<span class="muted">—</span>';
+
     rows += `
       <tr>
         <td>${asg.title}</td>
-        <td>${badgeHtmlByKey(stStatus.key)}</td>
+        <td>${submissionBadge}</td>
+        <td>${submissionFile}</td>
+        <td>${checkedBadge}</td>
         <td>${grade || '<span class="muted">—</span>'}</td>
         <td>${comment ? comment.replace(/</g,'&lt;') : '<span class="muted">—</span>'}</td>
-        <td>${file}</td>
-        <td>${formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding.dateFormat) || '<span class="muted">—</span>'}</td>
+        <td>${checkedFile}</td>
+        <td>${stuDL}</td>
       </tr>`;
   });
 
@@ -56,14 +81,16 @@ function buildPerStudentAssignmentsTable(st){
         <thead>
           <tr>
             <th>Assignment</th>
-            <th>Status</th>
+            <th>Submission Status</th>
+            <th>Student Submission File</th> <!-- NEW, before Checked -->
+            <th>Checking Status</th>
             <th>Grade</th>
             <th>Comment</th>
-            <th>Student File</th>
+            <th>Checked File</th>
             <th>Student DL</th>
           </tr>
         </thead>
-        <tbody>${rows || '<tr><td colspan="6"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="8"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
       </table>
     </div>`;
 }
@@ -86,6 +113,15 @@ function badgeHtmlByKey(key, fallback=''){
   if (key==='open')      return '<span class="badge ok">Open</span>';
   if (key==='closed')    return '<span class="badge warn">Closed</span>';
   return fallback || '<span class="badge">Pending</span>';
+}
+
+function checkBadgeFromStatus(s=''){
+  const k = String(s).trim().toLowerCase();
+  if (!k) return '<span class="muted">—</span>';
+  if (k === 'checked') return '<span class="badge ok">Checked</span>';
+  if (k === 'missing') return '<span class="badge danger">Missing</span>';
+  if (k === 'redo')    return '<span class="badge warn">Redo</span>';
+  return `<span class="badge">${s}</span>`;
 }
 
 function buildStudentTableHtml(asg){

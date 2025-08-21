@@ -299,6 +299,7 @@ function renderHead(){
   }
   // charts (real data)
   renderHeadAnalytics();
+}
   
 
 // ===================== small refresh (no rewiring) ===================== //

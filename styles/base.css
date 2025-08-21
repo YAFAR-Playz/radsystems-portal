@@ -169,3 +169,11 @@ label input[type="checkbox"]{ margin-right:6px; }
   #adm-perms .perms-grid{ grid-template-columns: 1fr; }
   #adm-perms .perms-left{ position: static; }
 }
+
+/* Head → Students: expandable rows */
+#h-students .chev { user-select:none; cursor:pointer; transition: transform .15s ease; }
+#h-students .chev.open { transform: rotate(90deg); }
+#h-students .details-row.hidden { display: none; }
+#h-students .details { background:#fff; }
+#h-students .table.slim th,
+#h-students .table.slim td { padding:8px 10px; }

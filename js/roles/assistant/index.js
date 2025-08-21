@@ -95,7 +95,7 @@ function buildPerStudentAssignmentsTable(st){
         <td>${asg.title}</td>
         <td>${badgeHtmlByKey(subKey)}</td>
         <td>${subFile}</td>
-        <td>${badgeHtmlByKey(chkKey)}</td>
+        <td>${checkBadgeFromStatus(chkKey)}</td>
         <td>${grade}</td>
         <td>${comment}</td>
         <td>${checkFile}</td>

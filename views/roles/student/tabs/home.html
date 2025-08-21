@@ -1,12 +1,15 @@
-<!-- views/roles/student/tabs/home.html -->
-<div class="grid kpis">
-  <div class="kpi"><div class="kpi-num" id="s-kpi-open">0</div><div class="kpi-label">Open Assignments</div></div>
-  <div class="kpi"><div class="kpi-num" id="s-kpi-due">0</div><div class="kpi-label">Due This Week</div></div>
-  <div class="kpi"><div class="kpi-num" id="s-kpi-submitted">0</div><div class="kpi-label">Submitted</div></div>
+<!-- Student Home -->
+<div class="grid cols-3">
+  <div class="card"><div class="muted">Open Assignments</div><div id="s-kpi-open" class="kpi">0</div></div>
+  <div class="card"><div class="muted">Due This Week</div><div id="s-kpi-due" class="kpi">0</div></div>
+  <div class="card"><div class="muted">Submitted</div><div id="s-kpi-submitted" class="kpi">0</div></div>
 </div>
 
-<div class="card" style="margin-top:12px">
-  <div class="card-title">Upcoming</div>
+<div class="card" style="margin-top:16px">
+  <div class="card-title">Upcoming & Redo</div>
+  <div class="muted" style="margin:6px 0 10px">
+    Uploads are allowed while the assignment is open. If you upload after the student deadline but before the assistant’s deadline, it will be marked <b>Submitted Late</b>.
+  </div>
   <div class="table-wrapper">
     <table class="table compact">
       <thead>
@@ -14,7 +17,8 @@
           <th>Assignment</th>
           <th>Course</th>
           <th>Unit</th>
-          <th>Due</th>
+          <th>Student DL</th>
+          <th>Late Submission DL</th>
           <th>Status</th>
           <th>Action</th>
         </tr>

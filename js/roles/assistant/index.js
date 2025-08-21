@@ -22,6 +22,70 @@ function assistantOpenNow(asg){
   return true;
 }
 
+function studentStatusFor(asg, check){
+  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  if (check && String(check.status||'').trim()){
+    const t = new Date(check.updatedAt || check.createdAt || 0);
+    const late = dl && t > dl;
+    return { key: late ? 'late' : 'submitted', label: late ? 'Submitted Late' : 'Submitted' };
+  }
+  if (dl && new Date() > dl) return { key:'missing', label:'Missing' };
+  return { key:'pending', label:'Pending' };
+}
+
+function badgeHtmlByKey(key, fallback=''){
+  if (key==='submitted') return '<span class="badge ok">Submitted</span>';
+  if (key==='late')      return '<span class="badge warn">Submitted Late</span>';
+  if (key==='missing')   return '<span class="badge danger">Missing</span>';
+  if (key==='open')      return '<span class="badge ok">Open</span>';
+  if (key==='closed')    return '<span class="badge warn">Closed</span>';
+  return fallback || '<span class="badge">Pending</span>';
+}
+
+function buildStudentTableHtml(asg){
+  const a = state.assistant;
+  // only this assistant's active students, same course as assignment
+  const students = a.students.filter(s => (s.course||'') === (asg.course||''));
+  const checks = a.checks.filter(c => c.assignmentId === asg.assignmentId);
+  const byStudent = new Map(checks.map(c => [c.studentId, c]));
+
+  let rows = '';
+  students.forEach(st => {
+    const ck = byStudent.get(st.studentId) || null;
+    const stStatus = studentStatusFor(asg, ck);
+    const studentFile = ck?.fileUrl
+      ? `<a href="${ck.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
+    const grade = ck?.grade || '';
+    const comment = ck?.comment || '';
+
+    rows += `
+      <tr>
+        <td>${st.studentName}</td>
+        <td>${badgeHtmlByKey(stStatus.key)}</td>
+        <td>${grade || '<span class="muted">—</span>'}</td>
+        <td>${comment ? comment.replace(/</g,'&lt;') : '<span class="muted">—</span>'}</td>
+        <td>${studentFile}</td>
+      </tr>`;
+  });
+
+  return `
+    <div class="table-wrapper" style="margin:8px 0">
+      <table class="table compact">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Status</th>
+            <th>Grade</th>
+            <th>Comment</th>
+            <th>Student File</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="5"><span class="muted">No students in this course.</span></td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
 function renderHome(){
   const a = state.assistant;
   const openAssignments = a.assignments.filter(assistantOpenNow);
@@ -38,10 +102,55 @@ function renderHome(){
   a.assignments.forEach(x=>{
     const stuDL = formatDateDisplay(x.studentDeadline || x.deadline, state.branding.dateFormat);
     const asstDL = formatDateDisplay(x.assistantDeadline || '', state.branding.dateFormat);
-    const statusBadge = assistantOpenNow(x)?'<span class="badge ok">Open</span>':'<span class="badge warn">Closed</span>';
+    const statusBadge = openNow ? badgeHtmlByKey('open') : badgeHtmlByKey('closed');
+    const headFile = x.studentFileUrl
+      ? `<a href="${x.studentFileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
+
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${x.title}</td><td>${x.course}</td><td>${x.unit}</td><td>${stuDL}</td><td>${asstDL}</td><td>${statusBadge}</td>`;
+    tr.innerHTML = `
+      <td><button class="btn ghost a-expand" data-id="${x.assignmentId}" aria-expanded="false" title="Expand">►</button></td>
+      <td>${x.title}</td>
+      <td>${x.course}</td>
+      <td>${x.unit || ''}</td>
+      <td>${stuDL}</td>
+      <td>${asstDL}</td>
+      <td>${headFile}</td>
+      <td>${statusBadge}</td>`;
     tb.appendChild(tr);
+
+    // Detail row (initially hidden)
+    const tr2=document.createElement('tr');
+    tr2.className='a-expand-row hidden';
+    tr2.dataset.for = x.assignmentId;
+    tr2.innerHTML = `<td colspan="8">${buildStudentTableHtml(x)}</td>`;
+    tb.appendChild(tr2);
+  });
+
+  // Toggle logic (event delegation on the tbody)
+  tb.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.a-expand');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const row = tb.querySelector(`tr.a-expand-row[data-for="${id}"]`);
+    if (!row) return;
+    const isHidden = row.classList.contains('hidden');
+    row.classList.toggle('hidden', !isHidden);
+    btn.textContent = isHidden ? '▼' : '►';
+    btn.setAttribute('aria-expanded', String(isHidden));
+  }, { once:true });
+
+  // Rebind for future re-renders (ensure delegation persists)
+  tb.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.a-expand');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const row = tb.querySelector(`tr.a-expand-row[data-for="${id}"]`);
+    if (!row) return;
+    const isHidden = row.classList.contains('hidden');
+    row.classList.toggle('hidden', !isHidden);
+    btn.textContent = isHidden ? '▼' : '►';
+    btn.setAttribute('aria-expanded', String(isHidden));
   });
 }
 

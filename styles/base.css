@@ -123,3 +123,9 @@ label input[type="checkbox"]{ margin-right:6px; }
 
 /* if something else is stripping backgrounds, force it */
 .table td .badge{ background-clip:padding-box; }
+
+/* Chart canvases sized by their card container */
+#h-bar, #h-donut, #h-line { width: 100%; height: 280px; }
+@media (max-width: 640px){
+  #h-bar, #h-donut, #h-line { height: 240px; }
+}

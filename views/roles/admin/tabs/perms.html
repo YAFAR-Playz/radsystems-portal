@@ -1,16 +1,26 @@
-<div class="grid cols-2">
-  <div class="card">
+<div class="perms-grid">
+  <div class="card perms-left">
     <h3>Pick Role</h3>
     <div class="row">
       <select id="p-role" style="max-width:260px"></select>
-      <button id="p-load" class="btn"><span class="spinner dark hidden" id="p-load-spin"></span><span>Load</span></button>
+      <button id="p-load" class="btn">
+        <span class="spinner dark hidden" id="p-load-spin"></span><span>Load</span>
+      </button>
     </div>
-    <div class="muted" style="font-size:12px">Toggle permissions for the selected role.</div>
+    <div class="muted" style="font-size:12px">
+      Toggle permissions for the selected role.
+    </div>
   </div>
-  <div class="card">
+
+  <div class="card perms-right">
     <h3>Permissions</h3>
-    <div class="table-wrapper">
-      <table class="table" id="p-table"><thead><tr><th>Permission</th><th>Enabled</th></tr></thead><tbody></tbody></table>
+    <div class="table-fixed">
+      <table class="table slim" id="p-table">
+        <thead>
+          <tr><th>Permission</th><th>Enabled</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>

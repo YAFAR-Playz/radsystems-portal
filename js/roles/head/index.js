@@ -100,14 +100,14 @@ function renderHead(){
         <td>${asstDL}</td>
         <td>${x.requireGrade
               ? '<span class="badge ok">Yes</span>'
-              : '<span class="badge err">No</span>'}</td>
+              : '<span class="badge danger">No</span>'}</td>
         <td>${ studentOpenNow(x) ? '<span class="badge ok">Active</span>' 
                          : '<span class="badge warn">Closed</span>' }</td>
         <td>${ assistantOpenNow(x) ? '<span class="badge ok">Active</span>' 
                            : '<span class="badge warn">Closed</span>' }</td>
         <td>${x.countInSalary
               ? '<span class="badge ok">Yes</span>'
-              : '<span class="badge err">No</span>'}</td>
+              : '<span class="badge danger">No</span>'}</td>
         <td>${x.studentFileUrl? `<a href="${x.studentFileUrl}" target="_blank">File</a>` : '<span class="muted">none</span>'}</td>
         <td class="cell-actions">
           <button class="btn h-edit" data-id="${x.assignmentId}">Edit</button>

@@ -16,15 +16,17 @@ async function loadTabHtml(tabId, path){
 // ------------ helpers ------------
 function badgeHtmlByKey(key, fallback=''){
   const k = String(key||'').toLowerCase();
-  if (k==='submitted') return '<span class="badge ok">Submitted</span>';
-  if (k==='late')      return '<span class="badge warn">Submitted Late</span>';
-  if (k==='missing')   return '<span class="badge danger">Missing</span>';
-  if (k==='pending')   return '<span class="badge info">Pending</span>';
-  if (k==='checked')   return '<span class="badge ok">Checked</span>';
-  if (k==='redo')      return '<span class="badge warn">Redo</span>';
-  if (k==='open')      return '<span class="badge ok">Open</span>';
-  if (k==='closed')    return '<span class="badge warn">Closed</span>';
-  if (k==='-')         return '<span class="muted">—</span>';
+  if (k==='submitted')      return '<span class="badge ok">Submitted</span>';
+  if (k==='late')           return '<span class="badge warn">Submitted Late</span>';
+  if (k==='missing')        return '<span class="badge danger">Missing</span>';
+  if (k==='pending')        return '<span class="badge info">Pending</span>';
+  if (k==='checked')        return '<span class="badge ok">Checked</span>';
+  if (k==='redo')           return '<span class="badge warn">Redo</span>';
+  if (k==='pending-redo')   return '<span class="badge warn">Pending Redo</span>';   // NEW
+  if (k==='resubmitted')    return '<span class="badge ok">Resubmitted</span>';      // NEW
+  if (k==='open')           return '<span class="badge ok">Open</span>';
+  if (k==='closed')         return '<span class="badge warn">Closed</span>';
+  if (k==='-')              return '<span class="muted">—</span>';
   return fallback || '<span class="badge">—</span>';
 }
 
@@ -57,27 +59,49 @@ function mySubmissionFor(asg){
   return state.student.submissions.find(s => s.assignmentId===asg.assignmentId) || null;
 }
 
-function mySubmissionStatus(asg){
-  const sub   = mySubmissionFor(asg);
-  const stuDL = parseMaybeISO(asg.studentDeadline || asg.deadline);
-  const asstDL= parseMaybeISO(asg.assistantDeadline || '');
+function getChecksFor(asg){
+  const all = Array.isArray(state.student?.checks) ? state.student.checks.filter(c => c.assignmentId === asg.assignmentId) : [];
+  // normalize time
+  all.forEach(c => { c._t = parseMaybeISO(c.updatedAt || c.createdAt || '')?.getTime() || 0; });
+  // newest last
+  all.sort((a,b)=> a._t - b._t);
+  return all;
+}
 
+function mySubmissionStatus(asg){
+  const sub     = mySubmissionFor(asg);
+  const tSub    = parseMaybeISO(sub?.submittedAt || sub?.submittedAtISO || sub?.createdAt || sub?.updatedAt)?.getTime() || 0;
+
+  const stuDL   = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL  = parseMaybeISO(asg.assistantDeadline || '');
+  const now     = new Date();
+
+  const checks  = getChecksFor(asg);
+  const redoChecks = checks.filter(c => String(c.status||'').trim().toLowerCase()==='redo');
+  const lastRedo   = redoChecks.length ? redoChecks[redoChecks.length-1] : null;
+  const tRedo      = lastRedo ? lastRedo._t : 0;
+
+  // --- Redo flow overrides normal rules ---
+  if (lastRedo){
+    // If last upload is after the last redo -> Resubmitted
+    if (tSub && tSub > tRedo){
+      return 'resubmitted';  // stays green even if a later check marks 'Checked'
+    }
+    // Otherwise the redo is still outstanding -> Pending Redo
+    return 'pending-redo';
+  }
+
+  // --- No redo outstanding: fall back to normal rules ---
   if (sub){
-    // NOTE: backend uses "submittedAt"
-    const t = parseMaybeISO(sub.submittedAt || sub.submittedAtISO || sub.createdAt || sub.updatedAt);
-    if (t && stuDL && t > stuDL){
-      // Late if turned in after student deadline (even if after stuDL), we still show "Late".
-      // If you ever want to treat > assistant deadline differently, add a branch here.
-      return 'late';
+    if (stuDL && tSub > (stuDL.getTime())){
+      return 'late';  // submitted after student deadline (even if before assistant deadline)
     }
     return 'submitted';
   }
 
-  // No submission yet: if past student DL but before assistant DL, it’s still allowed late
-  // (status remains "pending" so the Upload button is offered).
-  const now = new Date();
+  // No submission yet
   if (stuDL && now > stuDL){
-    if (asstDL && now <= asstDL) return 'pending';
+    if (asstDL && now <= asstDL) return 'pending'; // late window still open -> let them upload
     return 'missing';
   }
   return 'pending';
@@ -279,17 +303,19 @@ function renderAssignments(){
 function renderAnalytics(){
   const s = state.student || { assignments:[], submissions:[], checks:[] };
 
-  // Build status buckets
-  const counts = { Submitted:0, 'Submitted Late':0, Missing:0, Pending:0 };
+  // Add a Resubmitted bucket
+  const counts = { Submitted:0, 'Submitted Late':0, 'Resubmitted':0, 'Pending Redo':0, Missing:0, Pending:0 };
+
   (s.assignments||[]).forEach(asg=>{
     const st = mySubmissionStatus(asg);
     if (st==='submitted') counts.Submitted++;
     else if (st==='late') counts['Submitted Late']++;
+    else if (st==='resubmitted') counts['Resubmitted']++;
+    else if (st==='pending-redo') counts['Pending Redo']++;
     else if (st==='missing') counts.Missing++;
     else counts.Pending++;
   });
 
-  // Donut
   const el = document.getElementById('s-donut');
   if (el && window.Chart){
     if (el._chart) el._chart.destroy();

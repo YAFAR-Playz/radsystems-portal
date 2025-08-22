@@ -75,24 +75,6 @@ function badgeHtmlByKey(key, fallback=''){
 // Placeholder for future student submissions table.
 // For now returns null (no submission). When you wire the real table, return
 // { fileUrl, submittedAtISO } if the student uploaded a submission.
-function findStudentSubmission(asg, studentId){
-  // e.g., if later you store in state.head.submissions:
-  // const s = (state.head?.submissions || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===studentId);
-  // return s || null;
-  return null;
-}
-
-function studentSubmissionStatus(asg, submission){
-  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
-  if (submission){
-    const t = parseMaybeISO(submission.submittedAtISO || submission.createdAt || submission.updatedAt);
-    const late = dl && t && t > dl;
-    return late ? 'late' : 'submitted';
-  }
-  if (dl && new Date() > dl) return 'missing';
-  return 'pending';
-}
-
 function checkedStatus(asg, studentId){
   // If a check exists, mirror its status
   const c = (state.head?.checks || []).find(
@@ -128,33 +110,33 @@ function buildPerStudentAssignmentsTable_Head(st){
 
   let rows = '';
   asgs.forEach(asg=>{
-    const submission = findStudentSubmission(asg, st.studentId); // null for now (infra ready)
-    const subKey = studentSubmissionStatus(asg, submission);
-    const subFile = submission?.fileUrl
-      ? `<a href="${submission.fileUrl}" target="_blank" rel="noopener">file</a>`
-      : '<span class="muted">—</span>';
-
-    // Checked cell: shows Checked/Redo/Missing OR Pending/Unchecked (per rules)
-    const chkKey = checkedStatus(asg, st.studentId);
     const check = (state.head?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===st.studentId) || null;
-    const grade = check?.grade || '<span class="muted">—</span>';
+
+    // Student “submission” status from check timestamp vs student deadline
+    const stStatus = studentStatusFor(asg, check); // {key,label}
+
+    // Checking status
+    const chkKey = check
+      ? (String(check.status||'').trim().toLowerCase() || 'checked')
+      : checkedStatus(asg, st.studentId);
+
+    const grade   = check?.grade || '<span class="muted">—</span>';
     const comment = check?.comment ? String(check.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>';
-    const checkFile = check?.fileUrl
+    const chkFile = check?.fileUrl
       ? `<a href="${check.fileUrl}" target="_blank" rel="noopener">file</a>`
       : '<span class="muted">—</span>';
 
-    const stuDL  = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding.dateFormat) || '<span class="muted">—</span>';
-    const asstDL = formatDateDisplay(asg.assistantDeadline || '', state.branding.dateFormat) || '<span class="muted">—</span>';
+    const stuDL  = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat) || '<span class="muted">—</span>';
+    const asstDL = formatDateDisplay(asg.assistantDeadline || '', state.branding?.dateFormat) || '<span class="muted">—</span>';
 
     rows += `
       <tr>
         <td>${asg.title}</td>
-        <td>${badgeHtmlByKey(subKey)}</td>
-        <td>${subFile}</td>
+        <td>${badgeHtmlByKey(stStatus.key)}</td>
         <td>${badgeHtmlByKey(chkKey)}</td>
         <td>${grade}</td>
         <td>${comment}</td>
-        <td>${checkFile}</td>
+        <td>${chkFile}</td>
         <td>${stuDL}</td>
         <td>${asstDL}</td>
       </tr>`;
@@ -167,7 +149,6 @@ function buildPerStudentAssignmentsTable_Head(st){
           <tr>
             <th>Assignment</th>
             <th>Submission Status</th>
-            <th>Student Submission File</th>
             <th>Checking Status</th>
             <th>Grade</th>
             <th>Comment</th>
@@ -176,7 +157,7 @@ function buildPerStudentAssignmentsTable_Head(st){
             <th>Assistant DL</th>
           </tr>
         </thead>
-        <tbody>${rows || '<tr><td colspan="9"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="8"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
       </table>
     </div>`;
 }

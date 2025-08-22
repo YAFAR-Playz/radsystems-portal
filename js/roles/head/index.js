@@ -789,6 +789,39 @@ const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0,
   }
 }
 
+function renderHeadProfile(){
+  const u = state.user || {};
+  $('#h-prof-name') && ($('#h-prof-name').value = u.displayName || u.name || '');
+  $('#h-prof-email') && ($('#h-prof-email').value = u.email || '');
+  $('#h-prof-phone') && ($('#h-prof-phone').value = state.head?.head?.phone || '');
+  $('#h-prof-course') && ($('#h-prof-course').value = u.course || '');
+  $('#h-prof-unit') && ($('#h-prof-unit').value = u.unit || '');
+
+  const save = $('#h-prof-save');
+  if (save && !save._wired){
+    save._wired = true;
+    save.onclick = async ()=>{
+      const btn = save;
+      const spin = $('#h-prof-spin'); setLoading(btn, true, spin);
+      try{
+        const displayName = $('#h-prof-name')?.value.trim();
+        const email = $('#h-prof-email')?.value.trim();
+        const phone = $('#h-prof-phone')?.value.trim();
+        // Use a role‑specific endpoint; if your backend exposes a generic one, replace with 'user.updateProfile'
+        const r = await api('head.updateProfile', { displayName, email, phone });
+        state.user.displayName = displayName || state.user.displayName;
+        if (email && email !== state.user.email) state.user.email = email;
+        $('#h-prof-msg').textContent = r.changedEmail ? 'Saved. Email changed — password cleared for security.' : 'Saved.';
+      }catch(e){
+        $('#h-prof-msg').textContent = 'Could not save: ' + e.message;
+      }finally{
+        setLoading(btn, false, spin);
+      }
+    };
+  }
+}
+
+
 function renderHead(){
   const h = state.head || { assistants:[], students:[], assignments:[] };
 
@@ -916,6 +949,7 @@ function renderHead(){
   renderHeadAnalytics();
   renderStudentsTab(); // ADDED
   renderAssistantsTab(); // ← NEW
+  renderHeadProfile(); // NEW
 }
   
 
@@ -1201,6 +1235,7 @@ export async function mount(){
     await loadTabHtml('h-assistants', 'views/roles/head/tabs/assistants.html'); // ← NEW
     await loadTabHtml('h-checks',     'views/roles/head/tabs/checks.html');   // ← NEW (before analytics)
     await loadTabHtml('h-analytics',   'views/roles/head/tabs/analytics.html');
+    await loadTabHtml('h-profile', 'views/roles/head/tabs/profile.html'); // NEW
     wireTabs('#view-head');
   } finally {
     showPageLoader(false);
@@ -1218,6 +1253,7 @@ export async function boot(demo=false){
     wireHeadChecksEvents();       // ← NEW
     // seed the head checks tab after data load
     seedHeadChecksTab();          // ← NEW
+    renderHeadProfile(); // NEW
     if (state.user?.role === 'head') {
       const inp = $('#h-a-course'); if (inp) inp.value = state.user.course || '';
     }

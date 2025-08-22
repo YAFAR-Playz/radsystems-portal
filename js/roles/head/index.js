@@ -535,15 +535,16 @@ function renderHeadAnalytics(){
 
   // ---------- BAR: Checks per assistant (this month, by assignment.course) ----------
 const checksForBar = Array.isArray(h.checksByCourse) ? h.checksByCourse : (h.checks || []);
-
-const barAgg = {};
-checksForBar.forEach(c=>{
-  const t = new Date(c.updatedAt || c.createdAt || 0);
-  if (t >= monthStart) {
-    const id = c.assistantId || 'unknown';
-    barAgg[id] = (barAgg[id] || 0) + 1;
-  }
-});
+  const barAgg = {};
+  checksForBar.forEach(c => {
+    const t = new Date(c.updatedAt || c.createdAt || 0);
+    const role = String(c.checkedByRole || 'assistant').toLowerCase();
+    // match backend: exclude head-authored checks from assistant counts
+    if (t >= monthStart && role !== 'head') {
+      const id = c.assistantId || 'unknown';
+      barAgg[id] = (barAgg[id] || 0) + 1;
+    }
+  });
 
 const barLabels = (h.assistants||[]).map(a => byId.get(a.userId));
 const barData   = (h.assistants||[]).map(a => barAgg[a.userId] || 0);

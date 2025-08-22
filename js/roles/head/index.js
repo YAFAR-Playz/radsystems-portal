@@ -28,6 +28,11 @@ async function loadTabHtml(tabId, path){
 
 // ===================== helpers ===================== //
 
+function _checksSrc(){
+  const h = state.head || {};
+  return Array.isArray(h.checksByCourse) ? h.checksByCourse : (h.checks || []);
+}
+
 // Compute one bucket exactly like Student "singleStatus" for Head
 function _h_singleStatusFor(asg, studentId){
   const sub   = _latestSubmission(asg.assignmentId, studentId);
@@ -64,7 +69,7 @@ function _h_singleStatusFor(asg, studentId){
 // ===== Head Checks tab helpers =====
 function _h_asgById(id){ return (state.head?.assignments||[]).find(a=> a.assignmentId===id); }
 function _h_latestCheck(asgId, studentId){
-  const list = (state.head?.checks || []).filter(c => c.assignmentId===asgId && c.studentId===studentId);
+  cconst list = _checksSrc().filter(c => c.assignmentId===asgId && c.studentId===studentId);
   if (!list.length) return null;
   return list.sort((a,b)=> new Date(b.updatedAt||b.createdAt||0) - new Date(a.updatedAt||a.createdAt||0))[0];
 }
@@ -214,7 +219,7 @@ function _h_renderExistingChecksTable(){
 
 // Mirror Student portal logic (needs submissions + checks)
 function _latestCheck(asgId, studentId){
-  const list = (state.head?.checks || []).filter(c => c.assignmentId===asgId && c.studentId===studentId);
+  const list = _checksSrc().filter(c => c.assignmentId===asgId && c.studentId===studentId);
   if (!list.length) return null;
   return list.slice().sort((a,b)=>{
     const ta = new Date(a.updatedAt || a.createdAt || 0).getTime();
@@ -272,7 +277,7 @@ function _assistantNameByIdMap(){
   return map;
 }
 function _latestCheckForStudent(studentId){
-  const checks = (state.head?.checks || []).filter(c => c.studentId === studentId);
+  const checks = _checksSrc().filter(c => c.studentId === studentId);
   if (!checks.length) return null;
   // pick most recent by updatedAt then createdAt
   const toTime = c => new Date(c.updatedAt || c.createdAt || 0).getTime();
@@ -280,7 +285,7 @@ function _latestCheckForStudent(studentId){
   return checks[0];
 }
 function _recentChecks(studentId, limit=3){
-  const checks = (state.head?.checks || []).filter(c => c.studentId === studentId);
+  const checks = _checksSrc().filter(c => c.studentId === studentId);
   const toTime = c => new Date(c.updatedAt || c.createdAt || 0).getTime();
   checks.sort((a,b)=> toTime(b) - toTime(a));
   return checks.slice(0, limit);
@@ -315,7 +320,7 @@ function badgeHtmlByKey(key, fallback=''){
 // { fileUrl, submittedAtISO } if the student uploaded a submission.
 function checkedStatus(asg, studentId){
   // If a check exists, mirror its status
-  const c = (state.head?.checks || []).find(
+  const c = _checksSrc().find(
     x => x.assignmentId===asg.assignmentId && x.studentId===studentId
   );
   if (c){
@@ -348,7 +353,7 @@ function buildPerStudentAssignmentsTable_Head(st){
 
   let rows = '';
   asgs.forEach(asg=>{
-    const check = (state.head?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===st.studentId) || null;
+    const check = _checksSrc().find(x => x.assignmentId===asg.assignmentId && x.studentId===st.studentId) || null;
     const submission = _latestSubmission(asg.assignmentId, st.studentId);
     
     // Mirror Student portal status (incl. pending-redo / resubmitted)

@@ -28,6 +28,39 @@ async function loadTabHtml(tabId, path){
 
 // ===================== helpers ===================== //
 
+// Compute one bucket exactly like Student "singleStatus" for Head
+function _h_singleStatusFor(asg, studentId){
+  const sub   = _latestSubmission(asg.assignmentId, studentId);
+  const chk   = _latestCheck(asg.assignmentId, studentId);
+
+  const tSub  = sub ? parseMaybeISO(sub.submittedAt || sub.submittedAtISO || sub.createdAt || sub.updatedAt) : null;
+  const tChk  = chk ? parseMaybeISO(chk.updatedAt || chk.createdAt) : null;
+  const stuDL = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL= parseMaybeISO(asg.assistantDeadline || '');
+  const now   = new Date();
+  const lastStatus = (chk && String(chk.status||'').trim().toLowerCase()) || '';
+
+  if (chk){
+    if (lastStatus === 'checked') return 'checked';
+    if (lastStatus === 'redo'){
+      if (tSub && tChk && tSub > tChk) return 'resubmitted';
+      return 'redo';
+    }
+    return lastStatus || 'pending';
+  }
+
+  if (!sub){
+    if (stuDL && now > stuDL){
+      if (asstDL && now <= asstDL) return 'pending';
+      return 'missing';
+    }
+    return 'pending';
+  }
+
+  if (stuDL && tSub && tSub > stuDL) return 'late';
+  return 'submitted';
+}
+
 // ===== Head Checks tab helpers =====
 function _h_asgById(id){ return (state.head?.assignments||[]).find(a=> a.assignmentId===id); }
 function _h_latestCheck(asgId, studentId){
@@ -513,15 +546,22 @@ function renderHeadAnalytics(){
     });
   }
 
-  // ---------- DOUGHNUT: Status breakdown (all checks) ----------
-  const statusCounts = { Checked:0, Missing:0, Redo:0, Other:0 };
-  (h.checks||[]).forEach(c=>{
-    const s = String(c.status||'').trim().toLowerCase();
-    if (!s) return;
-    if (s==='checked') statusCounts.Checked++;
-    else if (s==='missing') statusCounts.Missing++;
-    else if (s==='redo') statusCounts.Redo++;
-    else statusCounts.Other++;
+    // ---------- DOUGHNUT: Status breakdown (ALL submission statuses like Student) ----------
+  const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0, Pending:0, Checked:0, Redo:0 };
+
+  // Iterate across student × assignment pairs in the head's course
+  (h.assignments || []).forEach(asg => {
+    const theseStudents = (h.students || []).filter(s => (s.course||'') === (asg.course||''));
+    theseStudents.forEach(st => {
+      const k = _h_singleStatusFor(asg, st.studentId);
+      if (k === 'submitted') donutCounts.Submitted++;
+      else if (k === 'late') donutCounts['Submitted Late']++;
+      else if (k === 'resubmitted') donutCounts.Resubmitted++;
+      else if (k === 'missing') donutCounts.Missing++;
+      else if (k === 'checked') donutCounts.Checked++;
+      else if (k === 'redo') donutCounts.Redo++;
+      else donutCounts.Pending++;
+    });
   });
 
   const donutEl = $('#h-donut');
@@ -530,7 +570,7 @@ function renderHeadAnalytics(){
     // eslint-disable-next-line no-undef
     donutEl._chart = new Chart(donutEl, {
       type: 'doughnut',
-      data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts) }] },
+      data: { labels: Object.keys(donutCounts), datasets: [{ data: Object.values(donutCounts) }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
   }

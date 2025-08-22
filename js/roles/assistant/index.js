@@ -152,6 +152,8 @@ function badgeHtmlByKey(key, fallback=''){
   if (k === 'redo')      return '<span class="badge warn">Redo</span>';    // ← add
   if (k === 'open')      return '<span class="badge ok">Open</span>';
   if (k === 'closed')    return '<span class="badge warn">Closed</span>';
+  if (k === 'pending-redo') return '<span class="badge warn">Pending Redo</span>';
+  if (k === 'resubmitted')  return '<span class="badge ok">Resubmitted</span>';
   return fallback || '<span class="badge">Pending</span>';
 }
 
@@ -164,6 +166,8 @@ function checkBadgeFromStatus(s=''){
   if (k==='redo')    return '<span class="badge warn">Redo</span>';
   if (k==='unchecked') return '<span class="badge danger">Unchecked</span>'; // ← add
   if (k==='pending')   return '<span class="badge info">Pending</span>';     // ← add
+  if (k === 'pending-redo') return '<span class="badge warn">Pending Redo</span>';
+  if (k === 'resubmitted')  return '<span class="badge ok">Resubmitted</span>';
   return `<span class="badge">${s}</span>`;
 }
 

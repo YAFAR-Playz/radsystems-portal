@@ -48,19 +48,30 @@ function mySubmissionFor(asg){
 }
 
 function mySubmissionStatus(asg){
-  const sub = mySubmissionFor(asg);
-  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const sub   = mySubmissionFor(asg);
+  const stuDL = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL= parseMaybeISO(asg.assistantDeadline || '');
+
   if (sub){
-    const t = parseMaybeISO(sub.submittedAtISO || sub.createdAt || sub.updatedAt);
-    const late = dl && t && t > dl;
-    return late ? 'late' : 'submitted';
+    // NOTE: backend uses "submittedAt"
+    const t = parseMaybeISO(sub.submittedAt || sub.submittedAtISO || sub.createdAt || sub.updatedAt);
+    if (t && stuDL && t > stuDL){
+      // Late if turned in after student deadline (even if after stuDL), we still show "Late".
+      // If you ever want to treat > assistant deadline differently, add a branch here.
+      return 'late';
+    }
+    return 'submitted';
   }
-  // If redo requested and I haven’t reuploaded yet, treat as pending (allowed to upload)
-  const fb = feedbackFor(asg);
-  if (fb && String(fb.status||'').trim().toLowerCase()==='redo') return 'pending';
-  if (dl && new Date() > dl) return 'missing';
+
+  // No submission yet: if past student DL but before assistant DL, it’s still allowed late
+  // (status remains "pending" so the Upload button is offered).
+  const now = new Date();
+  if (stuDL && now > stuDL){
+    if (asstDL && now <= asstDL) return 'pending';
+    return 'missing';
+  }
   return 'pending';
- }
+}
 
 function feedbackFor(asg){
   // Assistant check visible to student

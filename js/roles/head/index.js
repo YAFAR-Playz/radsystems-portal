@@ -152,8 +152,7 @@ function _h_renderExistingChecksTable(){
   if (!asgId) return;
 
   // Show ALL checks for this assignment (across the head's course)
-  const src = Array.isArray(state.head?.checksByCourse) ? state.head.checksByCourse : (state.head?.checks || []);
-  const checks = src.filter(c => c.assignmentId===asgId);
+  const checks = (state.head?.checks||[]).filter(c => c.assignmentId===asgId);
   const students = new Map((state.head?.students||[]).map(s=> [s.studentId, s]));
   checks.forEach(c=>{
     const st = students.get(c.studentId);

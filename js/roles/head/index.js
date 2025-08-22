@@ -168,6 +168,10 @@ function _h_renderExistingChecksTable(){
       status==='missing' ? '<span class="badge danger">Missing</span>' :
       status==='redo'    ? '<span class="badge warn">Redo</span>' :
                            `<span class="badge">${c.status||''}</span>`;
+    const canEdit = !!st && String(st.status||'Active').toLowerCase()==='active';
+    const actionsCell = canEdit
+      ? `<button class="btn ghost hchk-edit" data-st="${c.studentId}" data-as="${c.assignmentId}">Edit</button>`
+      : `<span class="muted">View only</span>`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${st ? st.studentName : (c.studentName || c.studentId)}</td>
@@ -175,7 +179,7 @@ function _h_renderExistingChecksTable(){
       <td>${c.grade||''}</td>
       <td>${c.comment||''}</td>
       <td>${c.fileUrl?`<a href="${c.fileUrl}" target="_blank" rel="noopener">file</a>`:'<span class="muted">—</span>'}</td>
-      <td><button class="btn ghost hchk-edit" data-st="${c.studentId}" data-as="${c.assignmentId}">Edit</button></td>
+      <td>${actionsCell}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -186,6 +190,11 @@ function _h_renderExistingChecksTable(){
       const assignmentId = btn.getAttribute('data-as');
       const rec = _checksSrc().find(r=> r.studentId===studentId && r.assignmentId===assignmentId);
       if (!rec) return;
+
+      // Safety: if student left, do nothing (shouldn't happen because button hidden)
+      const stMap = new Map((state.head?.students||[]).map(s=> [s.studentId, s]));
+      const st = stMap.get(studentId);
+      if (!st || String(st.status||'Active').toLowerCase()!=='active') return;
 
       $('#hchk-assignmentSelect').value = assignmentId;
       $('#hchk-status').value = rec.status || 'Checked';

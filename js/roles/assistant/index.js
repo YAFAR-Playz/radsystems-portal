@@ -307,19 +307,21 @@ function renderRoster(){
   });
 
   // Event delegation: toggle expanders
-  table.onclick = (e)=>{
+  // Event delegation: toggle expanders (bind ONCE per render)
+if (!table._wiredExpand) {
+  table._wiredExpand = true;
+  table.addEventListener('click', (e)=>{
     const btn = e.target.closest('.a-roster-expand');
     if (!btn) return;
     const id = btn.dataset.id;
-    const row = table.parentElement.querySelector(`tr.a-roster-expand-row[data-for="${id}"]`);
+    // scope to the SAME <tbody>, not parentElement (was flaky)
+    const row = table.querySelector(`tr.a-roster-expand-row[data-for="${id}"]`);
     if (!row) return;
     const isHidden = row.classList.contains('hidden');
     row.classList.toggle('hidden', !isHidden);
     btn.textContent = isHidden ? '▼' : '►';
     btn.setAttribute('aria-expanded', String(isHidden));
-  };
-
-  console.log('[Roster] Rendered', { count: students.length });
+  });
 }
 // --- Charts: Assistant / Performance tab ---
 function renderPerformance(){

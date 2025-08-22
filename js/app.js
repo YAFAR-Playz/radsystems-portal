@@ -24,6 +24,7 @@ const ROLE_TABS = {
     ['h-home',         'views/roles/head/tabs/home.html'],
     ['h-assign',       'views/roles/head/tabs/assign.html'],
     ['h-assignments',  'views/roles/head/tabs/assignments.html'],
+    ['h-checks', 'views/roles/head/tabs/checks.html'],
     ['h-analytics',    'views/roles/head/tabs/analytics.html'],
   ],
   admin: [

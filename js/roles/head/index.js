@@ -770,7 +770,7 @@ function wireHeadChecksEvents(){
 
     const payload = { assignmentId, studentId, status, grade: gradeRaw, comment };
     if (fileInput?.files && fileInput.files[0]){
-      const up = await uploadFileBase64(fileInput.files[0], { action:'uploadFile', studentId, assignmentId });
+      const up = await uploadFileBase64(fileInput.files[0], { action:'head.uploadCheckFile', studentId, assignmentId });
       if (up?.fileUrl) payload.fileUrl = up.fileUrl;
     }
 

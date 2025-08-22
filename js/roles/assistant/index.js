@@ -229,13 +229,11 @@ function checkBadgeFromStatus(s=''){
 function buildStudentTableHtml(asg){
   const a = state.assistant;
   const students = a.students.filter(s => (s.course||'') === (asg.course||''));
-  const checks = a.checks.filter(c => c.assignmentId === asg.assignmentId);
-  const byStudent = new Map(checks.map(c => [c.studentId, c]));
 
   let rows = '';
   students.forEach(st => {
-    // Use submission data for status
-    latestSubmission(asg.assignmentId, st.studentId);
+    // Use submission data for status + file
+    const submission   = latestSubmission(asg.assignmentId, st.studentId);
     const stStatusKey = studentStatusMirrorStudent(asg, st.studentId);
 
     // Student File should be the student's submission file (not the check)

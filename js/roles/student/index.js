@@ -29,16 +29,26 @@ function badgeHtmlByKey(key, fallback=''){
 }
 
 function studentOpenNow(asg){
-  const open = (asg.studentOpen === true || String(asg.studentOpen)==='true');
-  if (!open) return false;
-  // If assistant requested a Redo for me, keep it open regardless of student deadline
-  const fb = feedbackFor(asg);
-  if (fb && String(fb.status||'').trim().toLowerCase()==='redo') return true;
-  
-  const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
-  if (dl && new Date() > dl) return false;
-  return true;
- }
+  const isOpenFlag = (asg.studentOpen === true || String(asg.studentOpen) === 'true');
+  if (!isOpenFlag) return false;
+
+  const now    = new Date();
+  const stuDL  = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL = parseMaybeISO(asg.assistantDeadline || '');
+
+  // If any check says "Redo", ignore deadlines (student may resubmit anytime until status changes)
+  const hasRedo = Array.isArray(state.student?.checks) &&
+                  state.student.checks.some(c => c.assignmentId === asg.assignmentId &&
+                    String(c.status||'').trim().toLowerCase() === 'redo');
+  if (hasRedo) return true;
+
+  // Normal/late window: open until student deadline; after that, keep open until assistant deadline
+  if (stuDL && now > stuDL){
+    if (asstDL && now <= asstDL) return true;  // late window
+    return false;                               // fully closed
+  }
+  return true; // before student deadline
+}
 
 function mySubmissionFor(asg){
   // Placeholder: when wired, search state.student.submissions

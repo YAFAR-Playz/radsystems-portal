@@ -26,6 +26,58 @@ async function loadTabHtml(tabId, path){
 }
 
 // ===================== helpers ===================== //
+// Mirror Student portal logic (needs submissions + checks)
+function _latestCheck(asgId, studentId){
+  const list = (state.head?.checks || []).filter(c => c.assignmentId===asgId && c.studentId===studentId);
+  if (!list.length) return null;
+  return list.slice().sort((a,b)=>{
+    const ta = new Date(a.updatedAt || a.createdAt || 0).getTime();
+    const tb = new Date(b.updatedAt || b.createdAt || 0).getTime();
+    return tb - ta;
+  })[0];
+}
+
+function _latestSubmission(asgId, studentId){
+  const list = (state.head?.submissions || []).filter(s => s.assignmentId===asgId && s.studentId===studentId);
+  if (!list.length) return null;
+  return list.slice().sort((a,b)=>{
+    const ta = new Date(a.submittedAt || a.submittedAtISO || a.createdAt || a.updatedAt || 0).getTime();
+    const tb = new Date(b.submittedAt || b.submittedAtISO || b.createdAt || b.updatedAt || 0).getTime();
+    return tb - ta;
+  })[0];
+}
+
+function studentStatusMirrorStudent(asg, studentId){
+  const stuDL  = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL = parseMaybeISO(asg.assistantDeadline || '');
+  const now    = new Date();
+  
+  const sub   = _latestSubmission(asg.assignmentId, studentId);
+  const check = _latestCheck(asg.assignmentId, studentId);
+
+  const subTime = sub ? parseMaybeISO(sub.submittedAt || sub.submittedAtISO || sub.createdAt || sub.updatedAt) : null;
+  const chkTime = check ? parseMaybeISO(check.updatedAt || check.createdAt) : null;
+  const chkStatus = (check && String(check.status||'').trim().toLowerCase()) || '';
+
+  // Redo overlay (exactly like Student)
+  if (chkStatus === 'redo') {
+    if (subTime && chkTime && subTime > chkTime) return 'resubmitted';
+    return 'pending-redo';
+  }
+
+  // Normal submission logic
+  if (subTime){
+    if (stuDL && subTime > stuDL) return 'late';
+    return 'submitted';
+  }
+
+  // No submission yet
+  if (stuDL && now > stuDL){
+    if (asstDL && now <= asstDL) return 'pending';
+    return 'missing';
+  }
+  return 'pending';
+}
 
 // ---------- Students tab helpers ----------
 function _assistantNameByIdMap(){
@@ -89,12 +141,12 @@ function checkedStatus(asg, studentId){
   }
 
   // No check
-  const submission = findStudentSubmission(asg, studentId);  
+  const submission = _latestSubmission(asg.assignmentId, studentId);
   const asstDL = parseMaybeISO(asg.assistantDeadline);
   const deadlinePassed = !!(asstDL && new Date() > asstDL);
 
   if (!submission){
-    // --- 🔹 Your clarified rule
+    // No submission + no check
     return deadlinePassed ? '-' : 'pending';
   }
 
@@ -111,11 +163,12 @@ function buildPerStudentAssignmentsTable_Head(st){
   let rows = '';
   asgs.forEach(asg=>{
     const check = (state.head?.checks || []).find(x => x.assignmentId===asg.assignmentId && x.studentId===st.studentId) || null;
-
-    // Student “submission” status from check timestamp vs student deadline
-    const stStatus = studentStatusFor(asg, check); // {key,label}
-
-    // Checking status
+    const submission = _latestSubmission(asg.assignmentId, st.studentId);
+    
+    // Mirror Student portal status (incl. pending-redo / resubmitted)
+    const stStatusKey = studentStatusMirrorStudent(asg, st.studentId);
+    
+    // Checking status pill
     const chkKey = check
       ? (String(check.status||'').trim().toLowerCase() || 'checked')
       : checkedStatus(asg, st.studentId);
@@ -126,13 +179,18 @@ function buildPerStudentAssignmentsTable_Head(st){
       ? `<a href="${check.fileUrl}" target="_blank" rel="noopener">file</a>`
       : '<span class="muted">—</span>';
 
+    const studentFile = submission?.fileUrl
+      ? `<a href="${submission.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
+
     const stuDL  = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat) || '<span class="muted">—</span>';
     const asstDL = formatDateDisplay(asg.assistantDeadline || '', state.branding?.dateFormat) || '<span class="muted">—</span>';
 
     rows += `
       <tr>
         <td>${asg.title}</td>
-        <td>${badgeHtmlByKey(stStatus.key)}</td>
+        <td>${badgeHtmlByKey(stStatusKey)}</td>
+        <td>${studentFile}</td>
         <td>${badgeHtmlByKey(chkKey)}</td>
         <td>${grade}</td>
         <td>${comment}</td>
@@ -149,6 +207,7 @@ function buildPerStudentAssignmentsTable_Head(st){
           <tr>
             <th>Assignment</th>
             <th>Submission Status</th>
+            <th>Student Submission File</th>
             <th>Checking Status</th>
             <th>Grade</th>
             <th>Comment</th>
@@ -157,7 +216,7 @@ function buildPerStudentAssignmentsTable_Head(st){
             <th>Assistant DL</th>
           </tr>
         </thead>
-        <tbody>${rows || '<tr><td colspan="8"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="9"><span class="muted">No assignments found.</span></td></tr>'}</tbody>
       </table>
     </div>`;
 }

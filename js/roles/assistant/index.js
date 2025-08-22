@@ -146,6 +146,9 @@ function buildPerStudentAssignmentsTable(st){
     const chkFile = check?.fileUrl
       ? `<a href="${check.fileUrl}" target="_blank" rel="noopener">file</a>`
       : '<span class="muted">—</span>';
+    const studentFile = submission?.fileUrl
+      ? `<a href="${submission.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
 
     const stuDL = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat) || '<span class="muted">—</span>';
 
@@ -153,6 +156,7 @@ function buildPerStudentAssignmentsTable(st){
       <tr>
         <td>${asg.title}</td>
         <td>${badgeHtmlByKey(subKey)}</td>
+        <td>${studentFile}</td>
         <td>${checkBadgeFromStatus(checkingKey)}</td>
         <td>${grade}</td>
         <td>${comment}</td>
@@ -168,6 +172,7 @@ function buildPerStudentAssignmentsTable(st){
           <tr>
             <th>Assignment</th>
             <th>Submission Status</th>
+            <th>Student Submission File</th>
             <th>Checking Status</th>
             <th>Grade</th>
             <th>Comment</th>
@@ -230,7 +235,7 @@ function buildStudentTableHtml(asg){
   let rows = '';
   students.forEach(st => {
     // Use submission data for status
-    const submission = latestSubmission(asg, st.studentId);
+    latestSubmission(asg.assignmentId, st.studentId);
     const stStatusKey = studentStatusMirrorStudent(asg, st.studentId);
 
     // Student File should be the student's submission file (not the check)
@@ -252,7 +257,7 @@ function buildStudentTableHtml(asg){
           <tr>
             <th>Student</th>
             <th>Status</th>
-            <th>Student File</th>
+            <th>Student Submission File</th>
           </tr>
         </thead>
         <tbody>${rows || '<tr><td colspan="3"><span class="muted">No students in this course.</span></td></tr>'}</tbody>

@@ -22,6 +22,76 @@ function assistantOpenNow(asg){
   return true;
 }
 
+function latestCheck(asgId, studentId){
+  const list = (state.assistant?.checks || []).filter(c => c.assignmentId===asgId && c.studentId===studentId);
+  if (!list.length) return null;
+  return list.slice().sort((a,b)=>{
+    const ta = new Date(a.updatedAt || a.createdAt || 0).getTime();
+    const tb = new Date(b.updatedAt || b.createdAt || 0).getTime();
+    return tb - ta;
+  })[0];
+}
+
+function latestSubmission(asgId, studentId){
+  const list = (state.assistant?.submissions || []).filter(s => s.assignmentId===asgId && s.studentId===studentId);
+  if (!list.length) return null;
+  return list.slice().sort((a,b)=>{
+    const ta = new Date(a.submittedAt || a.submittedAtISO || a.createdAt || a.updatedAt || 0).getTime();
+    const tb = new Date(b.submittedAt || b.submittedAtISO || b.createdAt || b.updatedAt || 0).getTime();
+    return tb - ta;
+  })[0];
+}
+
+function studentStatusMirrorStudent(asg, studentId){
+  const stuDL  = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL = parseMaybeISO(asg.assistantDeadline || '');
+  const now    = new Date();
+
+  const sub   = latestSubmission(asg.assignmentId, studentId);
+  const check = latestCheck(asg.assignmentId, studentId);
+
+  const subTime = sub ? parseMaybeISO(sub.submittedAt || sub.submittedAtISO || sub.createdAt || sub.updatedAt) : null;
+  const chkTime = check ? parseMaybeISO(check.updatedAt || check.createdAt) : null;
+  const chkStatus = (check && String(check.status||'').trim().toLowerCase()) || '';
+
+  // --- Redo overlay (exactly like student home/table rules) ---
+  if (chkStatus === 'redo') {
+    if (subTime && chkTime && subTime > chkTime) {
+      return 'resubmitted';     // green
+    }
+    return 'pending-redo';       // yellow
+  }
+
+  // --- Normal submission logic ---
+  if (subTime){
+    if (stuDL && subTime > stuDL) return 'late';
+    return 'submitted';
+  }
+
+  // No submission yet:
+  if (stuDL && now > stuDL){
+    if (asstDL && now <= asstDL) return 'pending'; // still allowed (late window)
+    return 'missing';
+  }
+  return 'pending';
+}
+
+function findStudentSubmission(asg, studentId){
+  const list = state.assistant?.submissions || [];
+  return list.find(s => s.assignmentId === asg.assignmentId && s.studentId === studentId) || null;
+}
+
+function studentSubmissionStatus(asg, submission){
+  const stuDL = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  if (submission){
+    const t = parseMaybeISO(submission.submittedAt || submission.submittedAtISO || submission.createdAt || submission.updatedAt);
+    const late = stuDL && t && t > stuDL;
+    return late ? 'late' : 'submitted';
+  }
+  if (stuDL && new Date() > stuDL) return 'missing';
+  return 'pending';
+}
+
 /**
  * Checked column rules:
  * - If a check record exists, mirror its status (checked/missing/redo/...).
@@ -59,16 +129,17 @@ function buildPerStudentAssignmentsTable(st){
 
   let rows = '';
   asgs.forEach(asg => {
-    // The assistant check (if any) for this student+assignment
+    // Real submission-based status
+    const submission = findStudentSubmission(asg, st.studentId);
+    const subKey = studentStatusMirrorStudent(asg, st.studentId);
+    
+    // Check (if any) for the student+assignment
     const check = (a.checks || []).find(c => c.assignmentId===asg.assignmentId && c.studentId===st.studentId) || null;
 
-    // Derive the student “submission” status from the check timestamp vs student deadline
-    const stStatus = studentStatusFor(asg, check); // {key,label}
-
-    // Checking status pill (Checked / Redo / Missing / Pending / Unchecked)
-    const chkKey = check
+    // Checking status pill (Checked / Redo / Missing / Pending / Unchecked / —)
+    const checkingKey = check
       ? (String(check.status||'').trim().toLowerCase() || 'checked')
-      : checkedStatus(asg, st.studentId); // falls back to Pending/Unchecked/-
+      : checkedStatus(asg, st.studentId);
 
     const grade   = check?.grade || '<span class="muted">—</span>';
     const comment = check?.comment ? String(check.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>';
@@ -81,8 +152,8 @@ function buildPerStudentAssignmentsTable(st){
     rows += `
       <tr>
         <td>${asg.title}</td>
-        <td>${badgeHtmlByKey(stStatus.key)}</td>
-        <td>${checkBadgeFromStatus(chkKey)}</td>
+        <td>${badgeHtmlByKey(subKey)}</td>
+        <td>${checkBadgeFromStatus(checkingKey)}</td>
         <td>${grade}</td>
         <td>${comment}</td>
         <td>${chkFile}</td>
@@ -108,6 +179,7 @@ function buildPerStudentAssignmentsTable(st){
       </table>
     </div>`;
 }
+
 function studentStatusFor(asg, check){
   const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
   if (check && String(check.status||'').trim()){
@@ -151,23 +223,24 @@ function checkBadgeFromStatus(s=''){
 
 function buildStudentTableHtml(asg){
   const a = state.assistant;
-  // only this assistant's active students, same course as assignment
   const students = a.students.filter(s => (s.course||'') === (asg.course||''));
   const checks = a.checks.filter(c => c.assignmentId === asg.assignmentId);
   const byStudent = new Map(checks.map(c => [c.studentId, c]));
 
   let rows = '';
   students.forEach(st => {
-    const ck = byStudent.get(st.studentId) || null;
-    const stStatus = studentStatusFor(asg, ck);
-    const studentFile = ck?.fileUrl
-      ? `<a href="${ck.fileUrl}" target="_blank" rel="noopener">file</a>`
-      : '<span class="muted">—</span>';
+    // Use submission data for status
+    const submission = latestSubmission(asg, st.studentId);
+    const stStatusKey = studentStatusMirrorStudent(asg, st.studentId);
 
+    // Student File should be the student's submission file (not the check)
+    const studentFile = submission?.fileUrl
+      ? `<a href="${submission.fileUrl}" target="_blank" rel="noopener">file</a>`
+      : '<span class="muted">—</span>';
     rows += `
       <tr>
         <td>${st.studentName}</td>
-        <td>${badgeHtmlByKey(stStatus.key)}</td>
+        <td>${badgeHtmlByKey(stStatusKey)}</td>
         <td>${studentFile}</td>
       </tr>`;
   });
@@ -182,7 +255,7 @@ function buildStudentTableHtml(asg){
             <th>Student File</th>
           </tr>
         </thead>
-        <tbody>${rows || '<tr><td colspan="5"><span class="muted">No students in this course.</span></td></tr>'}</tbody>
+        <tbody>${rows || '<tr><td colspan="3"><span class="muted">No students in this course.</span></td></tr>'}</tbody>
       </table>
     </div>`;
 }
@@ -322,6 +395,7 @@ if (!table._wiredExpand) {
     btn.textContent = isHidden ? '▼' : '►';
     btn.setAttribute('aria-expanded', String(isHidden));
   });
+}
 }
 // --- Charts: Assistant / Performance tab ---
 function renderPerformance(){

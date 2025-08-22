@@ -1,0 +1,42 @@
+<div class="grid two">
+  <div class="card">
+    <div class="card-title">Profile</div>
+    <div class="stack">
+      <div class="field">
+        <label>Name</label>
+        <input id="a-prof-name" placeholder="Your name">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input id="a-prof-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Phone</label>
+        <input id="a-prof-phone" placeholder="+1 555 123 4567">
+      </div>
+      <div class="row wrap">
+        <div class="field" style="flex:1">
+          <label>Course</label>
+          <input id="a-prof-course" readonly>
+        </div>
+        <div class="field" style="flex:1">
+          <label>Unit</label>
+          <input id="a-prof-unit" readonly>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="a-prof-save">
+          <span class="spinner dark hidden" id="a-prof-spin"></span>Save
+        </button>
+        <div class="muted" id="a-prof-msg"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tips</div>
+    <ul class="muted">
+      <li>If you change your email, your password will be cleared for security and you’ll be asked to set it on next sign‑in.</li>
+      <li>Course and Unit are managed by the school.</li>
+    </ul>
+  </div>
+</div>

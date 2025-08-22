@@ -67,6 +67,8 @@ function badgeHtmlByKey(key, fallback=''){
   if (k==='checked')   return '<span class="badge ok">Checked</span>';
   if (k==='redo')      return '<span class="badge warn">Redo</span>';
   if (k==='-')         return '<span class="muted">—</span>';   // ← dash, no pill
+  if (k==='pending-redo') return '<span class="badge warn">Pending Redo</span>';
+  if (k==='resubmitted')  return '<span class="badge ok">Resubmitted</span>';
   return fallback || '<span class="badge">—</span>';
 }
 

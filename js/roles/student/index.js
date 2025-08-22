@@ -31,10 +31,14 @@ function badgeHtmlByKey(key, fallback=''){
 function studentOpenNow(asg){
   const open = (asg.studentOpen === true || String(asg.studentOpen)==='true');
   if (!open) return false;
+  // If assistant requested a Redo for me, keep it open regardless of student deadline
+  const fb = feedbackFor(asg);
+  if (fb && String(fb.status||'').trim().toLowerCase()==='redo') return true;
+  
   const dl = parseMaybeISO(asg.studentDeadline || asg.deadline);
   if (dl && new Date() > dl) return false;
   return true;
-}
+ }
 
 function mySubmissionFor(asg){
   // Placeholder: when wired, search state.student.submissions
@@ -51,9 +55,12 @@ function mySubmissionStatus(asg){
     const late = dl && t && t > dl;
     return late ? 'late' : 'submitted';
   }
+  // If redo requested and I haven’t reuploaded yet, treat as pending (allowed to upload)
+  const fb = feedbackFor(asg);
+  if (fb && String(fb.status||'').trim().toLowerCase()==='redo') return 'pending';
   if (dl && new Date() > dl) return 'missing';
   return 'pending';
-}
+ }
 
 function feedbackFor(asg){
   // Assistant check visible to student
@@ -64,7 +71,13 @@ function feedbackFor(asg){
 // ------------ renderers ------------
 function renderHome(){
   const s = state.student || { assignments: [], submissions: [], checks: [] };
-  const open = s.assignments.filter(studentOpenNow);
+  // show: open OR redo
+  const open = s.assignments.filter(a => {
+    const fb = feedbackFor(a);
+    const redo = fb && String(fb.status||'').trim().toLowerCase()==='redo';
+    return redo || studentOpenNow(a);
+  });
+
 
   // KPIs
   const dueThisWeek = open.filter(a=>{
@@ -95,6 +108,7 @@ function renderHome(){
     })
     .forEach(asg=>{
       const due = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat);
+      const lateDL = formatDateDisplay(asg.assistantDeadline || '', state.branding?.dateFormat) || '—';
       const statusKey = mySubmissionStatus(asg);
 
       const tr = document.createElement('tr');
@@ -103,19 +117,71 @@ function renderHome(){
         <td>${asg.course||''}</td>
         <td>${asg.unit||''}</td>
         <td>${due||''}</td>
+        <td>${lateDL}</td>
         <td>${badgeHtmlByKey(statusKey)}</td>
-        <td><a class="btn" href="#/student/assignments">Open</a></td>
+        <td>
+        <label class="btn">
+        Upload
+        <input type="file" class="s-upload-home" data-asg="${asg.assignmentId}" style="display:none;">
+        </label>
+        </td>
       `;
       tbody.appendChild(tr);
     });
+  $$('.s-upload-home').forEach(inp=>{
+    inp.onchange = async ()=>{
+      const assignmentId = inp.getAttribute('data-asg');
+      const file = inp.files?.[0];
+      if (!file) return;
+      const btn = inp.closest('label.btn');
+      setLoading(btn, true, null);
+      try{
+        const up = await uploadFileBase64(file, { action:'student.uploadSubmission', assignmentId });
+        const payload = { assignmentId, fileUrl: up?.fileUrl || null };
+        await api('submitStudentSubmission', payload);
+        $('#s-submit-msg').textContent = 'Uploaded ✅';
+        await reloadStudentUI();
+      }catch(e){
+        $('#s-submit-msg').textContent = 'Upload failed: ' + e.message;
+      }finally{
+        setLoading(btn, false, null);
+        inp.value = '';
+      }
+    };
+  });
 }
 
 function renderProfile(){
   const u = state.user || {};
-  $('#s-prof-name')?.append(document.createTextNode(u.displayName || u.name || '—'));
-  $('#s-prof-email')?.append(document.createTextNode(u.email || '—'));
-  $('#s-prof-course')?.append(document.createTextNode(u.course || '—'));
-  $('#s-prof-unit')?.append(document.createTextNode(u.unit || '—'));
+  $('#s-prof-name') && ($('#s-prof-name').value = u.displayName || u.name || '');
+  $('#s-prof-email') && ($('#s-prof-email').value = u.email || '');
+  $('#s-prof-phone') && ($('#s-prof-phone').value = state.student?.student?.phone || '');
+  $('#s-prof-course') && ($('#s-prof-course').value = u.course || '');
+  $('#s-prof-unit') && ($('#s-prof-unit').value = u.unit || '');
+  
+  // Save
+  const save = $('#s-prof-save');
+  if (save && !save._wired){
+    save._wired = true;
+    save.onclick = async ()=>{
+      const btn = save;
+      const spin = $('#s-prof-spin'); setLoading(btn, true, spin);
+      try{
+        const displayName = $('#s-prof-name')?.value.trim();
+        const email = $('#s-prof-email')?.value.trim();
+        const phone = $('#s-prof-phone')?.value.trim();
+        const r = await api('student.updateProfile', { displayName, email, phone });
+        // reflect in client state immediately
+        state.user.displayName = displayName || state.user.displayName;
+        if (email && email !== state.user.email) state.user.email = email;
+        $('#s-prof-msg').textContent = r.changedEmail ? 'Saved. Email changed — password cleared for security.' : 'Saved.';
+      }catch(e){
+        $('#s-prof-msg').textContent = 'Could not save: ' + e.message;
+      }finally{
+        setLoading(btn, false, spin);
+      }
+    };
+  }
 }
 
 function renderAssignments(){
@@ -136,13 +202,9 @@ function renderAssignments(){
       : '<span class="muted">—</span>';
 
     const fbStatus = fb?.status ? String(fb.status).trim().toLowerCase() : '';
-    const fbBadge =
-      fbStatus ? badgeHtmlByKey(fbStatus) :
-      '<span class="muted">—</span>';
-
-    const fbFile = fb?.fileUrl
-      ? `<a href="${fb.fileUrl}" target="_blank" rel="noopener">file</a>`
-      : '<span class="muted">—</span>';
+    const fbBadge = fbStatus ? badgeHtmlByKey(fbStatus) : '<span class="muted">No feedback yet</span>';
+    const assistantName = fb?.assistantName || '';
+    const updated = fb ? (formatDateDisplay(fb.updatedAt || fb.createdAt || '', state.branding?.dateFormat) || '') : '';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -152,46 +214,85 @@ function renderAssignments(){
       <td>${due||''}</td>
       <td>${badgeHtmlByKey(subKey)}</td>
       <td>${myFile}</td>
-      <td>${fbBadge}</td>
-      <td>${fb?.grade || '<span class="muted">—</span>'}</td>
-      <td>${fb?.comment ? String(fb.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>'}</td>
-      <td>${fbFile}</td>
       <td>
-        <label class="btn">
-          Upload
-          <input type="file" class="s-upload" data-asg="${asg.assignmentId}" style="display:none;">
-        </label>
+      <button class="btn ghost s-fb-toggle" data-asg="${asg.assignmentId}">View Feedback</button>
       </td>
     `;
     tbody.appendChild(tr);
+    // details row
+    const tr2 = document.createElement('tr');
+    tr2.className = 's-fb-row hidden';
+    tr2.dataset.for = asg.assignmentId;
+    tr2.innerHTML = `<td colspan="7">
+    ${
+      fb ? `
+      <div class="grid" style="grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px">
+      <div><b>Status</b><div>${fbBadge}</div></div>
+      <div><b>Grade</b><div>${fb.grade || '<span class="muted">—</span>'}</div></div>
+      <div><b>Assistant</b><div>${assistantName || '<span class="muted">—</span>'}</div></div>
+      <div><b>Updated</b><div>${updated || '<span class="muted">—</span>'}</div></div>
+      </div>
+      <div style="margin-top:10px"><b>Comment</b><div>${fb.comment ? String(fb.comment).replace(/</g,'&lt;') : '<span class="muted">—</span>'}</div></div>
+      <div style="margin-top:10px"><b>Feedback File</b><div>${
+        fb.fileUrl ? `<a href="${fb.fileUrl}" target="_blank" rel="noopener">file</a>` : '<span class="muted">—</span>'
+      }</div></div>
+      ` : `<span class="muted">No feedback yet</span>`
+    }
+    </td>`;
+    tbody.appendChild(tr2);
   });
 
   // wire uploads
-  $$('.s-upload').forEach(inp=>{
-    inp.onchange = async ()=>{
-      const assignmentId = inp.getAttribute('data-asg');
-      const file = inp.files?.[0];
-      if (!file) return;
+  // Toggle feedback rows
+  tbody.onclick = (e)=>{
+    const btn = e.target.closest('.s-fb-toggle'); if (!btn) return;
+    const id = btn.dataset.asg;
+    const row = tbody.querySelector(`tr.s-fb-row[data-for="${id}"]`);
+    if (!row) return;
+    const hid = row.classList.contains('hidden');
+    row.classList.toggle('hidden', !hid);
+    btn.textContent = hid ? 'Hide Feedback' : 'View Feedback';
+  };
+}
 
-      const btn = inp.closest('label.btn');
-      const spin = null; // optional: add spinner span inside the label if you want
-      setLoading(btn, true, spin);
+function renderAnalytics(){
+  const s = state.student || { assignments:[], submissions:[], checks:[] };
 
-      try{
-        // Upload, then submit/update the student's submission record
-        const up = await uploadFileBase64(file, { action:'student.uploadSubmission', assignmentId });
-        const payload = { assignmentId, fileUrl: up?.fileUrl || null };
-        // If you later support delete, send null fileUrl to clear.
-        await api('submitStudentSubmission', payload);
-        $('#s-submit-msg').textContent = 'Uploaded ✅';
-        await reloadStudentUI();
-      }catch(e){
-        $('#s-submit-msg').textContent = 'Upload failed: ' + e.message;
-      }finally{
-        setLoading(btn, false, spin);
-        inp.value = '';
-      }
-    };
+  // Build status buckets
+  const counts = { Submitted:0, 'Submitted Late':0, Missing:0, Pending:0 };
+  (s.assignments||[]).forEach(asg=>{
+    const st = mySubmissionStatus(asg);
+    if (st==='submitted') counts.Submitted++;
+    else if (st==='late') counts['Submitted Late']++;
+    else if (st==='missing') counts.Missing++;
+    else counts.Pending++;
+  });
+
+  // Donut
+  const el = document.getElementById('s-donut');
+  if (el && window.Chart){
+    if (el._chart) el._chart.destroy();
+    el._chart = new Chart(el, {
+      type:'doughnut',
+      data:{ labels:Object.keys(counts), datasets:[{ data:Object.values(counts) }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+    });
+  }
+
+  // Grades table (use checks)
+  const tb = document.querySelector('#s-grades-table tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  (s.checks||[]).forEach(c=>{
+    const asg = (s.assignments||[]).find(a=> a.assignmentId===c.assignmentId);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${asg?.title || c.assignmentId}</td>
+      <td>${c.grade || '<span class="muted">—</span>'}</td>
+      <td>${badgeHtmlByKey(c.status || '').replace(/<[^>]+>/g,'$&')}</td>
+      <td>${formatDateDisplay(c.updatedAt || c.createdAt || '', state.branding?.dateFormat) || ''}</td>
+    `;
+    tb.appendChild(tr);
   });
 }
 
@@ -231,7 +332,7 @@ export async function mount(){
   try{
     await loadTabHtml('s-home',         'views/roles/student/tabs/home.html');
     await loadTabHtml('s-assignments',  'views/roles/student/tabs/assignments.html');
-    await loadTabHtml('s-assignments',  'views/roles/student/tabs/performance.html');
+    await loadTabHtml('s-analytics',  'views/roles/student/tabs/performance.html');
     await loadTabHtml('s-profile',      'views/roles/student/tabs/profile.html');
     wireTabs('#view-student');
   } finally {
@@ -246,6 +347,7 @@ export async function boot(demo=false){
     await loadStudentData(!!demo);
     renderHome();
     renderAssignments();
+    renderAnalytics();
     renderProfile();
   } finally {
     showPageLoader(false);

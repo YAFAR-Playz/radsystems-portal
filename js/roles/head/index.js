@@ -550,23 +550,22 @@ const barData   = (h.assistants||[]).map(a => barAgg[a.userId] || 0);
   }
 
     // ---------- DOUGHNUT: Status breakdown (ALL submission statuses like Student) ----------
-  const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0, Pending:0, Checked:0, Redo:0 };
+const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0, Pending:0, Checked:0, Redo:0 };
 
-  // Iterate across student × assignment pairs in the head's course
-  const checksForGrades = Array.isArray(h.checksByCourse) ? h.checksByCourse : (h.checks || []);
-  checksForGrades.forEach(c=>{
-    const theseStudents = (h.students || []).filter(s => (s.course||'') === (asg.course||''));
-    theseStudents.forEach(st => {
-      const k = _h_singleStatusFor(asg, st.studentId);
-      if (k === 'submitted') donutCounts.Submitted++;
-      else if (k === 'late') donutCounts['Submitted Late']++;
-      else if (k === 'resubmitted') donutCounts.Resubmitted++;
-      else if (k === 'missing') donutCounts.Missing++;
-      else if (k === 'checked') donutCounts.Checked++;
-      else if (k === 'redo') donutCounts.Redo++;
-      else donutCounts.Pending++;
-    });
+// Iterate across student × assignment pairs in the head's course
+(h.assignments || []).forEach(asg => {
+  const theseStudents = (h.students || []).filter(s => (s.course||'') === (asg.course||''));
+  theseStudents.forEach(st => {
+    const k = _h_singleStatusFor(asg, st.studentId);
+    if (k === 'submitted') donutCounts.Submitted++;
+    else if (k === 'late') donutCounts['Submitted Late']++;
+    else if (k === 'resubmitted') donutCounts.Resubmitted++;
+    else if (k === 'missing') donutCounts.Missing++;
+    else if (k === 'checked') donutCounts.Checked++;
+    else if (k === 'redo') donutCounts.Redo++;
+    else donutCounts.Pending++;
   });
+});
 
   const donutEl = $('#h-donut');
   if (donutEl) {
@@ -597,7 +596,8 @@ const barData   = (h.assistants||[]).map(a => barAgg[a.userId] || 0);
     weeks.push({ ws, we, sum:0, n:0 });
   }
 
-  (h.checks||[]).forEach(c=>{
+  const checksForGrades = Array.isArray(h.checksByCourse) ? h.checksByCourse : (h.checks || []);
+  checksForGrades.forEach(c=>{
     const t = new Date(c.updatedAt || c.createdAt || 0);
     const g = toPct(c.grade);
     if (g==null) return;

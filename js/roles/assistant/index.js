@@ -63,6 +63,42 @@ function latestSubmission(asgId, studentId){
   })[0];
 }
 
+// Compute one bucket exactly like Student "singleStatus"
+function _a_singleStatusFor(asg, studentId){
+  const sub   = latestSubmission(asg.assignmentId, studentId);
+  const chk   = latestCheck(asg.assignmentId, studentId);
+
+  const tSub  = sub ? parseMaybeISO(sub.submittedAt || sub.submittedAtISO || sub.createdAt || sub.updatedAt) : null;
+  const tChk  = chk ? parseMaybeISO(chk.updatedAt || chk.createdAt) : null;
+  const stuDL = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL= parseMaybeISO(asg.assistantDeadline || '');
+  const now   = new Date();
+  const lastStatus = (chk && String(chk.status||'').trim().toLowerCase()) || '';
+
+  // If there is feedback, it drives status (mirror student)
+  if (chk){
+    if (lastStatus === 'checked') return 'checked';
+    if (lastStatus === 'redo'){
+      if (tSub && tChk && tSub > tChk) return 'resubmitted';
+      return 'redo';
+    }
+    return lastStatus || 'pending';
+  }
+
+  // No feedback yet -> depend on submission + deadlines
+  if (!sub){
+    if (stuDL && now > stuDL){
+      if (asstDL && now <= asstDL) return 'pending';
+      return 'missing';
+    }
+    return 'pending';
+  }
+
+  // There is a submission but no feedback yet
+  if (stuDL && tSub && tSub > stuDL) return 'late';
+  return 'submitted';
+}
+
 function studentStatusMirrorStudent(asg, studentId){
   const stuDL  = parseMaybeISO(asg.studentDeadline || asg.deadline);
   const asstDL = parseMaybeISO(asg.assistantDeadline || '');
@@ -467,14 +503,21 @@ function renderPerformance(){
     });
   }
 
-  // ----- Donut: Status breakdown (all checks) -----
-  const statusCounts = { Checked:0, Missing:0, Redo:0, Other:0 };
-  a.checks.forEach(c=>{
-    const s = String(c.status||'').trim().toLowerCase();
-    if (s === 'checked') statusCounts.Checked++;
-    else if (s === 'missing') statusCounts.Missing++;
-    else if (s === 'redo') statusCounts.Redo++;
-    else if (s) statusCounts.Other++;
+    // ----- Donut: Status breakdown (ALL submission statuses like Student) -----
+  const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0, Pending:0, Checked:0, Redo:0 };
+
+  (a.assignments || []).forEach(asg => {
+    const theseStudents = (a.students || []).filter(s => (s.course||'') === (asg.course||''));
+    theseStudents.forEach(st => {
+      const k = _a_singleStatusFor(asg, st.studentId);
+      if (k === 'submitted') donutCounts.Submitted++;
+      else if (k === 'late') donutCounts['Submitted Late']++;
+      else if (k === 'resubmitted') donutCounts.Resubmitted++;
+      else if (k === 'missing') donutCounts.Missing++;
+      else if (k === 'checked') donutCounts.Checked++;
+      else if (k === 'redo') donutCounts.Redo++;
+      else donutCounts.Pending++;
+    });
   });
 
   const donutEl = $('#a-donut');
@@ -484,8 +527,8 @@ function renderPerformance(){
     donutEl._chart = new Chart(donutEl, {
       type: 'doughnut',
       data: {
-        labels: Object.keys(statusCounts),
-        datasets: [{ data: Object.values(statusCounts) }]
+        labels: Object.keys(donutCounts),
+        datasets: [{ data: Object.values(donutCounts) }]
       },
       options: {
         responsive: true,

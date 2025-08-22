@@ -1,5 +1,5 @@
 import { wireTabs } from '../../core/tabs.js';
-import { $, $$, show, hide, showPageLoader, bindAsyncClick } from '../../core/dom.js';
+import { $, $$, show, hide, showPageLoader, bindAsyncClick, setLoading } from '../../core/dom.js';
 import { api, uploadFileBase64 } from '../../core/api.js';
 import { state } from '../../core/state.js';
 import { formatDateDisplay, formatDateForInput, parseMaybeISO } from '../../core/date.js';

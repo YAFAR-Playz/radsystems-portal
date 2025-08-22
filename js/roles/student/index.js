@@ -345,15 +345,16 @@ function renderAnalytics(){
   const s = state.student || { assignments:[], submissions:[], checks:[] };
 
   // Add a Resubmitted bucket
-  const counts = { Submitted:0, 'Submitted Late':0, 'Resubmitted':0, 'Pending Redo':0, Missing:0, Pending:0 };
+  const counts = { Submitted:0, 'Submitted Late':0, 'Resubmitted':0, Missing:0, Pending:0, Checked:0, Redo:0 };
 
   (s.assignments||[]).forEach(asg=>{
-    const st = mySubmissionStatus(asg);
+    const st = singleStatus(asg);
     if (st==='submitted') counts.Submitted++;
     else if (st==='late') counts['Submitted Late']++;
     else if (st==='resubmitted') counts['Resubmitted']++;
-    else if (st==='pending-redo') counts['Pending Redo']++;
     else if (st==='missing') counts.Missing++;
+    else if (st==='checked') counts.Checked++;
+    else if (st==='redo') counts.Redo++;
     else counts.Pending++;
   });
 

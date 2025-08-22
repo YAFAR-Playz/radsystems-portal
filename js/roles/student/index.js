@@ -324,6 +324,7 @@ async function reloadStudentUI(){
   await loadStudentData(reloadStudentUI._demo || false);
   renderHome();
   renderAssignments();
+  renderAnalytics();
   renderProfile();
 }
 

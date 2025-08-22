@@ -152,7 +152,8 @@ function _h_renderExistingChecksTable(){
   if (!asgId) return;
 
   // Show ALL checks for this assignment (across the head's course)
-  const checks = (state.head?.checks||[]).filter(c => c.assignmentId===asgId);
+  const src = Array.isArray(state.head?.checksByCourse) ? state.head.checksByCourse : (state.head?.checks || []);
+  const checks = src.filter(c => c.assignmentId===asgId);
   const students = new Map((state.head?.students||[]).map(s=> [s.studentId, s]));
   checks.forEach(c=>{
     const st = students.get(c.studentId);
@@ -518,18 +519,20 @@ function renderHeadAnalytics(){
   // Month window for bar (same logic as backend summarizeAnalytics)
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
 
-  // ---------- BAR: Checks per assistant (this month) ----------
-  const barAgg = {};
-  (h.checks||[]).forEach(c=>{
-    const t = new Date(c.updatedAt || c.createdAt || 0);
-    if (t >= monthStart) {
-      const id = c.assistantId || 'unknown';
-      barAgg[id] = (barAgg[id] || 0) + 1;
-    }
-  });
-  // keep assistants order consistent
-  const barLabels = (h.assistants||[]).map(a => byId.get(a.userId));
-  const barData = (h.assistants||[]).map(a => barAgg[a.userId] || 0);
+  // ---------- BAR: Checks per assistant (this month, by assignment.course) ----------
+const checksForBar = Array.isArray(h.checksByCourse) ? h.checksByCourse : (h.checks || []);
+
+const barAgg = {};
+checksForBar.forEach(c=>{
+  const t = new Date(c.updatedAt || c.createdAt || 0);
+  if (t >= monthStart) {
+    const id = c.assistantId || 'unknown';
+    barAgg[id] = (barAgg[id] || 0) + 1;
+  }
+});
+
+const barLabels = (h.assistants||[]).map(a => byId.get(a.userId));
+const barData   = (h.assistants||[]).map(a => barAgg[a.userId] || 0);
 
   const barEl = $('#h-bar');
   if (barEl) {
@@ -550,7 +553,8 @@ function renderHeadAnalytics(){
   const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0, Pending:0, Checked:0, Redo:0 };
 
   // Iterate across student × assignment pairs in the head's course
-  (h.assignments || []).forEach(asg => {
+  const checksForGrades = Array.isArray(h.checksByCourse) ? h.checksByCourse : (h.checks || []);
+  checksForGrades.forEach(c=>{
     const theseStudents = (h.students || []).filter(s => (s.course||'') === (asg.course||''));
     theseStudents.forEach(st => {
       const k = _h_singleStatusFor(asg, st.studentId);

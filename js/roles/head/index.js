@@ -13,6 +13,7 @@ const inflight = {           // in-flight locks per action
   update: false,
   delete: false,
   reassign: false,
+  check: false,   // head checks save
 };
 
 // ===================== partial loader ===================== //
@@ -750,6 +751,11 @@ function wireHeadChecksEvents(){
 
   // save
   $('#hchk-submit')?.addEventListener('click', async ()=>{
+    if (inflight.check) return;
+    inflight.check = true;
+    const btn  = $('#hchk-submit');
+    const spin = $('#hchk-spin'); // optional <span id="hchk-spin" class="spinner hidden"></span>
+    setLoading(btn, true, spin);
     const assignmentId = $('#hchk-assignmentSelect')?.value;
     const studentId = $('#hchk-studentSelect')?.value;
     const status = $('#hchk-status')?.value;
@@ -758,14 +764,20 @@ function wireHeadChecksEvents(){
     const fileInput = $('#hchk-file');
     const msg = $('#hchk-submit-msg');
 
-    if (!assignmentId){ msg.textContent='Choose an assignment.'; return; }
-    if (!studentId){ msg.textContent='Choose a student.'; return; }
+    if (!assignmentId){ msg.textContent='Choose an assignment.'; 
+                       setLoading(btn, false, spin); inflight.check = false;
+                       return; }
+    if (!studentId){ msg.textContent='Choose a student.'; 
+                    setLoading(btn, false, spin); inflight.check = false;
+                    return; }
 
     // enforce grade rules client-side
     const asg = _h_asgById(assignmentId);
     const requireGrade = !!(asg?.requireGrade===true || String(asg?.requireGrade)==='true');
     if ((String(status).toLowerCase()==='missing' || !requireGrade) && gradeRaw){
-      msg.textContent='Grade not allowed for this status/assignment.'; return;
+      msg.textContent='Grade not allowed for this status/assignment.'; 
+      setLoading(btn, false, spin); inflight.check = false;
+      return;
     }
 
     const payload = { assignmentId, studentId, status, grade: gradeRaw, comment };
@@ -793,6 +805,9 @@ function wireHeadChecksEvents(){
       _h_applyPolicyNote();
     }catch(err){
       msg.textContent = 'Failed: '+err.message;
+    } finally {
+      setLoading(btn, false, spin);
+      inflight.check = false;
     }
   });
 }

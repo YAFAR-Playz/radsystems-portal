@@ -635,19 +635,19 @@ const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0,
 }
 
 function renderHead(){
-  const h = state.head;
+  const h = state.head || { assistants:[], students:[], assignments:[] };
 
   // KPIs
-  const kAsst = $('#h-kpi-assistants'); if (kAsst) kAsst.textContent = h.assistants.length;
-  const kStud = $('#h-kpi-students');   if (kStud) kStud.textContent = h.students.length;
-  const openCount = h.assignments.filter(a=> assistantOpenNow(a)).length;
+  const kAsst = $('#h-kpi-assistants'); if (kAsst) kAsst.textContent = (h.assistants||[]).length;
+  const kStud = $('#h-kpi-students');   if (kStud) kStud.textContent = (h.students||[]).length;
+  const openCount = (h.assignments||[]).filter(a=> assistantOpenNow(a)).length;
   const kAssign = $('#h-kpi-assignments'); if (kAssign) kAssign.textContent = openCount;
 
   // roster
   const rt = $('#h-roster tbody');
   if (rt){
     rt.innerHTML='';
-    h.students.forEach(s=>{
+    (h.students||[]).forEach(s=>{
       const asst = h.assistants.find(a=>a.userId===s.assistantId);
       const tr=document.createElement('tr');
       tr.innerHTML = `<td>${s.studentName}</td><td>${asst?asst.displayName:'—'}</td><td>${s.course}</td><td>${s.unit}</td>`;
@@ -659,7 +659,7 @@ function renderHead(){
   const sSel = $('#h-studentSelect');
   if (sSel){
     sSel.innerHTML='';
-    h.students.forEach(s=>{
+    (h.students||[]).forEach(s=>{
       const o=document.createElement('option');
       o.value=s.studentId; o.textContent=`${s.studentName} · ${s.unit}`;
       sSel.appendChild(o);
@@ -668,7 +668,7 @@ function renderHead(){
   const aSel = $('#h-assistantSelect');
   if (aSel){
     aSel.innerHTML='';
-    h.assistants.forEach(a=>{
+    (h.assistants||[]).forEach(a=>{
       const o=document.createElement('option');
       o.value=a.userId; o.textContent=a.displayName;
       aSel.appendChild(o);
@@ -679,9 +679,10 @@ function renderHead(){
   const at = $('#h-assignments-table tbody');
   if (at){
     at.innerHTML='';
-    h.assignments.forEach(x=>{
-      const stuDL  = formatDateDisplay(x.studentDeadline || x.deadline || '', state.branding.dateFormat);
-      const asstDL = formatDateDisplay(x.assistantDeadline || '', state.branding.dateFormat);
+    (h.assignments||[]).forEach(x=>{
+      const fmt = state.branding?.dateFormat;
+      const stuDL  = formatDateDisplay(x.studentDeadline || x.deadline || '', fmt);
+      const asstDL = formatDateDisplay(x.assistantDeadline || '', fmt);
       const tr=document.createElement('tr');
       tr.innerHTML = `
         <td><b>${x.title}</b><div class="muted">${x.course} · ${x.unit||''}</div></td>

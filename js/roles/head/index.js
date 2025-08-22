@@ -69,7 +69,7 @@ function _h_singleStatusFor(asg, studentId){
 // ===== Head Checks tab helpers =====
 function _h_asgById(id){ return (state.head?.assignments||[]).find(a=> a.assignmentId===id); }
 function _h_latestCheck(asgId, studentId){
-  cconst list = _checksSrc().filter(c => c.assignmentId===asgId && c.studentId===studentId);
+  const list = _checksSrc().filter(c => c.assignmentId===asgId && c.studentId===studentId);
   if (!list.length) return null;
   return list.sort((a,b)=> new Date(b.updatedAt||b.createdAt||0) - new Date(a.updatedAt||a.createdAt||0))[0];
 }
@@ -184,7 +184,7 @@ function _h_renderExistingChecksTable(){
     btn.addEventListener('click', ()=>{
       const studentId = btn.getAttribute('data-st');
       const assignmentId = btn.getAttribute('data-as');
-      const rec = (state.head?.checks||[]).find(r=> r.studentId===studentId && r.assignmentId===assignmentId);
+      const rec = _checksSrc().find(r=> r.studentId===studentId && r.assignmentId===assignmentId);
       if (!rec) return;
 
       $('#hchk-assignmentSelect').value = assignmentId;

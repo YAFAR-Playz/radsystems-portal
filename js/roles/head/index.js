@@ -201,7 +201,10 @@ function renderStudentsTab(){
   });
 
   // Event delegation: toggle expanders
-  tbody.onclick = (e)=>{
+  // Event delegation: toggle expanders (bind ONCE)
+if (!tbody._wiredExpand) {
+  tbody._wiredExpand = true;
+  tbody.addEventListener('click', (e)=>{
     const btn = e.target.closest('.h-roster-expand');
     if (!btn) return;
     const id = btn.dataset.id;
@@ -211,7 +214,8 @@ function renderStudentsTab(){
     row.classList.toggle('hidden', !isHidden);
     btn.textContent = isHidden ? '▼' : '►';
     btn.setAttribute('aria-expanded', String(isHidden));
-  };
+  });
+}
 
   // Wire search (only once)
   const search = document.querySelector('#h-stu-search');

@@ -503,6 +503,151 @@ function studentOpenNow(asg){
 
 // ===================== render ===================== //
 
+// ---------- Assistants tab helpers ----------
+function _checksThisMonthByAssistant() {
+  const h = state.head || {};
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+
+  const src = Array.isArray(h.checksByCourse) ? h.checksByCourse : (h.checks || []);
+  const agg = new Map();
+
+  src.forEach(c => {
+    const t = new Date(c.updatedAt || c.createdAt || 0);
+    const role = String(c.checkedByRole || 'assistant').toLowerCase();
+    if (t >= monthStart && role !== 'head') {
+      const id = c.assistantId || 'unknown';
+      agg.set(id, (agg.get(id) || 0) + 1);
+    }
+  });
+
+  return agg;
+}
+
+function _studentsByAssistantMap() {
+  const map = new Map();
+  (state.head?.students || []).forEach(s => {
+    const key = s.assistantId || '__NONE__';
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(s);
+  });
+  return map;
+}
+
+function _formatMaybeDate(iso) {
+  if (!iso) return '<span class="muted">—</span>';
+  return formatDateDisplay(iso, state.branding?.dateFormat) || '<span class="muted">—</span>';
+}
+
+// ---------- Assistants tab renderer ----------
+function renderAssistantsTab() {
+  const tbody = document.querySelector('#h-assistants-table tbody');
+  if (!tbody) return;
+
+  const q = (document.querySelector('#h-asst-search')?.value || '').trim().toLowerCase();
+  const checksAgg = _checksThisMonthByAssistant();
+  const byAsstStudents = _studentsByAssistantMap();
+
+  let assistants = (state.head?.assistants || []).slice();
+  if (q) {
+    assistants = assistants.filter(a =>
+      (a.displayName||'').toLowerCase().includes(q) ||
+      (a.email||'').toLowerCase().includes(q)
+    );
+  }
+
+  tbody.innerHTML = '';
+
+  assistants.forEach(a => {
+    const students = byAsstStudents.get(a.userId) || [];
+    const checksThisMonth = checksAgg.get(a.userId) || 0;
+    const added = a.addedAt || a.createdAt || a.joinedAt || ''; // tolerant
+    const email = a.email ? `<div class="muted">${a.email}</div>` : '';
+    const core = [
+      a.role ? `<span class="pill">${a.role}</span>` : '',
+      a.course ? `<span class="pill">${a.course}</span>` : ''
+    ].filter(Boolean).join(' ');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><button class="btn ghost h-asst-expand" data-id="${a.userId}" aria-expanded="false" title="Expand">►</button></td>
+      <td><b>${a.displayName || a.userId}</b>${email}</td>
+      <td>${core || '<span class="muted">—</span>'}</td>
+      <td>${checksThisMonth}</td>
+      <td>${_formatMaybeDate(added)}</td>
+      <td>${students.length}</td>
+    `;
+    tbody.appendChild(tr);
+
+    const rows = students.map(s => `
+      <tr>
+        <td></td>
+        <td colspan="2"><b>${s.studentName || '—'}</b><div class="muted">${s.email || ''}</div></td>
+        <td colspan="1">${s.course || ''}</td>
+        <td colspan="1">${s.unit || ''}</td>
+        <td colspan="1"><span class="badge ${String(s.status||'Active').toLowerCase()==='active' ? 'ok' : 'warn'}">${s.status||'Active'}</span></td>
+      </tr>
+    `).join('');
+
+    const tr2 = document.createElement('tr');
+    tr2.className = 'h-asst-expand-row hidden';
+    tr2.dataset.for = a.userId;
+    tr2.innerHTML = `
+      <td></td>
+      <td colspan="5">
+        <div class="table-wrapper" style="margin:8px 0">
+          <table class="table compact">
+            <thead>
+              <tr>
+                <th style="width:36px"></th>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Unit</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${students.length ? students.map(s => `
+                <tr>
+                  <td></td>
+                  <td><b>${s.studentName || '—'}</b><div class="muted">${s.email || ''}</div></td>
+                  <td>${s.course || ''}</td>
+                  <td>${s.unit || ''}</td>
+                  <td><span class="badge ${String(s.status||'Active').toLowerCase()==='active' ? 'ok' : 'warn'}">${s.status||'Active'}</span></td>
+                </tr>
+              `).join('') : `<tr><td colspan="5"><span class="muted">No students assigned.</span></td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr2);
+  });
+
+  // event delegation: toggle expanders (bind once)
+  if (!tbody._wiredExpand) {
+    tbody._wiredExpand = true;
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('.h-asst-expand');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const row = tbody.querySelector(`tr.h-asst-expand-row[data-for="${id}"]`);
+      if (!row) return;
+      const isHidden = row.classList.contains('hidden');
+      row.classList.toggle('hidden', !isHidden);
+      btn.textContent = isHidden ? '▼' : '►';
+      btn.setAttribute('aria-expanded', String(isHidden));
+    });
+  }
+
+  // search input (bind once)
+  const search = document.querySelector('#h-asst-search');
+  if (search && !search._wired) {
+    search._wired = true;
+    search.addEventListener('input', renderAssistantsTab);
+  }
+}
+
+
 // --- Charts: Head / Analytics (real data) ---
 function renderHeadAnalytics(){
   const h = state.head && typeof state.head === 'object' ? state.head : { assistants: [], checks: [] };
@@ -770,6 +915,7 @@ function renderHead(){
   // charts (real data)
   renderHeadAnalytics();
   renderStudentsTab(); // ADDED
+  renderAssistantsTab(); // ← NEW
 }
   
 
@@ -1052,6 +1198,7 @@ export async function mount(){
     await loadTabHtml('h-assign',      'views/roles/head/tabs/assign.html');
     await loadTabHtml('h-assignments', 'views/roles/head/tabs/assignments.html');
     await loadTabHtml('h-students',   'views/roles/head/tabs/students.html');
+    await loadTabHtml('h-assistants', 'views/roles/head/tabs/assistants.html'); // ← NEW
     await loadTabHtml('h-checks',     'views/roles/head/tabs/checks.html');   // ← NEW (before analytics)
     await loadTabHtml('h-analytics',   'views/roles/head/tabs/analytics.html');
     wireTabs('#view-head');

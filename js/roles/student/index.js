@@ -14,6 +14,47 @@ async function loadTabHtml(tabId, path){
 }
 
 // ------------ helpers ------------
+
+function singleStatus(asg){
+  const sub     = mySubmissionFor(asg);
+  const tSub    = parseMaybeISO(sub?.submittedAt || sub?.submittedAtISO || sub?.createdAt || sub?.updatedAt);
+  const stuDL   = parseMaybeISO(asg.studentDeadline || asg.deadline);
+  const asstDL  = parseMaybeISO(asg.assistantDeadline || '');
+  const now     = new Date();
+
+  // Latest visible feedback (assistant check)
+  const checks = getChecksFor(asg);
+  const last   = checks.length ? checks[checks.length - 1] : null;
+  const lastStatus = last ? String(last.status||'').trim().toLowerCase() : '';
+  const tLast  = last ? parseMaybeISO(last.updatedAt || last.createdAt) : null;
+
+  // --- If there IS feedback, it drives the status ---
+  if (last) {
+    if (lastStatus === 'checked') return 'checked';
+    if (lastStatus === 'redo') {
+      // Ask for a new submission unless student already uploaded after the redo
+      if (tSub && tLast && tSub > tLast) return 'resubmitted';
+      return 'redo';
+    }
+    // Any other custom statuses fall back to their literal value
+    return lastStatus || 'pending';
+  }
+
+  // --- No feedback yet: status depends only on submission + deadlines ---
+  if (!sub) {
+    // Pending until student DL; stays Pending in late window; Missing after assistant DL
+    if (stuDL && now > stuDL) {
+      if (asstDL && now <= asstDL) return 'pending'; // late window but still no submission
+      return 'missing'; // beyond assistant DL
+    }
+    return 'pending';
+  }
+
+  // There is a submission but no feedback yet
+  if (stuDL && tSub && tSub > stuDL) return 'late';      // submitted after student DL
+  return 'submitted';                                     // submitted before student DL
+}
+
 function badgeHtmlByKey(key, fallback=''){
   const k = String(key||'').toLowerCase();
   if (k==='submitted')      return '<span class="badge ok">Submitted</span>';
@@ -154,7 +195,7 @@ function renderHome(){
     .forEach(asg=>{
       const due = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat);
       const lateDL = formatDateDisplay(asg.assistantDeadline || '', state.branding?.dateFormat) || '—';
-      const statusKey = mySubmissionStatus(asg);
+      const statusKey = singleStatus(asg);
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -240,7 +281,7 @@ function renderAssignments(){
     const fb  = feedbackFor(asg);
 
     const due = formatDateDisplay(asg.studentDeadline || asg.deadline, state.branding?.dateFormat);
-    const subKey = mySubmissionStatus(asg);
+    const subKey = singleStatus(asg);
 
     const myFile = sub?.fileUrl
       ? `<a href="${sub.fileUrl}" target="_blank" rel="noopener">file</a>`

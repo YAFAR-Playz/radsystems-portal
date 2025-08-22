@@ -1,0 +1,69 @@
+<div class="card">
+  <h3>Check / Edit (Head)</h3>
+  <div class="stack">
+    <div id="hchk-edit-hint" class="muted hidden">Editing existing record. Saving will update it.</div>
+
+    <div class="row">
+      <div class="field" style="flex:2">
+        <label>Assignment (all)</label>
+        <select id="hchk-assignmentSelect"></select>
+      </div>
+
+      <div class="field" style="flex:2">
+        <label>Assistant</label>
+        <select id="hchk-assistantFilter">
+          <option value="__ALL__">All</option>
+          <option value="__NONE__">None</option>
+        </select>
+      </div>
+
+      <div class="field" style="flex:2">
+        <label>Student (no record / redo)</label>
+        <select id="hchk-studentSelect"></select>
+      </div>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="field"><label>Status</label>
+        <select id="hchk-status">
+          <option>Checked</option>
+          <option>Missing</option>
+          <option>Redo</option>
+        </select>
+      </div>
+      <div class="field" id="hchk-grade-field"><label>Grade</label>
+        <input id="hchk-grade" type="text" placeholder="e.g. 18/20 or 90%"/>
+      </div>
+      <div class="field"><label>Upload File (PDF/Image)</label>
+        <input id="hchk-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.ppt,.pptx,.xls,.xlsx"/>
+        <div id="hchk-file-current" class="muted" style="font-size:12px"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Comment</label>
+      <textarea id="hchk-comment" rows="3" placeholder="Optional feedback..."></textarea>
+    </div>
+
+    <div class="row">
+      <button id="hchk-submit" class="btn primary"><span class="spinner hidden" id="hchk-spin"></span><span>Save</span></button>
+      <button id="hchk-cancel" class="btn ghost hidden">Cancel edit</button>
+      <div id="hchk-submit-msg" class="muted"></div>
+    </div>
+    <div class="muted" id="hchk-policy" style="font-size:12px"></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h3>Existing Checks for Selected Assignment</h3>
+  <div class="table-wrapper">
+    <table class="table" id="hchk-existing-table">
+      <thead>
+        <tr>
+          <th>Student</th><th>Status</th><th>Grade</th><th>Comment</th><th>File</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>

@@ -111,9 +111,9 @@ function renderHome(){
 
   const submittedCount = s.assignments.filter(a => mySubmissionStatus(a)==='submitted' || mySubmissionStatus(a)==='late').length;
 
-  $('#s-kpi-open')?.append(document.createTextNode(String(open.length)));
-  $('#s-kpi-due')?.append(document.createTextNode(String(dueThisWeek)));
-  $('#s-kpi-submitted')?.append(document.createTextNode(String(submittedCount)));
+  $('#s-kpi-open').textContent = String(open.length);
+  $('#s-kpi-due').textContent = String(dueThisWeek);
+  $('#s-kpi-submitted').textContent = String(submittedCount);
 
   // Upcoming table
   const tbody = $('#s-home-upcoming');

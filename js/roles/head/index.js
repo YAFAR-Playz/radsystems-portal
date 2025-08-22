@@ -26,6 +26,157 @@ async function loadTabHtml(tabId, path){
 }
 
 // ===================== helpers ===================== //
+
+// ===== Head Checks tab helpers =====
+function _h_asgById(id){ return (state.head?.assignments||[]).find(a=> a.assignmentId===id); }
+function _h_latestCheck(asgId, studentId){
+  const list = (state.head?.checks || []).filter(c => c.assignmentId===asgId && c.studentId===studentId);
+  if (!list.length) return null;
+  return list.sort((a,b)=> new Date(b.updatedAt||b.createdAt||0) - new Date(a.updatedAt||a.createdAt||0))[0];
+}
+function _h_hasOutstandingRedo(asgId, studentId){
+  const lc = _h_latestCheck(asgId, studentId);
+  return String(lc?.status||'').trim().toLowerCase()==='redo';
+}
+function _h_enforceGradeRules(){
+  const status = $('#hchk-status')?.value?.trim().toLowerCase();
+  const gradeEl = $('#hchk-grade');
+  const asg = _h_asgById($('#hchk-assignmentSelect')?.value);
+  const gradeRequired = !asg ? true : (asg.requireGrade===true || String(asg.requireGrade)==='true');
+
+  if (!gradeEl) return;
+  if (!gradeRequired){
+    gradeEl.value=''; gradeEl.disabled=true; gradeEl.placeholder='Disabled for this assignment';
+    return;
+  }
+  if (status==='missing'){
+    gradeEl.value=''; gradeEl.disabled=true; gradeEl.placeholder='Disabled for Missing';
+  } else {
+    gradeEl.disabled=false; gradeEl.placeholder='e.g. 18/20 or 90%';
+  }
+}
+function _h_applyPolicyNote(){
+  const asg = _h_asgById($('#hchk-assignmentSelect')?.value);
+  const msg = $('#hchk-policy'); if (!msg) return;
+  if (!asg){ msg.textContent=''; return; }
+  const notes = [];
+  // Unlike assistant, head can save even if closed; just show info notes
+  if (!(asg.assistantOpen===true || String(asg.assistantOpen)==='true')) notes.push('Assistant window is closed (head override allowed).');
+  const asstDL = parseMaybeISO(asg.assistantDeadline);
+  if (asstDL && new Date()>asstDL) notes.push('Assistant deadline has passed (head override allowed).');
+  if (String(asg.requireGrade)==='false' || asg.requireGrade===false) notes.push('Grades are disabled for this assignment.');
+  msg.textContent = notes.join(' ');
+  _h_enforceGradeRules();
+}
+function _h_fillAssistantFilter(){
+  const sel = $('#hchk-assistantFilter'); if (!sel) return;
+  // keep All/None then append assistants
+  const already = new Set([ '__ALL__', '__NONE__' ]);
+  const keep = Array.from(sel.options).filter(o => already.has(o.value));
+  sel.innerHTML=''; keep.forEach(o => sel.appendChild(o));
+  (state.head?.assistants||[]).forEach(a=>{
+    const opt = document.createElement('option');
+    opt.value = a.userId; opt.textContent = a.displayName || a.userId;
+    sel.appendChild(opt);
+  });
+}
+function _h_refreshStudentsForSelection(){
+  const a = state.head;
+  const asgId = $('#hchk-assignmentSelect')?.value;
+  const assistantFilter = $('#hchk-assistantFilter')?.value || '__ALL__';
+  const sSel = $('#hchk-studentSelect'); if (!sSel) return;
+  sSel.innerHTML='';
+
+  const byCourse = (a?.students||[]).filter(s => {
+    // assistant filter
+    if (assistantFilter==='__ALL__') return true;
+    if (assistantFilter==='__NONE__') return !s.assistantId;
+    return s.assistantId === assistantFilter;
+  });
+
+  // students with no record for asg OR latest is Redo
+  const filtered = byCourse.filter(st=>{
+    const lc = _h_latestCheck(asgId, st.studentId);
+    if (!lc) return true;
+    return String(lc.status||'').trim().toLowerCase()==='redo';
+  });
+
+  filtered.forEach(st=>{
+    const opt=document.createElement('option');
+    opt.value=st.studentId;
+    opt.textContent=`${st.studentName}${st.assistantId ? '' : ' · (No assistant)'}`;
+    sSel.appendChild(opt);
+  });
+
+  // bottom table refresh
+  _h_renderExistingChecksTable();
+}
+function _h_renderExistingChecksTable(){
+  const tbody = $('#hchk-existing-table tbody'); if (!tbody) return;
+  const asgId = $('#hchk-assignmentSelect')?.value;
+  tbody.innerHTML='';
+  if (!asgId) return;
+
+  // Show ALL checks for this assignment (across the head's course)
+  const checks = (state.head?.checks||[]).filter(c => c.assignmentId===asgId);
+  const students = new Map((state.head?.students||[]).map(s=> [s.studentId, s]));
+  checks.forEach(c=>{
+    const st = students.get(c.studentId);
+    const status = String(c.status||'').trim().toLowerCase();
+    const statusBadge =
+      status==='checked' ? '<span class="badge ok">Checked</span>' :
+      status==='missing' ? '<span class="badge danger">Missing</span>' :
+      status==='redo'    ? '<span class="badge warn">Redo</span>' :
+                           `<span class="badge">${c.status||''}</span>`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${st ? st.studentName : c.studentId}</td>
+      <td>${statusBadge}</td>
+      <td>${c.grade||''}</td>
+      <td>${c.comment||''}</td>
+      <td>${c.fileUrl?`<a href="${c.fileUrl}" target="_blank" rel="noopener">file</a>`:'<span class="muted">—</span>'}</td>
+      <td><button class="btn ghost hchk-edit" data-st="${c.studentId}" data-as="${c.assignmentId}">Edit</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  $$('.hchk-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const studentId = btn.getAttribute('data-st');
+      const assignmentId = btn.getAttribute('data-as');
+      const rec = (state.head?.checks||[]).find(r=> r.studentId===studentId && r.assignmentId===assignmentId);
+      if (!rec) return;
+
+      $('#hchk-assignmentSelect').value = assignmentId;
+      $('#hchk-status').value = rec.status || 'Checked';
+      $('#hchk-grade').value = rec.grade || '';
+      $('#hchk-comment').value = rec.comment || '';
+
+      const finput = $('#hchk-file');
+      if (finput){ finput.value=''; finput.dataset.currentUrl = rec.fileUrl || ''; }
+      const cur = $('#hchk-file-current');
+      if (cur){
+        cur.innerHTML = rec.fileUrl
+          ? `Current: <a href="${rec.fileUrl}" target="_blank" rel="noopener">file</a>`
+          : `<span class="muted">No file uploaded</span>`;
+      }
+
+      // ensure the student appears in select (if filtered out)
+      if (![...$('#hchk-studentSelect').options].some(o=> o.value===studentId)){
+        const st = (state.head?.students||[]).find(s=> s.studentId===studentId);
+        const opt=document.createElement('option');
+        opt.value=studentId; opt.textContent=st?st.studentName:studentId;
+        $('#hchk-studentSelect').appendChild(opt);
+      }
+      $('#hchk-studentSelect').value = studentId;
+      $('#hchk-edit-hint').classList.remove('hidden');
+      $('#hchk-cancel').classList.remove('hidden');
+      $('#hchk-submit-msg').textContent = 'Editing existing record. Saving will update it.';
+      _h_applyPolicyNote();
+    });
+  });
+}
+
 // Mirror Student portal logic (needs submissions + checks)
 function _latestCheck(asgId, studentId){
   const list = (state.head?.checks || []).filter(c => c.assignmentId===asgId && c.studentId===studentId);
@@ -579,6 +730,91 @@ async function headUploadFileMaybe(assignmentId){
 }
 
 // ===================== events (wired once) ===================== //
+
+function wireHeadChecksEvents(){
+  // changes
+  document.addEventListener('change', (e)=>{
+    if (e.target?.id==='hchk-status') _h_enforceGradeRules();
+    if (e.target?.id==='hchk-assignmentSelect') { _h_refreshStudentsForSelection(); _h_applyPolicyNote(); }
+    if (e.target?.id==='hchk-assistantFilter') { _h_refreshStudentsForSelection(); }
+  });
+
+  // cancel
+  $('#hchk-cancel')?.addEventListener('click', ()=>{
+    $('#hchk-edit-hint')?.classList.add('hidden'); $('#hchk-cancel')?.classList.add('hidden');
+    $('#hchk-submit-msg').textContent='';
+    $('#hchk-status').value='Checked'; $('#hchk-grade').value=''; $('#hchk-comment').value='';
+    if ($('#hchk-file')) { $('#hchk-file').value=''; delete $('#hchk-file').dataset.currentUrl; }
+    const cur = $('#hchk-file-current'); if (cur) cur.textContent='';
+  });
+
+  // save
+  $('#hchk-submit')?.addEventListener('click', async ()=>{
+    const assignmentId = $('#hchk-assignmentSelect')?.value;
+    const studentId = $('#hchk-studentSelect')?.value;
+    const status = $('#hchk-status')?.value;
+    const gradeRaw = $('#hchk-grade')?.value?.trim();
+    const comment = $('#hchk-comment')?.value?.trim();
+    const fileInput = $('#hchk-file');
+    const msg = $('#hchk-submit-msg');
+
+    if (!assignmentId){ msg.textContent='Choose an assignment.'; return; }
+    if (!studentId){ msg.textContent='Choose a student.'; return; }
+
+    // enforce grade rules client-side
+    const asg = _h_asgById(assignmentId);
+    const requireGrade = !!(asg?.requireGrade===true || String(asg?.requireGrade)==='true');
+    if ((String(status).toLowerCase()==='missing' || !requireGrade) && gradeRaw){
+      msg.textContent='Grade not allowed for this status/assignment.'; return;
+    }
+
+    const payload = { assignmentId, studentId, status, grade: gradeRaw, comment };
+    if (fileInput?.files && fileInput.files[0]){
+      const up = await uploadFileBase64(fileInput.files[0], { action:'uploadFile', studentId, assignmentId });
+      if (up?.fileUrl) payload.fileUrl = up.fileUrl;
+    }
+
+    try{
+      const r = await api('head.submitCheck', payload);
+      if (r?.created)      msg.textContent = 'Created ✅';
+      else if (r?.updated) msg.textContent = 'Updated ✏️';
+      else                 msg.textContent = 'Saved ✅';
+
+      // reset file line
+      if (fileInput){ fileInput.value=''; delete fileInput.dataset.currentUrl; }
+      const cur = $('#hchk-file-current'); if (cur) cur.textContent='';
+      $('#hchk-edit-hint')?.classList.add('hidden'); $('#hchk-cancel')?.classList.add('hidden');
+
+      // refresh dashboard data + UI
+      await reloadHeadUI();
+      // re-seed selects to preserve current assignment filter value
+      $('#hchk-assignmentSelect').value = assignmentId;
+      _h_refreshStudentsForSelection();
+      _h_applyPolicyNote();
+    }catch(err){
+      msg.textContent = 'Failed: '+err.message;
+    }
+  });
+}
+
+function seedHeadChecksTab(){
+  // fill assignments: ALL in course (unfiltered)
+  const asSel = $('#hchk-assignmentSelect'); if (asSel){
+    asSel.innerHTML='';
+    (state.head?.assignments||[]).forEach(x=>{
+      const opt = document.createElement('option');
+      const dl = x.assistantDeadline ? ` · Asst DL ${formatDateDisplay(x.assistantDeadline)}` : '';
+      opt.value = x.assignmentId;
+      opt.textContent = `${x.title} · ${x.unit||''}${dl}`;
+      asSel.appendChild(opt);
+    });
+  }
+  _h_fillAssistantFilter();
+  _h_refreshStudentsForSelection();
+  _h_applyPolicyNote();
+  _h_enforceGradeRules();
+}
+
 function wireEvents(){
   if (_wired) return;     // guard against double-wiring
   _wired = true;
@@ -741,6 +977,7 @@ export async function mount(){
     await loadTabHtml('h-assign',      'views/roles/head/tabs/assign.html');
     await loadTabHtml('h-assignments', 'views/roles/head/tabs/assignments.html');
     await loadTabHtml('h-students',   'views/roles/head/tabs/students.html');
+    await loadTabHtml('h-checks',     'views/roles/head/tabs/checks.html');   // ← NEW (before analytics)
     await loadTabHtml('h-analytics',   'views/roles/head/tabs/analytics.html');
     wireTabs('#view-head');
   } finally {
@@ -756,6 +993,9 @@ export async function boot(demo=false){
     await loadHeadData(_lastDemo);
     renderHead();
     wireEvents(); // guarded by _wired
+    wireHeadChecksEvents();       // ← NEW
+    // seed the head checks tab after data load
+    seedHeadChecksTab();          // ← NEW
     if (state.user?.role === 'head') {
       const inp = $('#h-a-course'); if (inp) inp.value = state.user.course || '';
     }

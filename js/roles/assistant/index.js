@@ -539,6 +539,38 @@ function renderPerformance(){
   }
 }
 
+function renderAssistantProfile(){
+  const u = state.user || {};
+  $('#a-prof-name') && ($('#a-prof-name').value = u.displayName || u.name || '');
+  $('#a-prof-email') && ($('#a-prof-email').value = u.email || '');
+  $('#a-prof-phone') && ($('#a-prof-phone').value = state.assistant?.assistant?.phone || '');
+  $('#a-prof-course') && ($('#a-prof-course').value = u.course || '');
+  $('#a-prof-unit') && ($('#a-prof-unit').value = u.unit || '');
+
+  const save = $('#a-prof-save');
+  if (save && !save._wired){
+    save._wired = true;
+    save.onclick = async ()=>{
+      const btn = save;
+      const spin = $('#a-prof-spin'); setLoading(btn, true, spin);
+      try{
+        const displayName = $('#a-prof-name')?.value.trim();
+        const email = $('#a-prof-email')?.value.trim();
+        const phone = $('#a-prof-phone')?.value.trim();
+        const r = await api('assistant.updateProfile', { displayName, email, phone });
+        state.user.displayName = displayName || state.user.displayName;
+        if (email && email !== state.user.email) state.user.email = email;
+        $('#a-prof-msg').textContent = r.changedEmail ? 'Saved. Email changed — password cleared for security.' : 'Saved.';
+      }catch(e){
+        $('#a-prof-msg').textContent = 'Could not save: ' + e.message;
+      }finally{
+        setLoading(btn, false, spin);
+      }
+    };
+  }
+}
+
+
 function enforceGradeRules(){
   const status = $('#a-status').value.trim().toLowerCase();
   const gradeEl = $('#a-grade');
@@ -776,6 +808,7 @@ export async function init(demo){
     console.log('[Roster] HTML loaded');
     await loadTabHtml('a-students',    'views/roles/assistant/tabs/students.html');
     await loadTabHtml('a-performance', 'views/roles/assistant/tabs/performance.html');
+    await loadTabHtml('a-profile', 'views/roles/assistant/tabs/profile.html'); // NEW
 
     wireTabs('#view-assistant');
     await loadAssistantData(demo);
@@ -783,6 +816,7 @@ export async function init(demo){
     renderPerformance();
     wireEvents();
     renderRoster();
+    renderAssistantProfile(); // in boot()
     $('#a-roster-search')?.addEventListener('input', renderRoster);
 
     // fill selects for students tab

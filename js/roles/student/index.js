@@ -174,7 +174,15 @@ function renderHome(){
     return dl >= now && dl <= in7;
   }).length;
 
-  const submittedCount = s.assignments.filter(a => mySubmissionStatus(a)==='submitted' || mySubmissionStatus(a)==='late').length;
+  const submittedCount = s.assignments.filter(a => {
+  const st = singleStatus(a);
+  return (
+    st === 'submitted' ||
+    st === 'late' ||
+    st === 'checked' ||
+    st === 'resubmitted'
+  );
+}).length;
 
   $('#s-kpi-open').textContent = String(open.length);
   $('#s-kpi-due').textContent = String(dueThisWeek);

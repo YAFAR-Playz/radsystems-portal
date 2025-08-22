@@ -32,6 +32,27 @@ function latestCheck(asgId, studentId){
   })[0];
 }
 
+// A student (or any student) still has an outstanding Redo on this assignment
+function hasOutstandingRedo(asg, studentId){
+  const asgId = asg?.assignmentId;
+  if (!asgId) return false;
+
+  // If a student is specified, use ONLY their latest check
+  if (studentId){
+    const lc = latestCheck(asgId, studentId);
+    const s = (lc?.status||'').trim().toLowerCase();
+    return s === 'redo';
+  }
+
+  // Otherwise: does ANY student have latest === 'redo'?
+  const students = state.assistant?.students || [];
+  for (const st of students){
+    const lc = latestCheck(asgId, st.studentId);
+    if (String(lc?.status||'').trim().toLowerCase() === 'redo') return true;
+  }
+  return false;
+}
+
 function latestSubmission(asgId, studentId){
   const list = (state.assistant?.submissions || []).filter(s => s.assignmentId===asgId && s.studentId===studentId);
   if (!list.length) return null;
@@ -516,11 +537,14 @@ function applyAssignmentPolicyToForm(){
 
   // assistant phase open & deadline
   const openNow = assistantOpenNow(asg);
-  let blocked = !openNow;
+  const selectedStudentId = $('#a-studentSelect')?.value || '';
+  const allowRedo = hasOutstandingRedo(asg, selectedStudentId);
+  let blocked = !(openNow || allowRedo);
   if (!openNow){
     if (!(asg.assistantOpen===true || String(asg.assistantOpen)==='true')) notes.push('Assistant submissions are closed.');
     const dl = parseMaybeISO(asg.assistantDeadline);
     if (dl && new Date() > dl) notes.push('Assistant deadline has passed.');
+    if (allowRedo) notes.push('Action allowed due to outstanding Redo for this student.');
   }
   $('#a-submit').disabled = blocked;
   msg.textContent = notes.join(' ');
@@ -537,14 +561,29 @@ function refreshAssistantStudentLists(){
   const sSel = $('#a-studentSelect'); sSel.innerHTML='';
   const existing = a.checks.filter(c=> c.assignmentId===assignmentId);
   const withRecord = new Set(existing.map(c=> c.studentId));
-  const studentsNoRecord = a.students.filter(s=> !withRecord.has(s.studentId));
+  const asg = a.assignments.find(x=> x.assignmentId===assignmentId);
+  const isOpen = asg ? assistantOpenNow(asg) : true;
   const existingTable = $('#a-existing-table tbody'); existingTable.innerHTML='';
 
-  studentsNoRecord.forEach(s=>{
-    const opt=document.createElement('option'); opt.value=s.studentId; opt.textContent=s.studentName; sSel.appendChild(opt);
+  // If open: keep current behavior (new records only).
+  // If closed: only show students whose latest check is 'Redo'.
+  const listForSelect = isOpen
+    ? a.students.filter(s => !withRecord.has(s.studentId))
+    : a.students.filter(s => hasOutstandingRedo(asg, s.studentId));
+  
+  listForSelect.forEach(s=>{
+    const opt=document.createElement('option');
+    opt.value=s.studentId; opt.textContent=s.studentName;
+    sSel.appendChild(opt);
   });
 
-  existing.forEach(c=>{
+  // Table of existing records:
+  // If closed: show only outstanding Redo rows for this assignment
+  const rowsForTable = isOpen
+    ? existing
+    : existing.filter(c => String(c.status||'').trim().toLowerCase()==='redo');
+  
+  rowsForTable.forEach(c=>{
     const student = a.students.find(s=>s.studentId===c.studentId);
     const tr = document.createElement('tr');
     const status = (c.status || '').trim().toLowerCase();
@@ -625,6 +664,7 @@ function wireEvents(){
   document.addEventListener('change', (e)=>{
     if(e.target && e.target.id==='a-status') enforceGradeRules();
     if(e.target && e.target.id==='a-assignmentSelect'){ refreshAssistantStudentLists(); applyAssignmentPolicyToForm(); }
+    if(e.target && e.target.id==='a-studentSelect'){ applyAssignmentPolicyToForm(); }
   });
 
   $('#a-cancel')?.addEventListener('click', ()=>{
@@ -651,8 +691,9 @@ function wireEvents(){
     if (!studentId){ msg.textContent = 'Choose a student.'; return; }
     const open = (asg?.assistantOpen===true || String(asg?.assistantOpen)==='true');
     const dl = parseMaybeISO(asg?.assistantDeadline);
-    if (!open){ msg.textContent='Assistant submissions are closed by head.'; return; }
-    if (dl && new Date() > dl){ msg.textContent='Assistant deadline has passed.'; return; }
+    const allowRedo = hasOutstandingRedo(asg, studentId);
+    if (!open && !allowRedo){ msg.textContent='Assistant submissions are closed by head.'; return; }
+    if (dl && new Date() > dl && !allowRedo){ msg.textContent='Assistant deadline has passed.'; return; }
     if((status.toLowerCase()==='missing' || (asg && (asg.requireGrade===false || String(asg.requireGrade)==='false'))) && grade){
       msg.textContent='Grade not allowed for this status/assignment.'; return;
     }
@@ -703,7 +744,9 @@ export async function init(demo){
 
     // fill selects for students tab
     const asSel = $('#a-assignmentSelect'); if (asSel) asSel.innerHTML='';
-    state.assistant.assignments.filter(assistantOpenNow).forEach(x=>{
+    state.assistant.assignments
+      .filter(x => assistantOpenNow(x) || hasOutstandingRedo(x))
+      .forEach(x=>{
       const opt=document.createElement('option'); opt.value=x.assignmentId;
       const dl = x.assistantDeadline ? ` · DL ${formatDateDisplay(x.assistantDeadline)}` : '';
       opt.textContent=`${x.title} · ${x.unit}${dl}`; asSel?.appendChild(opt);

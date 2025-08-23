@@ -32,6 +32,47 @@ function latestCheck(asgId, studentId){
   })[0];
 }
 
+// Treat a student's course as either a name or an id and match against an assignment's course (usually a name)
+function courseMatches(asgCourse, student){
+  const a = (asgCourse || '').trim();
+  const n = (student.course || '').trim();
+  const id = (student.courseId || '').trim();
+  // match if assignment course equals student's course name OR student's courseId
+  return (a && (a === n || a === id)) || (!a && !n && !id);
+}
+
+// Build state.assistant.students from users (role==='student')
+function ensureAssistantStudentsFromUsers(){
+  const a = state.assistant || {};
+  if (Array.isArray(a.students) && a.students.length) return; // already present
+
+  // Prefer `a.users` if getAssistantDashboard now includes it;
+  // otherwise keep an escape hatch to `state.users` if the app populates it globally.
+  const users = (a.users && Array.isArray(a.users)) ? a.users
+              : (state.users && Array.isArray(state.users)) ? state.users
+              : [];
+
+  const students = users
+    .filter(u => String(u.role||'').toLowerCase() === 'student')
+    .map(u => ({
+      // what the rest of the assistant UI expects:
+      studentId: u.studentId || u.userId || String(u.email||'').toLowerCase(),
+      studentName: u.studentName || u.displayName || u.name || u.email || 'Student',
+      email: u.email || '',
+      // these two may be name or id depending on backend — our course matcher handles both
+      course: u.course || '',
+      courseId: u.courseId || '',
+      unit: u.unit || '',
+      status: u.status || 'Active',
+    }));
+
+  // Only set if we actually built something (avoid clobbering demo data)
+  if (students.length){
+    a.students = students;
+    state.assistant = a;
+  }
+}
+
 // A student (or any student) still has an outstanding Redo on this assignment
 function hasOutstandingRedo(asg, studentId){
   const asgId = asg?.assignmentId;
@@ -182,7 +223,7 @@ function checkedStatus(asg, studentId){
 
 function buildPerStudentAssignmentsTable(st){
   const a = state.assistant;
-  const asgs = a.assignments.filter(x => (x.course||'') === (st.course||''));
+  const asgs = a.assignments.filter(x => courseMatches(x.course, st));
 
   let rows = '';
   asgs.forEach(asg => {
@@ -285,7 +326,7 @@ function checkBadgeFromStatus(s=''){
 
 function buildStudentTableHtml(asg){
   const a = state.assistant;
-  const students = a.students.filter(s => (s.course||'') === (asg.course||''));
+  const students = a.students.filter(s => courseMatches(asg.course, s));
 
   let rows = '';
   students.forEach(st => {
@@ -507,7 +548,7 @@ function renderPerformance(){
   const donutCounts = { Submitted:0, 'Submitted Late':0, Resubmitted:0, Missing:0, Pending:0, Checked:0, Redo:0 };
 
   (a.assignments || []).forEach(asg => {
-    const theseStudents = (a.students || []).filter(s => (s.course||'') === (asg.course||''));
+    const theseStudents = (a.students || []).filter(s => courseMatches(asg.course, s));
     theseStudents.forEach(st => {
       const k = _a_singleStatusFor(asg, st.studentId);
       if (k === 'submitted') donutCounts.Submitted++;
@@ -643,8 +684,8 @@ function refreshAssistantStudentLists(){
   // If open: keep current behavior (new records only).
   // If closed: only show students whose latest check is 'Redo'.
   const listForSelect = isOpen
-    ? a.students.filter(s => !withRecord.has(s.studentId))
-    : a.students.filter(s => hasOutstandingRedo(asg, s.studentId));
+  ? a.students.filter(s => courseMatches(asg?.course, s) && !withRecord.has(s.studentId))
+  : a.students.filter(s => courseMatches(asg?.course, s) && hasOutstandingRedo(asg, s.studentId));
   
   listForSelect.forEach(s=>{
     const opt=document.createElement('option');
@@ -728,9 +769,10 @@ async function loadAssistantData(demo=false){
       {checkId:'c1', assignmentId:'as1', studentId:'s1', status:'Checked', grade:'18/20', fileUrl:'', createdAt:new Date(Date.now()-2*86400e3).toISOString()},
       {checkId:'c2', assignmentId:'as1', studentId:'s2', status:'Redo', grade:'', fileUrl:'', createdAt:new Date(Date.now()-1*86400e3).toISOString()},
     ];
-  } else {
+    } else {
     const res = await api('getAssistantDashboard',{});
     Object.assign(state.assistant,res);
+    ensureAssistantStudentsFromUsers(); // ← derive students from users (role==='student')
   }
 }
 

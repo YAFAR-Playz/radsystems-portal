@@ -420,58 +420,66 @@ async function loadCors(){
 // EVENTS
 function wireUserEvents(){
   $('#u-create')?.addEventListener('click', async()=>{
-    const btn = $('#u-create'); const spin = $('#u-create-spin');
-    setLoading(btn,true,spin);
-    try{
-      const email=$('#u-email').value.trim(), role=$('#u-role').value, displayName=$('#u-name').value.trim();
-      const courseOpt=$('#u-course').value;
-      const phone=$('#u-phone').value.trim(), unit=$('#u-unit').value.trim();
-      const status=$('#u-status').value || 'Active';
-      await api('admin.users.create',{email, role, displayName, courseId: courseOpt, phone, unit, status});
-      await loadUsers();
-      const created = (state.admin.users||[]).find(u=>u.email===email);
-      if (created && created.role==='student' && created.courseId){
-        await upsertEnrollmentForStudent(created);
-        await loadEnrollments();
-      }
-      $('#u-msg').textContent='Created ✅';
-      $('#u-email').value=''; $('#u-name').value=''; $('#u-course').value='';
-      $('#u-phone').value=''; $('#u-unit').value=''; $('#u-status').value='Active';
-      await loadUsers();
-    }catch(e){ $('#u-msg').textContent='Failed: '+e.message; }
-    finally{ setLoading(btn,false,spin); }
-  });
-  $('#u-update')?.addEventListener('click', async()=>{
-    const btn = $('#u-update'); const spin = $('#u-update-spin');
-    setLoading(btn,true,spin);
-    try{
-      const id = $('#u-id').value;
-      const patch = {
-       email: $('#u-email').value.trim(),
-       role: $('#u-role').value,
-       displayName: $('#u-name').value.trim(),
-       courseId: $('#u-course').value,
-       phone: $('#u-phone').value.trim(),
-       unit: $('#u-unit').value.trim(),
-       status: $('#u-status').value || 'Active'
-     };
-      await api('admin.users.update',{userId:id, patch});
-      await loadUsers();
-      const u = (state.admin.users||[]).find(x=>x.userId===id);
-      if (u && u.role==='student' && u.courseId){
-        await upsertEnrollmentForStudent(u);
-        await loadEnrollments();
-      }
-      $('#u-msg').textContent='Updated ✅';
-      $('#u-titlebar').textContent='Create User';
-      $('#u-edit-hint').classList.add('hidden');
-      show($('#u-create')); hide($('#u-update')); hide($('#u-cancel'));
-      $('#u-id').value=''; $('#u-email').value=''; $('#u-name').value=''; $('#u-course').value='';
-      $('#u-phone').value=''; $('#u-unit').value=''; $('#u-status').value='Active';
-      await loadUsers();
-    }catch(e){ $('#u-msg').textContent='Failed: '+e.message; }
-    finally{ setLoading(btn,false,spin); }
-  });
+  const btn = $('#u-create'); const spin = $('#u-create-spin');
+  setLoading(btn,true,spin);
+  try{
+    const email=$('#u-email').value.trim();
+    const role=$('#u-role').value;
+    const displayName=$('#u-name').value.trim();
+
+    const selectedCourseId = $('#u-course').value;
+    const courseName = (state.admin.courses.find(c=>c.courseId===selectedCourseId)?.name) || '';
+
+    await api('admin.users.create',{
+      email, role, displayName,
+      course: courseName,                          // ← send name
+      phone: ($('#u-phone')?.value||'').trim(),
+      unit:  ($('#u-unit')?.value||'').trim(),
+      status: $('#u-status')?.value || 'Active'
+    });
+
+    $('#u-msg').textContent='Created ✅';
+    $('#u-email').value=''; $('#u-name').value=''; $('#u-course').value='';
+    if ($('#u-phone')) $('#u-phone').value='';
+    if ($('#u-unit'))  $('#u-unit').value='';
+    if ($('#u-status')) $('#u-status').value='Active';
+    await loadUsers();
+  }catch(e){ $('#u-msg').textContent='Failed: '+e.message; }
+  finally{ setLoading(btn,false,spin); }
+});
+
+$('#u-update')?.addEventListener('click', async()=>{
+  const btn = $('#u-update'); const spin = $('#u-update-spin');
+  setLoading(btn,true,spin);
+  try{
+    const id = $('#u-id').value;
+    const selectedCourseId = $('#u-course').value;
+    const courseName = (state.admin.courses.find(c=>c.courseId===selectedCourseId)?.name) || '';
+
+    const patch = {
+      email: $('#u-email').value.trim(),
+      role:  $('#u-role').value,
+      displayName: $('#u-name').value.trim(),
+      course: courseName,                         // ← send name (backend also accepts courseId now, but this is cleaner)
+      phone: ($('#u-phone')?.value||'').trim(),
+      unit:  ($('#u-unit')?.value||'').trim(),
+      status: $('#u-status')?.value || 'Active'
+    };
+
+    await api('admin.users.update',{ userId:id, patch });
+
+    $('#u-msg').textContent='Updated ✅';
+    $('#u-titlebar').textContent='Create User';
+    $('#u-edit-hint').classList.add('hidden');
+    show($('#u-create')); hide($('#u-update')); hide($('#u-cancel'));
+    $('#u-id').value=''; $('#u-email').value=''; $('#u-name').value=''; $('#u-course').value='';
+    if ($('#u-phone')) $('#u-phone').value='';
+    if ($('#u-unit'))  $('#u-unit').value='';
+    if ($('#u-status')) $('#u-status').value='Active';
+    await loadUsers();
+  }catch(e){ $('#u-msg').textContent='Failed: '+e.message; }
+  finally{ setLoading(btn,false,spin); }
+});
   $('#u-cancel')?.addEventListener('click', ()=>{
     $('#u-titlebar').textContent='Create User';
     $('#u-edit-hint').classList.add('hidden');

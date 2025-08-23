@@ -584,7 +584,7 @@ function renderAssistantProfile(){
   const u = state.user || {};
   $('#a-prof-name') && ($('#a-prof-name').value = u.displayName || u.name || '');
   $('#a-prof-email') && ($('#a-prof-email').value = u.email || '');
-  $('#a-prof-phone') && ($('#a-prof-phone').value = state.assistant?.assistant?.phone || '');
+  $('#a-prof-phone') && ($('#a-prof-phone').value = (state.user?.phone || ''));
   $('#a-prof-course') && ($('#a-prof-course').value = u.course || '');
   $('#a-prof-unit') && ($('#a-prof-unit').value = u.unit || '');
 
@@ -599,9 +599,21 @@ function renderAssistantProfile(){
         const email = $('#a-prof-email')?.value.trim();
         const phone = $('#a-prof-phone')?.value.trim();
         const r = await api('assistant.updateProfile', { displayName, email, phone });
-        state.user.displayName = displayName || state.user.displayName;
-        if (email && email !== state.user.email) state.user.email = email;
-        $('#a-prof-msg').textContent = r.changedEmail ? 'Saved. Email changed — password cleared for security.' : 'Saved.';
+
+// Refresh `me` from backend so all fields (incl. phone) are the source of truth
+try {
+  const me = await api('me', {});
+  if (me?.user) Object.assign(state.user, me.user);
+} catch (_) {
+  // Fallback: at least reflect the local edits so UI updates immediately
+  if (displayName !== undefined) state.user.displayName = displayName || state.user.displayName;
+  if (email && email !== state.user.email) state.user.email = email;
+  if (phone !== undefined) state.user.phone = phone || '';
+}
+
+$('#a-prof-msg').textContent = r.changedEmail
+  ? 'Saved. Email changed — password cleared for security.'
+  : 'Saved.';
       }catch(e){
         $('#a-prof-msg').textContent = 'Could not save: ' + e.message;
       }finally{

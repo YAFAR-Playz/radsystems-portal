@@ -2,73 +2,82 @@
   <div class="card">
     <h3>Import CSV</h3>
     <div class="stack">
-      <div class="field"><label>Type</label>
+      <div class="field">
+        <label>Type</label>
         <select id="io-type">
-          <option value="users">Users (headers: email,role,displayName,course)</option>
-          <option value="students">Students (headers: studentName,email,phone,course,unit,assistantId,status)</option>
+          <!-- Students import is disabled in backend; keep only Users -->
+          <option value="users">Users (headers: email,role,displayName,course,phone,unit)</option>
         </select>
       </div>
-      <div class="field"><label>CSV</label>
-        <textarea id="io-csv" rows="8" placeholder="email,role,displayName,course&#10;alice@example.com,assistant,Alice,Math"></textarea>
+
+      <div class="field">
+        <label>CSV</label>
+        <textarea id="io-csv" rows="8" placeholder="email,role,displayName,course,phone,unit&#10;alice@example.com,assistant,Alice,Math,+1 555 0100,U1"></textarea>
       </div>
+
       <div class="row">
-        <button id="io-import" class="btn primary"><span class="spinner hidden" id="io-import-spin"></span><span>Import</span></button>
+        <button id="io-import" class="btn primary">
+          <span class="spinner hidden" id="io-import-spin"></span><span>Import</span>
+        </button>
         <div id="io-msg" class="muted"></div>
       </div>
+
       <div class="muted" style="font-size:12px">
-        Tips: Use the exact header names shown above. IDs are generated automatically. For Students, <b>assistantId</b> is optional.
+        Tips: Use the exact header names shown above. IDs are generated automatically.<br>
+        For users with role <b>student</b>, if <b>course</b> matches an existing course name, an
+        <i>Enrollments</i> row is auto‑created.
       </div>
     </div>
   </div>
+
   <div class="card">
     <h3>Export / Templates</h3>
     <div class="row" style="flex-wrap:wrap;gap:8px">
       <button id="io-export-users" class="btn">Export Users</button>
-      <button id="io-export-students" class="btn">Export Students</button>
       <button id="io-template-users" class="btn">Download User Template</button>
-      <button id="io-template-students" class="btn">Download Student Template</button>
     </div>
     <div class="muted" style="margin-top:8px">Downloads CSV text as a file.</div>
   </div>
+
   <div class="card">
-  <h3>Sync from Google Sheet</h3>
-  <div class="stack">
-    <div class="field"><label>Type</label>
-      <!-- reuse same IDs/values as CSV import for consistency -->
-      <select id="gs-type">
-        <option value="users">Users (headers: email,role,displayName,course)</option>
-        <option value="students">Students (headers: studentName,email,phone,course,unit,assistantId,status)</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Google Sheet URL (or ID)</label>
-      <input id="gs-url" placeholder="https://docs.google.com/spreadsheets/d/… or 1AbCDeFghiJKL…" />
-    </div>
-
-    <div class="row wrap" style="gap:12px">
-      <div class="field" style="flex:1;min-width:220px">
-        <label>Tab name (optional)</label>
-        <input id="gs-tab" placeholder="e.g., Sheet1">
+    <h3>Sync from Google Sheet</h3>
+    <div class="stack">
+      <div class="field">
+        <label>Type</label>
+        <!-- Keep same id/value but only 'users' is available -->
+        <select id="gs-type">
+          <option value="users">Users (headers: email,role,displayName,course,phone,unit)</option>
+        </select>
       </div>
-      <div class="field" style="flex:1;min-width:220px">
-        <label>Range (optional)</label>
-        <input id="gs-range" placeholder="e.g., A1:G (leave blank to use last used range)">
+
+      <div class="field">
+        <label>Google Sheet URL (or ID)</label>
+        <input id="gs-url" placeholder="https://docs.google.com/spreadsheets/d/… or 1AbCDeFghiJKL…" />
       </div>
-    </div>
 
-    <div class="row">
-      <button id="gs-sync" class="btn primary">
-        <span class="spinner hidden" id="gs-sync-spin"></span><span>Sync Now</span>
-      </button>
-      <div id="gs-msg" class="muted"></div>
-    </div>
+      <div class="row wrap" style="gap:12px">
+        <div class="field" style="flex:1;min-width:220px">
+          <label>Tab name (optional)</label>
+          <input id="gs-tab" placeholder="e.g., Sheet1">
+        </div>
+        <div class="field" style="flex:1;min-width:220px">
+          <label>Range (optional)</label>
+          <input id="gs-range" placeholder="e.g., A1:F (leave blank to use last used range)">
+        </div>
+      </div>
 
-    <div class="muted" style="font-size:12px">
-      Sheet permissions must be set to Anyone with link can View.
-      The first row must be the header and must match the CSV template headers shown above.
-      Data is <b>upserted</b> by email (existing rows are updated, new rows are created).
+      <div class="row">
+        <button id="gs-sync" class="btn primary">
+          <span class="spinner hidden" id="gs-sync-spin"></span><span>Sync Now</span>
+        </button>
+        <div id="gs-msg" class="muted"></div>
+      </div>
+
+      <div class="muted" style="font-size:12px">
+        Sheet must be viewable by Anyone with the link.<br>
+        First row must match the headers above exactly.<br>
+        Data is <b>upserted</b> by email (existing rows updated, new rows created).
+      </div>
     </div>
   </div>
-</div>
 </div>

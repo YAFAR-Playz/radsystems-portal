@@ -793,7 +793,7 @@ function renderHeadProfile(){
   const u = state.user || {};
   $('#h-prof-name') && ($('#h-prof-name').value = u.displayName || u.name || '');
   $('#h-prof-email') && ($('#h-prof-email').value = u.email || '');
-  $('#h-prof-phone') && ($('#h-prof-phone').value = state.head?.head?.phone || '');
+  $('#h-prof-phone') && ($('#h-prof-phone').value = (state.user?.phone || ''));
   $('#h-prof-course') && ($('#h-prof-course').value = u.course || '');
   $('#h-prof-unit') && ($('#h-prof-unit').value = u.unit || '');
 
@@ -809,9 +809,21 @@ function renderHeadProfile(){
         const phone = $('#h-prof-phone')?.value.trim();
         // Use a role‑specific endpoint; if your backend exposes a generic one, replace with 'user.updateProfile'
         const r = await api('head.updateProfile', { displayName, email, phone });
-        state.user.displayName = displayName || state.user.displayName;
-        if (email && email !== state.user.email) state.user.email = email;
-        $('#h-prof-msg').textContent = r.changedEmail ? 'Saved. Email changed — password cleared for security.' : 'Saved.';
+
+// Refresh the signed-in user so phone (and any other fields) are accurate
+try {
+  const me = await api('me', {});
+  if (me?.user) Object.assign(state.user, me.user);
+} catch (_) {
+  // Fallback so UI still updates immediately
+  if (displayName !== undefined) state.user.displayName = displayName || state.user.displayName;
+  if (email && email !== state.user.email) state.user.email = email;
+  if (phone !== undefined) state.user.phone = phone || '';
+}
+
+$('#h-prof-msg').textContent = r.changedEmail
+  ? 'Saved. Email changed — password cleared for security.'
+  : 'Saved.';
       }catch(e){
         $('#h-prof-msg').textContent = 'Could not save: ' + e.message;
       }finally{

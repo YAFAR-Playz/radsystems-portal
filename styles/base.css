@@ -182,3 +182,13 @@ label input[type="checkbox"]{ margin-right:6px; }
 #h-students .details { background:#fff; }
 #h-students .table.slim th,
 #h-students .table.slim td { padding:8px 10px; }
+
+.badge.role-admin{background:#e8f0ff;color:#1446a0;border:1px solid #c9dcff}
+.badge.role-owner{background:#e8f0ff;color:#1446a0;border:1px solid #c9dcff}
+.badge.role-head{background:#fff0f5;color:#a0146b;border:1px solid #ffcae1}
+.badge.role-assistant{background:#eefaff;color:#0f6e84;border:1px solid #c8f0fb}
+.badge.role-student{background:#f0fff4;color:#1b6e2b;border:1px solid #c9f4d4}
+.badge.role-supervisor{background:#f3f0ff;color:#4b2aa9;border:1px solid #d9d0ff}
+.badge.role-hr{background:#fff7f0;color:#9a4d00;border:1px solid #ffd9b3}
+.badge.role-finance{background:#f0fbff;color:#0b5d7a;border:1px solid #cdefff}
+.badge.role-parent{background:#f7f7ff;color:#3d39a5;border:1px solid #dfdefe}

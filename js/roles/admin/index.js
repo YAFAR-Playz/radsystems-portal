@@ -17,6 +17,25 @@ function badgeForStatus(kind, val){
   return `<span class="badge ${cls}">${val||''}</span>`;
 }
 
+// Role → colored pill
+function pillForRole(role){
+  const r = String(role||'').toLowerCase();
+  const cls = `badge role-${r}`;
+  const label = role || '';
+  return `<span class="${cls}">${label}</span>`;
+}
+
+// User status pill (for Users table)
+function pillForUserStatus(val){
+  const v = String(val||'').trim();
+  const cls =
+    v==='Active'   ? 'ok' :
+    v==='Left'     ? 'danger' :
+    v==='Inactive' ? 'warn' :
+    'muted';
+  return `<span class="badge ${cls}">${v||''}</span>`;
+}
+
 // keep both sides in sync
 
 function makeTable(el, headers, rows){
@@ -105,12 +124,13 @@ async function loadUsers(){
     renderUsersTable();
   } finally { setLoading($('#u-refresh'), false, $('#u-refresh-spin')); }
 }
+
 function renderUsersTable(){
   const el = $('#u-table');
   const thead = el.querySelector('thead'); const tbody = el.querySelector('tbody');
 
-  // NEW columns
-  thead.innerHTML = '<tr><th>User</th><th>Role</th><th>Course</th><th>Unit</th><th>Phone</th><th>Status</th><th>Actions</th></tr>';
+  // Add Unit & Status columns
+  thead.innerHTML = '<tr><th>User</th><th>Role</th><th>Course</th><th>Unit</th><th>Status</th><th>Actions</th></tr>';
   tbody.innerHTML = '';
 
   state.admin.users.forEach(u=>{
@@ -123,16 +143,18 @@ function renderUsersTable(){
       <td>
         <div><b>${u.displayName||''}</b></div>
         <div class="muted">${u.email || ''}</div>
+        ${u.phone ? `<div class="muted">${u.phone}</div>` : ''}
       </td>
-      <td>${u.role}</td>
+      <td>${pillForRole(u.role)}</td>
       <td>${courseName}</td>
       <td>${u.unit || ''}</td>
-      <td>${u.phone || ''}</td>
-      <td>${u.status || ''}</td>
+      <td>${pillForUserStatus(u.status || 'Active')}</td>
       <td class="cell-actions">
         <button class="btn u-edit" data-id="${u.userId}">Edit</button>
         <button class="btn ghost u-del" data-id="${u.userId}">Delete</button>
-        <button class="btn ghost u-loginas" data-id="${u.userId}"><span class="spinner dark hidden"></span><span>Login as</span></button>
+        <button class="btn ghost u-loginas" data-id="${u.userId}">
+          <span class="spinner dark hidden"></span><span>Login as</span>
+        </button>
       </td>`;
     tbody.appendChild(tr);
   });

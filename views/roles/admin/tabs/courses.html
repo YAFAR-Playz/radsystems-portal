@@ -4,14 +4,21 @@
     <div id="c-edit-hint" class="muted hidden">Editing existing course. Updating will overwrite its values.</div>
     <div class="stack">
       <input type="hidden" id="c-id">
+
       <div class="row">
         <div class="field" style="flex:2"><label>Name</label><input id="c-name"></div>
         <div class="field"><label>Code</label><input id="c-code"></div>
       </div>
+
       <div class="row">
         <div class="field"><label>Status</label>
           <select id="c-status"><option>Active</option><option>Inactive</option></select>
         </div>
+        <!-- NEW -->
+        <div class="field"><label>End date</label>
+          <input id="c-end" type="date" />
+        </div>
+
         <div class="row right">
           <button id="c-create" class="btn primary"><span class="spinner hidden" id="c-create-spin"></span><span>Create</span></button>
           <button id="c-update" class="btn primary hidden"><span class="spinner hidden" id="c-update-spin"></span><span>Update</span></button>
@@ -25,6 +32,7 @@
   <div class="card">
     <h3>Courses</h3>
     <div class="table-wrapper">
+      <!-- add End date column -->
       <table class="table" id="c-table"><thead></thead><tbody></tbody></table>
     </div>
   </div>

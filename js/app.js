@@ -29,7 +29,6 @@ const ROLE_TABS = {
   ],
   admin: [
     ['adm-users',     'views/roles/admin/tabs/users.html'],
-    ['adm-students',  'views/roles/admin/tabs/students.html'],
     ['adm-courses',   'views/roles/admin/tabs/courses.html'],
     ['adm-enroll',    'views/roles/admin/tabs/enrollments.html'],
     ['adm-perms',     'views/roles/admin/tabs/perms.html'],

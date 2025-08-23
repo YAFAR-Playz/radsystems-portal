@@ -24,6 +24,30 @@ function makeTable(el, headers, rows){
   thead.innerHTML = '<tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';
   tbody.innerHTML = rows.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join('');
 }
+
+async function upsertEnrollmentForStudent(u){
+  try{
+    if (!u || u.role!=='student' || !u.courseId) return;
+    const list = await api('admin.enroll.list',{});
+    const existing = (list.enrollments||[]).find(en =>
+      String(en.studentId)===String(u.userId || u.studentId) &&
+      String(en.courseId)===String(u.courseId)
+    );
+    if (existing){
+      await api('admin.enroll.update', { enrollmentId: existing.enrollmentId, patch: { status: u.status || 'Active' } });
+    } else {
+      await api('admin.enroll.create', {
+        studentId: (u.userId || u.studentId),
+        courseId: u.courseId,
+        subgroupId: '',
+        startDate: '',
+        endDate: '',
+        status: u.status || 'Active'
+      });
+    }
+  }catch(_){ /* no-op */ }
+}
+
 function fillCourseSelect(selectEl){
   const prev = selectEl.value;
   selectEl.innerHTML = '<option value="">— select course —</option>';
@@ -120,6 +144,9 @@ function renderUsersTable(){
       $('#u-name').value = u.displayName || '';
       const cObj = state.admin.courses.find(c=> c.courseId===u.courseId || c.courseId===u.course || c.name===u.course);
       $('#u-course').value = cObj ? cObj.courseId : '';
+      $('#u-phone').value = u.phone || '';
+      $('#u-unit').value  = u.unit  || '';
+      $('#u-status').value = u.status || 'Active';
       $('#u-msg').textContent='Editing…';
     });
   });
@@ -398,9 +425,18 @@ function wireUserEvents(){
     try{
       const email=$('#u-email').value.trim(), role=$('#u-role').value, displayName=$('#u-name').value.trim();
       const courseOpt=$('#u-course').value;
-      await api('admin.users.create',{email, role, displayName, courseId: courseOpt});
+      const phone=$('#u-phone').value.trim(), unit=$('#u-unit').value.trim();
+      const status=$('#u-status').value || 'Active';
+      await api('admin.users.create',{email, role, displayName, courseId: courseOpt, phone, unit, status});
+      await loadUsers();
+      const created = (state.admin.users||[]).find(u=>u.email===email);
+      if (created && created.role==='student' && created.courseId){
+        await upsertEnrollmentForStudent(created);
+        await loadEnrollments();
+      }
       $('#u-msg').textContent='Created ✅';
       $('#u-email').value=''; $('#u-name').value=''; $('#u-course').value='';
+      $('#u-phone').value=''; $('#u-unit').value=''; $('#u-status').value='Active';
       await loadUsers();
     }catch(e){ $('#u-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
@@ -414,14 +450,24 @@ function wireUserEvents(){
        email: $('#u-email').value.trim(),
        role: $('#u-role').value,
        displayName: $('#u-name').value.trim(),
-       courseId: $('#u-course').value
+       courseId: $('#u-course').value,
+       phone: $('#u-phone').value.trim(),
+       unit: $('#u-unit').value.trim(),
+       status: $('#u-status').value || 'Active'
      };
       await api('admin.users.update',{userId:id, patch});
+      await loadUsers();
+      const u = (state.admin.users||[]).find(x=>x.userId===id);
+      if (u && u.role==='student' && u.courseId){
+        await upsertEnrollmentForStudent(u);
+        await loadEnrollments();
+      }
       $('#u-msg').textContent='Updated ✅';
       $('#u-titlebar').textContent='Create User';
       $('#u-edit-hint').classList.add('hidden');
       show($('#u-create')); hide($('#u-update')); hide($('#u-cancel'));
       $('#u-id').value=''; $('#u-email').value=''; $('#u-name').value=''; $('#u-course').value='';
+      $('#u-phone').value=''; $('#u-unit').value=''; $('#u-status').value='Active';
       await loadUsers();
     }catch(e){ $('#u-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
@@ -431,6 +477,7 @@ function wireUserEvents(){
     $('#u-edit-hint').classList.add('hidden');
     show($('#u-create')); hide($('#u-update')); hide($('#u-cancel'));
     $('#u-id').value=''; $('#u-email').value=''; $('#u-name').value=''; $('#u-course').value='';
+    $('#u-phone').value=''; $('#u-unit').value=''; $('#u-status').value='Active';
   });
   $('#u-refresh')?.addEventListener('click', loadUsers);
   $('#u-search')?.addEventListener('input', ()=>{ clearTimeout(window._u_t); window._u_t=setTimeout(loadUsers,300); });

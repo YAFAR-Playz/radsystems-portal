@@ -108,12 +108,16 @@ async function loadUsers(){
 function renderUsersTable(){
   const el = $('#u-table');
   const thead = el.querySelector('thead'); const tbody = el.querySelector('tbody');
-  thead.innerHTML = '<tr><th>User</th><th>Role</th><th>Course</th><th>Actions</th></tr>';
+
+  // NEW columns
+  thead.innerHTML = '<tr><th>User</th><th>Role</th><th>Course</th><th>Unit</th><th>Phone</th><th>Status</th><th>Actions</th></tr>';
   tbody.innerHTML = '';
+
   state.admin.users.forEach(u=>{
     const courseName = (
-     state.admin.courses.find(c=> c.courseId===u.courseId || c.courseId===u.course || c.name===u.course)?.name
-     ) || (u.courseId || u.course || '');
+      state.admin.courses.find(c=> c.courseId===u.courseId || c.courseId===u.course || c.name===u.course)?.name
+    ) || (u.courseId || u.course || '');
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>
@@ -122,6 +126,9 @@ function renderUsersTable(){
       </td>
       <td>${u.role}</td>
       <td>${courseName}</td>
+      <td>${u.unit || ''}</td>
+      <td>${u.phone || ''}</td>
+      <td>${u.status || ''}</td>
       <td class="cell-actions">
         <button class="btn u-edit" data-id="${u.userId}">Edit</button>
         <button class="btn ghost u-del" data-id="${u.userId}">Delete</button>
@@ -244,16 +251,20 @@ function renderStudentsTable(){
 async function loadCourses(){
   const res = await api('admin.courses.list', {});
   state.admin.courses = res.courses || [];
+
   const rows = state.admin.courses.map(c=>[
     `<b>${c.name}</b><div class="muted">${c.code}</div>`,
     `${c.status}`,
+    // NEW: show end date (display format if present)
+    `${formatDateDisplay(c.endDate || '', state.branding.dateFormat) || '—'}`,
     formatDateDisplay(c.createdAt, state.branding.dateFormat),
     `<div class="cell-actions">
        <button data-id="${c.courseId}" class="btn c-edit">Edit</button>
        <button data-id="${c.courseId}" class="btn ghost c-del">Delete</button>
      </div>`
   ]);
-  makeTable($('#c-table'), ['Course','Status','Created','Actions'], rows);
+
+  makeTable($('#c-table'), ['Course','Status','End date','Created','Actions'], rows);
 
   $$('#c-table .c-del').forEach(b=> b.addEventListener('click', async e=>{
     const id = e.target.getAttribute('data-id');
@@ -265,6 +276,7 @@ async function loadCourses(){
     }catch(err){ $('#c-msg').textContent='Failed: '+err.message; }
     finally{ e.target.disabled = false; }
   }));
+
   $$('#c-table .c-edit').forEach(b=> b.addEventListener('click', ()=>{
     const id = b.getAttribute('data-id');
     const c = state.admin.courses.find(x=>x.courseId===id);
@@ -276,6 +288,8 @@ async function loadCourses(){
     $('#c-name').value = c.name || '';
     $('#c-code').value = c.code || '';
     $('#c-status').value = c.status || 'Active';
+    // NEW: prefill end date (expects yyyy-MM-dd)
+    $('#c-end').value = (c.endDate && c.endDate.length >= 10) ? c.endDate.slice(0,10) : '';
     $('#c-msg').textContent='Editing…';
   }));
 }
@@ -572,34 +586,46 @@ function wireCourseEvents(){
     const btn = $('#c-create'); const spin = $('#c-create-spin');
     setLoading(btn,true,spin);
     try{
-      await api('admin.courses.create',{name:$('#c-name').value.trim(), code:$('#c-code').value.trim(), status:$('#c-status').value});
+      await api('admin.courses.create',{
+        name: $('#c-name').value.trim(),
+        code: $('#c-code').value.trim(),
+        status: $('#c-status').value,
+        endDate: $('#c-end').value || '' // NEW
+      });
       $('#c-msg').textContent='Created ✅';
-      $('#c-name').value=''; $('#c-code').value='';
+      $('#c-name').value=''; $('#c-code').value=''; $('#c-end').value='';
       await loadCourses(); fillCourseSelect($('#u-course')); fillCourseSelect($('#e-courseId'));
     }catch(e){ $('#c-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
   });
+
   $('#c-update')?.addEventListener('click', async()=>{
     const btn = $('#c-update'); const spin = $('#c-update-spin');
     setLoading(btn,true,spin);
     try{
       const id = $('#c-id').value;
-      const patch = { name: $('#c-name').value.trim(), code: $('#c-code').value.trim(), status: $('#c-status').value };
+      const patch = {
+        name: $('#c-name').value.trim(),
+        code: $('#c-code').value.trim(),
+        status: $('#c-status').value,
+        endDate: $('#c-end').value || '' // NEW
+      };
       await api('admin.courses.update',{courseId:id, patch});
       $('#c-msg').textContent='Updated ✅';
       $('#c-titlebar').textContent='Create Course';
       $('#c-edit-hint').classList.add('hidden');
       show($('#c-create')); hide($('#c-update')); hide($('#c-cancel'));
-      $('#c-id').value=''; $('#c-name').value=''; $('#c-code').value=''; $('#c-status').value='Active';
+      $('#c-id').value=''; $('#c-name').value=''; $('#c-code').value=''; $('#c-status').value='Active'; $('#c-end').value='';
       await loadCourses(); fillCourseSelect($('#u-course')); fillCourseSelect($('#e-courseId'));
     }catch(e){ $('#c-msg').textContent='Failed: '+e.message; }
     finally{ setLoading(btn,false,spin); }
   });
+
   $('#c-cancel')?.addEventListener('click', ()=>{
     $('#c-titlebar').textContent='Create Course';
     $('#c-edit-hint').classList.add('hidden');
     show($('#c-create')); hide($('#c-update')); hide($('#c-cancel'));
-    $('#c-id').value=''; $('#c-name').value=''; $('#c-code').value=''; $('#c-status').value='Active';
+    $('#c-id').value=''; $('#c-name').value=''; $('#c-code').value=''; $('#c-status').value='Active'; $('#c-end').value='';
   });
 }
 function wireEnrollEvents(){

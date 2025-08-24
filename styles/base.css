@@ -965,3 +965,20 @@ label input[type="checkbox"]{ margin-right:6px; }
   }
   #view-login .login-card .login-title{ padding-left:72px; }
 }
+
+
+/* === QUICK RESTORE: keep default card styling on login === */
+#view-login .card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 18px rgba(0,0,0,.04);
+  transition: transform .15s ease;
+}
+
+/* kill the glossy overlay that was making them look weird */
+#view-login .card::after{ content:none; }
+
+/* optional: no animated scene bg while we stabilize */
+#view-login::before,
+#view-login::after{ content:none; }

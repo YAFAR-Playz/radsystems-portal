@@ -902,3 +902,51 @@ label input[type="checkbox"]{ margin-right:6px; }
   flex-direction:column;
   justify-content:center;  /* <— center vertically inside stack */
 }
+
+/* --- Login corner 3D badge --- */
+#view-login .login-card{
+  position: relative;
+  overflow: visible;            /* allow the badge to hang outside */
+}
+
+/* position + size the 3D model */
+#view-login .login-card .corner-model{
+  position: absolute;
+  top: -28px;                   /* tweak to taste */
+  left: -28px;                  /* tweak to taste */
+  width: 132px;
+  height: 132px;
+  pointer-events: none;         /* decorative; don’t block clicks */
+  z-index: 5;
+  filter: drop-shadow(0 12px 24px rgba(2,6,23,.18));
+  /* slight tilt for “worn” feel */
+  transform: rotateZ(-12deg);
+}
+
+/* subtle glow that sits under the model */
+#view-login .login-card .corner-model::part(default-ar-button),
+#view-login .login-card .corner-model::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:18px;
+  background: radial-gradient(60% 60% at 50% 55%, rgba(255,255,255,.35), transparent 70%);
+  pointer-events:none;
+  z-index:-1;
+}
+
+/* Optional: scale down on small screens so it doesn’t crowd the form */
+@media (max-width: 520px){
+  #view-login .login-card .corner-model{
+    top: -22px; left: -22px;
+    width: 108px; height: 108px;
+    transform: rotateZ(-10deg);
+  }
+}
+
+/* Respect reduced motion — stop auto-rotate if the user prefers it */
+@media (prefers-reduced-motion: reduce){
+  #view-login .login-card .corner-model{
+    --model-viewer-auto-rotate: 0; /* custom var just to document intent */
+  }
+}

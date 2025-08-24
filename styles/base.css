@@ -480,6 +480,91 @@ label input[type="checkbox"]{ margin-right:6px; }
     mix-blend-mode: soft-light; pointer-events:none;
   }
 
+
+/* exact logo-ish colors (tweak here if you need tighter matches) */
+  :root{
+    --rs-orange: #D84A27;      /* main orange bar */
+    --rs-orange-shadow: #E4A092;
+    --rs-deep:   #063C49;      /* deep teal bar */
+    --rs-slate:  #78939E;      /* slate underlay for deep bar */
+    --rs-aqua:   #9FD6CE;      /* aqua bar */
+    --rs-aqua-shadow: #D7ECE9;
+  }
+
+  #boot{
+    position:fixed; inset:0; z-index:99999;
+    display:grid; place-items:center;
+    background:#fff;           /* keep the tab on a white page while we fetch branding */
+    user-select:none; -webkit-user-select:none;
+  }
+
+  /* loader wrapper — rotate so bars point ↘ (top-left → bottom-right) */
+  .rs-loader{
+    width: 340px; height: 280px;  /* logical canvas; scales well on HiDPI */
+    display:flex; align-items:center; justify-content:center;
+    transform: rotate(-45deg);    /* <— flip/orient like the logo */
+  }
+
+  .rs-stack{
+    position:relative; width: 280px; height: 220px;
+  }
+
+  .rs-bar{
+    position:absolute; left:0; right:0; height:34px; border-radius:12px;
+    /* glossy body with animated specular sweep */
+    background:
+      linear-gradient( to bottom, rgba(255,255,255,.35), rgba(255,255,255,0) 40% ) ,
+      linear-gradient( 100deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.55) 48%, rgba(255,255,255,0) 66% ) ,
+      var(--_barColor);
+    background-size:
+      100% 100%,
+      220% 100%,
+      100% 100%;
+    background-position:
+      0 0,
+      -120% 0,
+      0 0;
+    box-shadow:
+      0 10px 26px rgba(0,0,0,.10),
+      0 2px 0 rgba(255,255,255,.6) inset;
+    animation: rsShine 2.2s ease-in-out infinite;
+    will-change: transform, background-position, filter;
+  }
+
+  /* subtle “extruded” shadow piece to fake 3D slab */
+  .rs-bar::after{
+    content:""; position:absolute; inset:0;
+    border-radius:12px;
+    transform: translate(10px, 10px);         /* cast to bottom-right */
+    background: var(--_shadowColor);
+    filter: blur(0.2px);
+    z-index:-1;
+  }
+
+  /* bar positions, colors & staggered motion */
+  .rs-bar.orange{  top: 120px; --_barColor: var(--rs-orange); --_shadowColor: color-mix(in oklab, var(--rs-orange-shadow) 92%, white); animation-delay:.15s; }
+  .rs-bar.deep{    top: 70px;  --_barColor: var(--rs-deep);   --_shadowColor: color-mix(in oklab, var(--rs-slate) 88%, white);  animation-delay:.35s; }
+  .rs-bar.aqua{    top: 20px;  --_barColor: var(--rs-aqua);   --_shadowColor: color-mix(in oklab, var(--rs-aqua-shadow) 92%, white); animation-delay:.55s; }
+
+  /* slight parallax “breathe” along the bar axis */
+  .rs-bar.orange{ animation-name: rsShine, rsDrift1; animation-duration: 2.2s, 2.8s; }
+  .rs-bar.deep{   animation-name: rsShine, rsDrift2; animation-duration: 2.2s, 3.0s; }
+  .rs-bar.aqua{   animation-name: rsShine, rsDrift3; animation-duration: 2.2s, 3.2s; }
+
+  @keyframes rsShine{
+    0%   { background-position: 0 0, -140% 0, 0 0; filter: brightness(1.00); }
+    45%  { background-position: 0 0,  10%  0, 0 0; filter: brightness(1.05); }
+    100% { background-position: 0 0, 140%  0, 0 0; filter: brightness(1.00); }
+  }
+  /* drift a few px along the bar axis for life-like motion */
+  @keyframes rsDrift1{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(6px) } }
+  @keyframes rsDrift2{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(8px) } }
+  @keyframes rsDrift3{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(10px)} }
+
+  /* reduce motion accessibility */
+  @media (prefers-reduced-motion: reduce){
+    .rs-bar{ animation: none; }
+  }
   /* keep crisp on small screens */
   @media (max-width:480px){
     .rs-bar{ border-radius:6px; }

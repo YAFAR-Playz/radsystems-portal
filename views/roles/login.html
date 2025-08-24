@@ -1,16 +1,25 @@
-<section id="view-login" class="grid cols-2" style="margin-top:18px">
-  <!-- add login-card -->
-  <div class="card stack login-card clip-corner">
+<!-- Corner “worn” badge -->
+<div class="corner-wear" aria-hidden="true">
   <model-viewer class="corner-model"
     src="4b3534c7-53d0-4686-934a-9d427f324832.glb"
-    alt="Brand badge"
-    auto-rotate rotation-per-second="30deg"
-    disable-zoom camera-controls interaction-prompt="none"
-    exposure="1.1" shadow-intensity="0.6"
-    ar-modes="webxr scene-viewer quick-look" reveal="auto">
+    alt=""
+    auto-rotate
+    rotation-per-second="30deg"
+    disable-zoom
+    camera-controls
+    interaction-prompt="none"
+    exposure="1.05"
+    shadow-intensity="0.55"
+    reveal="auto">
   </model-viewer>
 
-  <h3>Login</h3>
+  <!-- fake card lip that sits ABOVE the model to tuck it in -->
+  <span class="corner-lip"></span>
+  <!-- soft shadow on the card surface under the cap -->
+  <span class="corner-shadow"></span>
+</div>
+
+ <h3 class="login-title">Login</h3>
   <!-- rest of the form... -->
 
     <!-- Step 1: Email -->

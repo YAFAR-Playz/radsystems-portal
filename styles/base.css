@@ -949,3 +949,20 @@ label input[type="checkbox"]{ margin-right:6px; }
     --model-viewer-auto-rotate: 0; /* custom var just to document intent */
   }
 }
+/* Make the login card a positioning context */
+.login-card{ position: relative; }
+
+/* Reserve space so the badge doesn’t cover the title */
+.login-card h3{ padding-left: 84px; }  /* tweak as you like */
+@media (max-width: 480px){ .login-card h3{ padding-left: 68px; } }
+
+/* Badge sits “on” the corner, slightly outside the card */
+#loginBadge3D{
+  position: absolute;
+  top: -14px;            /* lift above the corner */
+  left: -14px;           /* hang outside a bit */
+  width: 76px; height: 76px;
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.12));
+}

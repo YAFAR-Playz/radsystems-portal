@@ -949,3 +949,61 @@ label input[type="checkbox"]{ margin-right:6px; }
     --model-viewer-auto-rotate: 0; /* custom var just to document intent */
   }
 }
+
+/* Make the login card a positioning context */
+#view-login .login-card{
+  position: relative;
+  overflow: visible;         /* let the cap hang out */
+}
+
+/* 3D cap – sits outside the corner */
+#view-login .login-card .corner-model{
+  position: absolute;
+  top: -30px;                /* lift above corner */
+  left: -32px;               /* hang to the left */
+  width: 96px;
+  height: 96px;
+  transform: rotate(-12deg); /* slight tilt */
+  filter: drop-shadow(0 14px 28px rgba(2,6,23,.18));
+  pointer-events: none;      /* don't block form inputs */
+  z-index: 2;                /* below the lip (added next) */
+}
+
+/* Corner “lip” — a triangular overlay that matches the card.
+   It hides the inner part of the cap so it looks tucked under the card edge. */
+#view-login .login-card::after{
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 88px;               /* size of the triangular lip */
+  height: 88px;
+  background: var(--card);   /* same as card fill */
+  border-top-left-radius: 22px;
+  /* match card’s border + inner highlight so the seam disappears */
+  box-shadow:
+    0 0 0 1px rgba(15,23,42,.08),          /* card border color */
+    0 1px 0 0 rgba(255,255,255,.6) inset;  /* inner highlight like your cards */
+  clip-path: polygon(0 0, 100% 0, 0 100%); /* triangular wedge */
+  pointer-events: none;
+  z-index: 6;               /* above the cap */
+}
+
+/* Keep the heading from colliding with the cap */
+#view-login .login-card h3{
+  margin-left: 64px;         /* push text to the right of the cap */
+}
+
+/* Mobile: scale everything down a bit */
+@media (max-width: 520px){
+  #view-login .login-card .corner-model{
+    top: -24px; left: -26px;
+    width: 78px; height: 78px;
+    transform: rotate(-10deg);
+  }
+  #view-login .login-card::after{
+    width: 74px; height: 74px;
+  }
+  #view-login .login-card h3{
+    margin-left: 52px;
+  }
+}

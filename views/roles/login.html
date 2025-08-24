@@ -1,23 +1,17 @@
 <section id="view-login" class="grid cols-2" style="margin-top:18px">
   <!-- add login-card -->
-  <div class="card stack login-card">
-    <!-- 3D corner badge -->
-    <model-viewer class="corner-model"
-      src="4b3534c7-53d0-4686-934a-9d427f324832.glb"
-      alt="Brand badge"
-      auto-rotate
-      rotation-per-second="30deg"
-      disable-zoom
-      camera-controls
-      interaction-prompt="none"
-      exposure="1.1"
-      shadow-intensity="0.6"
-      ar-modes="webxr scene-viewer quick-look"
-      reveal="auto">
-    </model-viewer>
+  <div class="card stack login-card clip-corner">
+  <model-viewer class="corner-model"
+    src="4b3534c7-53d0-4686-934a-9d427f324832.glb"
+    alt="Brand badge"
+    auto-rotate rotation-per-second="30deg"
+    disable-zoom camera-controls interaction-prompt="none"
+    exposure="1.1" shadow-intensity="0.6"
+    ar-modes="webxr scene-viewer quick-look" reveal="auto">
+  </model-viewer>
 
-    <h3>Login</h3>
-    <!-- (rest of your form unchanged) -->
+  <h3>Login</h3>
+  <!-- rest of the form... -->
 
     <!-- Step 1: Email -->
     <div id="step-email" class="stack">

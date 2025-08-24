@@ -931,7 +931,6 @@ label input[type="checkbox"]{ margin-right:6px; }
   inset:0;
   border-radius:18px;
   background: radial-gradient(60% 60% at 50% 55%, rgba(255,255,255,.35), transparent 70%);
-  pointer-events:none;
   z-index:-1;
 }
 

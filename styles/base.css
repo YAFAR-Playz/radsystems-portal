@@ -861,17 +861,14 @@ label input[type="checkbox"]{ margin-right:6px; }
 @media (prefers-reduced-motion: reduce){
   #boot .rs-bar, #boot .rs-bar > .fill, #boot .rs-bar > .fill::before{ animation:none; }
 }
-/* Stack area even tighter */
+/* Stack container even tighter */
 .rs-stack{ 
   position:relative; 
-  width:min(52vmin, 320px); 
-  height:min(28vmin, 200px); /* shorter container */
+  width:min(48vmin, 280px); 
+  height:min(18vmin, 140px); /* shrink vertical area */
 }
 
-/* Bars height unchanged for visibility */
-.rs-bar{ height:34px; }
-
-/* Bars very close together */
+/* Bars aligned with very small gaps (≈25px apart) */
 .rs-bar.aqua   { top: 20px;  --g1:#bfe6e0; --g2: var(--rs-aqua);   animation: breatheA 3.2s ease-in-out infinite; }
-.rs-bar.deep   { top: 65px;  --g1:#1c5562; --g2: var(--rs-deep);   animation: breatheB 3.4s ease-in-out infinite; }
-.rs-bar.orange { top: 110px; --g1:#f08a6a; --g2: var(--rs-orange); animation: breatheC 3.6s ease-in-out infinite; }
+.rs-bar.deep   { top: 45px;  --g1:#1c5562; --g2: var(--rs-deep);   animation: breatheB 3.4s ease-in-out infinite; }
+.rs-bar.orange { top: 70px;  --g1:#f08a6a; --g2: var(--rs-orange); animation: breatheC 3.6s ease-in-out infinite; }

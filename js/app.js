@@ -191,6 +191,8 @@ async function mountRole(role, demo=false){
 
 async function showLogin(){
   await loadView('views/roles/login.html');
+    // after await loadView(...)
+  try { const fx = await import('./login.fx.js'); fx?.initLoginFx?.(); } catch(_){}
 
   const emailEl   = document.getElementById('loginEmail');
   const passEl    = document.getElementById('loginPassword');

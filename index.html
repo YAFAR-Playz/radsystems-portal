@@ -14,12 +14,15 @@
 </head>
 <body>
   <!-- Minimal boot splash (keeps the tab on a neutral screen until branding is ready) -->
-  <style>
-    #boot{position:fixed;inset:0;background:#fff;display:grid;place-items:center;z-index:99999}
-    #boot::after{content:"";width:12px;height:12px;border-radius:50%;background:#e5e7eb;animation:breathe 1.6s ease-in-out infinite}
-    @keyframes breathe{50%{transform:scale(1.4);opacity:.55}}
-  </style>
-  <div id="boot" aria-hidden="true"></div>
+  <!-- Fullscreen boot loader -->
+  <div id="boot" aria-hidden="true">
+    <div class="logo-loader">
+      <span class="bar bar-red"></span>
+      <span class="bar bar-blue"></span>
+      <span class="bar bar-green"></span>
+    </div>
+    <div class="brand-text">RadSystems</div>
+  </div>
   <!-- 🔒 Keep your entire app exactly the same, just wrapped in #app-shell and hidden initially -->
   <div id="app-shell" style="display:none">
   <div class="container">

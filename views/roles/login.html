@@ -1,71 +1,87 @@
-<section id="view-login" class="grid cols-2" style="margin-top:18px">
-  <div class="card stack">
-    <h3>Login</h3>
-
-    <!-- Step 1: Email -->
-    <div id="step-email" class="stack">
-      <div class="field">
-        <label>Email</label>
-        <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
-      </div>
-      <div class="row">
-        <button id="btnContinue" class="btn primary">
-          <span class="spinner hidden" id="continueSpin"></span><span>Continue</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 2a: Existing user HAS password -->
-    <div id="step-existing" class="stack hidden">
-      <div class="field">
-        <label>Password</label>
-        <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
-      </div>
-      <div class="row">
-        <button id="btnSignIn" class="btn primary">
-          <span class="spinner hidden" id="signinSpin"></span><span>Sign in</span>
-        </button>
-        <button id="btnBack1" class="btn">Back</button>
-      </div>
-    </div>
-
-    <!-- Step 2b: Existing user WITHOUT password (first-time set) -->
-    <div id="step-newpass" class="stack hidden">
-      <div class="field">
-        <label>Create password</label>
-        <input id="newPass" type="password" placeholder="At least 6 characters" autocomplete="new-password"/>
-      </div>
-      <div class="field">
-        <label>Re-enter new password</label>
-        <input id="newPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
-      </div>
-      <div class="row">
-        <button id="btnSetPassword" class="btn primary">
-          <span class="spinner hidden" id="setpassSpin"></span><span>Set password & Sign in</span>
-        </button>
-        <button id="btnBack2" class="btn">Back</button>
-      </div>
-    </div>
-
-    <div class="row">
-      <button id="btnDemo" class="btn">Demo Login</button>
-    </div>
-
-    <div class="muted" style="font-size:12px">
-      Demo accounts:<br>
-      admin@school.edu / admin123<br>
-      head.math@school.edu / head123<br>
-      assistant.sara@school.edu / assistant123
-    </div>
+<section id="view-login" class="login-hero">
+  <!-- Animated 3D‑ish background (pure CSS: blobs + grain + spotlight) -->
+  <div class="login-bg">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="grain"></div>
+    <div class="vignette"></div>
   </div>
 
-  <div class="card stack">
-    <h3>How it works</h3>
-    <ul class="muted" style="margin:0 0 6px 18px;line-height:1.5">
-      <li><b>Assistant</b>: students, assignments, submit & edit checks.</li>
-      <li><b>Head</b>: assign/reassign, create assignments, analytics.</li>
-      <li><b>Admin</b>: users/courses/enrollments CRUD, roles & permissions, CSV import/export, branding & CORS.</li>
-    </ul>
-    <div class="badge ok" style="width:max-content">Sheets-first · Secure · Simple</div>
+  <div class="login-grid">
+    <!-- Brand card: keep simple, reads theme vars from Admin branding -->
+    <div class="card hero-card tilt" aria-hidden="true">
+      <div class="hero-inner">
+        <div class="hero-logo-wrap">
+          <img id="brandLogo" class="logo" alt="Logo"/>
+        </div>
+        <div>
+          <h1 class="hero-title">RadSystems Portal</h1>
+          <p class="hero-sub">Assistants · Heads · Admin · Google Sheets backend</p>
+          <div class="hero-chips">
+            <span class="chip">Sheets‑first</span>
+            <span class="chip">Secure</span>
+            <span class="chip">Simple</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth card: **IDs unchanged** so existing JS keeps working -->
+    <div class="card auth-card tilt">
+      <h3 class="auth-title">Login</h3>
+      <p class="muted">Welcome back — sign in to continue.</p>
+
+      <!-- Step 1: Email -->
+      <div id="step-email" class="stack">
+        <div class="field">
+          <label>Email</label>
+          <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
+        </div>
+        <div class="row">
+          <button id="btnContinue" class="btn primary glow">
+            <span class="spinner hidden" id="continueSpin"></span><span>Continue</span>
+          </button>
+          <button id="btnDemo" class="btn ghost">Demo Login</button>
+        </div>
+      </div>
+
+      <!-- Step 2a: Existing user HAS password -->
+      <div id="step-existing" class="stack hidden">
+        <div class="field">
+          <label>Password</label>
+          <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <div class="row">
+          <button id="btnSignIn" class="btn primary glow">
+            <span class="spinner hidden" id="signinSpin"></span><span>Sign in</span>
+          </button>
+          <button id="btnBack1" class="btn">Back</button>
+        </div>
+      </div>
+
+      <!-- Step 2b: Existing user WITHOUT password (first-time set) -->
+      <div id="step-newpass" class="stack hidden">
+        <div class="field">
+          <label>Create password</label>
+          <input id="newPass" type="password" placeholder="At least 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="field">
+          <label>Re-enter new password</label>
+          <input id="newPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+        </div>
+        <div class="row">
+          <button id="btnSetPassword" class="btn primary glow">
+            <span class="spinner hidden" id="setpassSpin"></span><span>Set password & Sign in</span>
+          </button>
+          <button id="btnBack2" class="btn">Back</button>
+        </div>
+      </div>
+
+      <div class="muted small demo-note">
+        Demo accounts:<br>
+        admin@school.edu / admin123 · head.math@school.edu / head123 · assistant.sara@school.edu / assistant123
+      </div>
+    </div>
   </div>
 </section>

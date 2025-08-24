@@ -306,3 +306,49 @@ label input[type="checkbox"]{ margin-right:6px; }
   #view-login::before{ animation: none; }
   #view-login .card, #view-login .btn, #view-login input{ transition: none; }
 }
+
+/* === Full-page login background (only when #view-login is on the page) === */
+
+/* Remove the normal body background on the login screen */
+body:has(#view-login){
+  background: transparent;
+}
+
+/* Soft animated gradient covering the whole viewport */
+body:has(#view-login)::before,
+body:has(#view-login)::after{
+  content:"";
+  position: fixed;
+  inset: 0;                 /* fill the entire page */
+  pointer-events: none;
+  z-index: 0;               /* behind content, above the default page bg */
+}
+
+:root{
+  --login-bg1: color-mix(in oklab, var(--brand-blue) 20%, transparent);
+  --login-bg2: color-mix(in oklab, var(--accent-2) 16%, transparent);
+}
+
+/* Main glow */
+body:has(#view-login)::before{
+  background:
+    radial-gradient(40% 35% at 10% 15%, var(--login-bg1), transparent 60%),
+    radial-gradient(45% 40% at 90% 25%, var(--login-bg2), transparent 60%),
+    radial-gradient(60% 60% at 50% 120%, color-mix(in oklab, var(--brand-blue) 12%, transparent), transparent 70%);
+  filter: blur(18px) saturate(120%);
+  animation: loginGlow 16s ease-in-out infinite alternate;
+}
+
+/* Subtle texture */
+body:has(#view-login)::after{
+  background: repeating-linear-gradient(135deg, rgba(255,255,255,.04) 0 2px, rgba(255,255,255,0) 2px 8px);
+  mix-blend-mode: overlay;
+  opacity: .35;
+}
+
+@keyframes loginGlow{
+  to{ transform: translate3d(0,-1.5%,0) scale(1.01); }
+}
+
+/* Make sure the login grid renders above the background */
+#view-login{ position: relative; z-index: 1; }

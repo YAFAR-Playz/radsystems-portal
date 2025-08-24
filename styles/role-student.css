@@ -1,0 +1,951 @@
+/* Modern Student Portal Styles with 3D Effects and Animations */
+
+/* CSS Variables for the modern theme */
+:root {
+  --student-primary: #667eea;
+  --student-secondary: #764ba2;
+  --student-accent: #f093fb;
+  --student-success: #4facfe;
+  --student-warning: #f6d365;
+  --student-danger: #fa709a;
+  --student-dark: #2d3748;
+  --student-light: #f7fafc;
+  --student-glass: rgba(255, 255, 255, 0.1);
+  --student-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  --student-border: rgba(255, 255, 255, 0.18);
+  --student-gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --student-gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --student-gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --student-gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* Global animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotateX(0deg); }
+  50% { transform: translateY(-10px) rotateX(5deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(102, 126, 234, 0.6); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Student portal container */
+#view-student {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+#view-student::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Modern tabs with 3D effect */
+#view-student .tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 30px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 10;
+  animation: slideInUp 0.6s ease-out;
+}
+
+#view-student .tab {
+  padding: 12px 24px;
+  border-radius: 15px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+#view-student .tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+#view-student .tab:hover::before {
+  left: 100%;
+}
+
+#view-student .tab:hover {
+  transform: translateY(-2px) rotateX(5deg);
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#view-student .tab.active {
+  background: var(--student-gradient-1);
+  color: white;
+  transform: translateY(-3px) rotateX(8deg);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Modern cards with glassmorphism */
+#view-student .card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInUp 0.8s ease-out;
+  z-index: 5;
+}
+
+#view-student .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--student-gradient-1);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+#view-student .card:hover::before {
+  transform: scaleX(1);
+}
+
+#view-student .card:hover {
+  transform: translateY(-5px) rotateX(2deg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* KPI Cards with 3D effect */
+#view-student .grid.cols-3 .card {
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#view-student .grid.cols-3 .card:nth-child(1) {
+  background: var(--student-gradient-1);
+  animation-delay: 0.1s;
+}
+
+#view-student .grid.cols-3 .card:nth-child(2) {
+  background: var(--student-gradient-2);
+  animation-delay: 0.2s;
+}
+
+#view-student .grid.cols-3 .card:nth-child(3) {
+  background: var(--student-gradient-3);
+  animation-delay: 0.3s;
+}
+
+#view-student .kpi {
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s infinite;
+  position: relative;
+  z-index: 2;
+}
+
+#view-student .grid.cols-3 .card .muted {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+}
+
+/* Floating elements */
+#view-student .grid.cols-3 .card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Modern table styling */
+#view-student .table-wrapper {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+#view-student .table {
+  background: transparent;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#view-student .table thead {
+  background: var(--student-gradient-1);
+}
+
+#view-student .table th {
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 15px 12px;
+  border: none;
+  position: relative;
+}
+
+#view-student .table th::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#view-student .table tbody tr {
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  border: none;
+}
+
+#view-student .table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#view-student .table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+#view-student .table td {
+  color: white;
+  padding: 15px 12px;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  vertical-align: middle;
+}
+
+/* Modern badges with glow effect */
+#view-student .badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+#view-student .badge.ok {
+  background: var(--student-gradient-4);
+  color: white;
+  box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4);
+}
+
+#view-student .badge.warn {
+  background: var(--student-gradient-2);
+  color: white;
+  box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+}
+
+#view-student .badge.danger {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);
+}
+
+#view-student .badge.info {
+  background: var(--student-gradient-3);
+  color: white;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+/* Modern buttons with 3D effect */
+#view-student .btn {
+  background: var(--student-gradient-1);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+#view-student .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+#view-student .btn:hover::before {
+  left: 100%;
+}
+
+#view-student .btn:hover {
+  transform: translateY(-3px) rotateX(10deg);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+#view-student .btn:active {
+  transform: translateY(-1px) rotateX(5deg);
+}
+
+#view-student .btn.ghost {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+#view-student .btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Modern form elements */
+#view-student input,
+#view-student select,
+#view-student textarea {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  padding: 12px 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+#view-student input::placeholder,
+#view-student textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+#view-student input:focus,
+#view-student select:focus,
+#view-student textarea:focus {
+  outline: none;
+  border-color: var(--student-primary);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+#view-student label {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.8rem;
+}
+
+/* Chart containers with modern styling */
+#view-student .chart-box {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+#view-student .chart-box::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--student-gradient-1);
+  border-radius: 17px;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+/* Card titles with modern styling */
+#view-student .card-title,
+#view-student h3 {
+  color: white;
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  position: relative;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+#view-student .card-title::after,
+#view-student h3::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: var(--student-gradient-1);
+  border-radius: 2px;
+}
+
+/* Muted text styling */
+#view-student .muted {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Loading spinner with modern animation */
+#view-student .spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* File upload styling */
+#view-student input[type="file"] {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+#view-student input[type="file"]:hover {
+  border-color: var(--student-primary);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  #view-student {
+    padding: 15px;
+  }
+  
+  #view-student .tabs {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  
+  #view-student .tab {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  #view-student .card {
+    padding: 20px;
+  }
+  
+  #view-student .kpi {
+    font-size: 2.5rem;
+  }
+  
+  #view-student .grid.cols-3 {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+/* Tab content animations */
+#view-student .tab-pane {
+  animation: slideInUp 0.6s ease-out;
+}
+
+#view-student .tab-pane.hidden {
+  display: none;
+}
+
+/* Special effects for interactive elements */
+#view-student .table tbody tr.s-fb-row {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-left: 4px solid var(--student-primary);
+}
+
+#view-student .table tbody tr.s-fb-row td {
+  padding: 20px;
+}
+
+/* Profile page specific styling */
+#view-student .grid.two {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  #view-student .grid.two {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Success/error message styling */
+#view-student #s-submit-msg,
+#view-student #s-prof-msg {
+  padding: 10px 15px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--student-success);
+  color: white;
+  font-weight: 600;
+  margin-top: 10px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Floating action elements */
+#view-student .floating-element {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  background: var(--student-gradient-1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  animation: float 3s ease-in-out infinite;
+}
+
+#view-student .floating-element:hover {
+  transform: scale(1.1) rotateZ(10deg);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+}
+
+/* Additional modern components */
+
+/* KPI Card enhancements */
+#view-student .kpi-card {
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+}
+
+#view-student .kpi-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  animation: float 2s ease-in-out infinite;
+}
+
+#view-student .kpi-trend {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+/* Card header styling */
+#view-student .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#view-student .card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+#view-student .btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+#view-student .btn-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1) rotateZ(10deg);
+}
+
+/* Title with icons */
+#view-student .title-icon {
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+#view-student .th-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Card description */
+#view-student .card-description {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border-left: 4px solid var(--student-primary);
+}
+
+/* Analytics grid */
+#view-student .analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  #view-student .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Chart enhancements */
+#view-student .chart-container {
+  position: relative;
+}
+
+#view-student .chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+#view-student .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#view-student .legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+#view-student .legend-color.submitted {
+  background: var(--student-gradient-4);
+}
+
+#view-student .legend-color.late {
+  background: var(--student-gradient-2);
+}
+
+#view-student .legend-color.pending {
+  background: var(--student-gradient-3);
+}
+
+#view-student .legend-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Profile page styling */
+#view-student .profile-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  #view-student .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+#view-student .profile-avatar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+#view-student .avatar-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--student-gradient-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  position: relative;
+  animation: pulse 2s infinite;
+}
+
+#view-student .avatar-status {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  border: 2px solid white;
+}
+
+#view-student .avatar-status.online {
+  background: #4ade80;
+}
+
+#view-student .profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#view-student .field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+@media (max-width: 768px) {
+  #view-student .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+#view-student .field-icon {
+  margin-right: 8px;
+}
+
+#view-student .modern-input {
+  transition: all 0.3s ease;
+}
+
+#view-student .modern-input.readonly {
+  background: rgba(255, 255, 255, 0.05);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+#view-student .form-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+#view-student .save-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#view-student .btn-text {
+  font-weight: 600;
+}
+
+#view-student .form-message {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+/* Tips card styling */
+#view-student .tips-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#view-student .tip-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border-left: 4px solid var(--student-primary);
+  transition: all 0.3s ease;
+}
+
+#view-student .tip-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+}
+
+#view-student .tip-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+#view-student .tip-text {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+#view-student .tip-text strong {
+  color: white;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Status message styling */
+#view-student .status-message {
+  padding: 15px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--student-success);
+  color: white;
+  font-weight: 600;
+  margin-top: 15px;
+  animation: slideInUp 0.3s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+/* Upload status */
+#view-student .upload-status {
+  margin-top: 20px;
+}
+
+/* Tab enhancements */
+#view-student .tab-icon {
+  font-size: 1.2rem;
+  margin-right: 8px;
+}
+
+#view-student .tab-text {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  #view-student .tab-text {
+    display: none;
+  }
+  
+  #view-student .tab-icon {
+    margin-right: 0;
+  }
+}
+
+/* Floating shapes for decoration */
+#view-student .floating-shapes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+#view-student .shape {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
+
+#view-student .shape-1 {
+  width: 100px;
+  height: 100px;
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+#view-student .shape-2 {
+  width: 150px;
+  height: 150px;
+  top: 60%;
+  right: 10%;
+  animation-delay: 2s;
+}
+
+#view-student .shape-3 {
+  width: 80px;
+  height: 80px;
+  bottom: 20%;
+  left: 20%;
+  animation-delay: 4s;
+}

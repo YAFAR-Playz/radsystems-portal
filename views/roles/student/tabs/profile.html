@@ -1,41 +1,101 @@
 <!-- Student Profile -->
-<div class="grid two">
-  <div class="card">
-    <div class="card-title">Profile</div>
-    <div class="stack">
-      <div class="field">
-        <label>Name</label>
-        <input id="s-prof-name" placeholder="Your name">
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input id="s-prof-email" placeholder="you@example.com">
-      </div>
-      <div class="field">
-        <label>Phone</label>
-        <input id="s-prof-phone" placeholder="+1 555 123 4567">
-      </div>
-      <div class="row wrap">
-        <div class="field" style="flex:1">
-          <label>Course</label>
-          <input id="s-prof-course" readonly>
+<div class="profile-grid">
+  <div class="card profile-card">
+    <div class="card-header">
+      <div class="profile-avatar">
+        <div class="avatar-circle">
+          <span class="avatar-icon">👤</span>
         </div>
-        <div class="field" style="flex:1">
-          <label>Unit</label>
-          <input id="s-prof-unit" readonly>
+        <div class="avatar-status online"></div>
+      </div>
+      <h3 class="card-title">
+        <span class="title-icon">✨</span>
+        My Profile
+      </h3>
+    </div>
+    
+    <div class="profile-form">
+      <div class="field">
+        <label>
+          <span class="field-icon">👤</span>
+          Full Name
+        </label>
+        <input id="s-prof-name" placeholder="Enter your full name" class="modern-input">
+      </div>
+      
+      <div class="field">
+        <label>
+          <span class="field-icon">📧</span>
+          Email Address
+        </label>
+        <input id="s-prof-email" placeholder="your.email@example.com" class="modern-input">
+      </div>
+      
+      <div class="field">
+        <label>
+          <span class="field-icon">📱</span>
+          Phone Number
+        </label>
+        <input id="s-prof-phone" placeholder="+1 (555) 123-4567" class="modern-input">
+      </div>
+      
+      <div class="field-row">
+        <div class="field">
+          <label>
+            <span class="field-icon">🎓</span>
+            Course
+          </label>
+          <input id="s-prof-course" readonly class="modern-input readonly">
+        </div>
+        <div class="field">
+          <label>
+            <span class="field-icon">📖</span>
+            Unit
+          </label>
+          <input id="s-prof-unit" readonly class="modern-input readonly">
         </div>
       </div>
-      <div class="row">
-        <button class="btn primary" id="s-prof-save"><span class="spinner dark hidden" id="s-prof-spin"></span>Save</button>
-        <div class="muted" id="s-prof-msg"></div>
+      
+      <div class="form-actions">
+        <button class="btn primary save-btn" id="s-prof-save">
+          <span class="btn-icon">💾</span>
+          <span class="spinner hidden" id="s-prof-spin"></span>
+          <span class="btn-text">Save Changes</span>
+        </button>
+        <div class="form-message" id="s-prof-msg"></div>
       </div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-title">Tips</div>
-    <ul class="muted">
-      <li>If you change your email, your password will be cleared for security. You’ll be asked to set it again next sign‑in.</li>
-      <li>Course and Unit are managed by the school.</li>
-    </ul>
+  
+  <div class="card tips-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <span class="title-icon">💡</span>
+        Helpful Tips
+      </h3>
+    </div>
+    
+    <div class="tips-content">
+      <div class="tip-item">
+        <div class="tip-icon">🔐</div>
+        <div class="tip-text">
+          <strong>Security Notice:</strong> If you change your email, your password will be cleared for security. You'll be asked to set it again on next sign-in.
+        </div>
+      </div>
+      
+      <div class="tip-item">
+        <div class="tip-icon">🏫</div>
+        <div class="tip-text">
+          <strong>Academic Info:</strong> Course and Unit information are managed by your school administration.
+        </div>
+      </div>
+      
+      <div class="tip-item">
+        <div class="tip-icon">📞</div>
+        <div class="tip-text">
+          <strong>Contact Updates:</strong> Keep your phone number updated for important notifications.
+        </div>
+      </div>
+    </div>
   </div>
 </div>

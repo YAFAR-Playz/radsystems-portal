@@ -1,7 +1,7 @@
 /* Modern Student Portal Styles with 3D Effects and Animations */
 
 /* CSS Variables for the modern theme */
-:root {
+/*:root {
   --student-primary: #667eea;
   --student-secondary: #764ba2;
   --student-accent: #f093fb;
@@ -19,7 +19,7 @@
   --student-gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
-/* Global animations */
+ Global animations
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotateX(0deg); }
   50% { transform: translateY(-10px) rotateX(5deg); }
@@ -62,7 +62,7 @@
   100% { background-position: 200% 0; }
 }
 
-/* Student portal container */
+ Student portal container 
 #view-student {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   min-height: 100vh;
@@ -86,7 +86,7 @@
   z-index: 0;
 }
 
-/* Modern tabs with 3D effect */
+ Modern tabs with 3D effect 
 #view-student .tabs {
   display: flex;
   gap: 8px;
@@ -142,7 +142,7 @@
   box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
-/* Modern cards with glassmorphism */
+ Modern cards with glassmorphism 
 #view-student .card {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
@@ -179,7 +179,7 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
-/* KPI Cards with 3D effect */
+ KPI Cards with 3D effect 
 #view-student .grid.cols-3 .card {
   text-align: center;
   position: relative;
@@ -219,7 +219,7 @@
   font-size: 0.9rem;
 }
 
-/* Floating elements */
+ Floating elements
 #view-student .grid.cols-3 .card::after {
   content: '';
   position: absolute;
@@ -231,7 +231,7 @@
   animation: float 3s ease-in-out infinite;
 }
 
-/* Modern table styling */
+ Modern table styling 
 #view-student .table-wrapper {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 15px;
@@ -296,7 +296,7 @@
   vertical-align: middle;
 }
 
-/* Modern badges with glow effect */
+ Modern badges with glow effect 
 #view-student .badge {
   padding: 6px 12px;
   border-radius: 20px;
@@ -333,7 +333,7 @@
   box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
 }
 
-/* Modern buttons with 3D effect */
+ Modern buttons with 3D effect 
 #view-student .btn {
   background: var(--student-gradient-1);
   color: white;
@@ -385,7 +385,7 @@
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-/* Modern form elements */
+ Modern form elements
 #view-student input,
 #view-student select,
 #view-student textarea {
@@ -420,7 +420,7 @@
   font-size: 0.8rem;
 }
 
-/* Chart containers with modern styling */
+ Chart containers with modern styling 
 #view-student .chart-box {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 15px;
@@ -444,7 +444,7 @@
   opacity: 0.3;
 }
 
-/* Card titles with modern styling */
+ Card titles with modern styling 
 #view-student .card-title,
 #view-student h3 {
   color: white;
@@ -467,12 +467,12 @@
   border-radius: 2px;
 }
 
-/* Muted text styling */
+ Muted text styling 
 #view-student .muted {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Loading spinner with modern animation */
+ Loading spinner with modern animation 
 #view-student .spinner {
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-top: 3px solid white;
@@ -480,7 +480,7 @@
   animation: spin 1s linear infinite;
 }
 
-/* File upload styling */
+ File upload styling 
 #view-student input[type="file"] {
   background: rgba(255, 255, 255, 0.1);
   border: 2px dashed rgba(255, 255, 255, 0.3);
@@ -495,7 +495,7 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* Responsive design */
+ Responsive design 
 @media (max-width: 768px) {
   #view-student {
     padding: 15px;
@@ -525,7 +525,7 @@
   }
 }
 
-/* Tab content animations */
+ Tab content animations 
 #view-student .tab-pane {
   animation: slideInUp 0.6s ease-out;
 }
@@ -534,7 +534,7 @@
   display: none;
 }
 
-/* Special effects for interactive elements */
+ Special effects for interactive elements 
 #view-student .table tbody tr.s-fb-row {
   background: rgba(255, 255, 255, 0.1) !important;
   border-left: 4px solid var(--student-primary);
@@ -544,7 +544,7 @@
   padding: 20px;
 }
 
-/* Profile page specific styling */
+ Profile page specific styling 
 #view-student .grid.two {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -557,7 +557,7 @@
   }
 }
 
-/* Success/error message styling */
+ Success/error message styling 
 #view-student #s-submit-msg,
 #view-student #s-prof-msg {
   padding: 10px 15px;
@@ -570,7 +570,7 @@
   animation: slideInRight 0.3s ease-out;
 }
 
-/* Floating action elements */
+ Floating action elements 
 #view-student .floating-element {
   position: fixed;
   bottom: 30px;
@@ -596,9 +596,9 @@
   box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
 }
 
-/* Additional modern components */
+ Additional modern components
 
-/* KPI Card enhancements */
+ KPI Card enhancements
 #view-student .kpi-card {
   position: relative;
   text-align: center;
@@ -618,7 +618,7 @@
   font-weight: 600;
 }
 
-/* Card header styling */
+ Card header styling 
 #view-student .card-header {
   display: flex;
   justify-content: space-between;
@@ -653,7 +653,7 @@
   transform: scale(1.1) rotateZ(10deg);
 }
 
-/* Title with icons */
+ Title with icons
 #view-student .title-icon {
   margin-right: 10px;
   font-size: 1.2em;
@@ -665,7 +665,7 @@
   gap: 8px;
 }
 
-/* Card description */
+ Card description
 #view-student .card-description {
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 20px;
@@ -675,7 +675,7 @@
   border-left: 4px solid var(--student-primary);
 }
 
-/* Analytics grid */
+ Analytics grid
 #view-student .analytics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -688,7 +688,7 @@
   }
 }
 
-/* Chart enhancements */
+ Chart enhancements
 #view-student .chart-container {
   position: relative;
 }
@@ -731,7 +731,7 @@
   font-weight: 600;
 }
 
-/* Profile page styling */
+ Profile page styling
 #view-student .profile-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -832,7 +832,7 @@
   font-weight: 600;
 }
 
-/* Tips card styling */
+ Tips card styling
 #view-student .tips-content {
   display: flex;
   flex-direction: column;
@@ -870,7 +870,7 @@
   margin-bottom: 5px;
 }
 
-/* Status message styling */
+ Status message styling
 #view-student .status-message {
   padding: 15px;
   border-radius: 10px;
@@ -883,12 +883,12 @@
   backdrop-filter: blur(10px);
 }
 
-/* Upload status */
+ Upload status
 #view-student .upload-status {
   margin-top: 20px;
 }
 
-/* Tab enhancements */
+ Tab enhancements
 #view-student .tab-icon {
   font-size: 1.2rem;
   margin-right: 8px;
@@ -908,7 +908,7 @@
   }
 }
 
-/* Floating shapes for decoration */
+ Floating shapes for decoration
 #view-student .floating-shapes {
   position: absolute;
   top: 0;
@@ -949,3 +949,4 @@
   left: 20%;
   animation-delay: 4s;
 }
+*/

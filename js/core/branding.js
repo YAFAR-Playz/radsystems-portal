@@ -14,7 +14,6 @@ export function applyBranding(branding){
   if (titleEl){
     titleEl.textContent = state.branding.teamName || 'RadSystems Portal';
   }
-  if (branding.customLoginModelUrl) state.branding.customLoginModelUrl = branding.customLoginModelUrl;
 }
 
 export async function loadBranding(){

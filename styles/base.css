@@ -903,443 +903,65 @@ label input[type="checkbox"]{ margin-right:6px; }
   justify-content:center;  /* <— center vertically inside stack */
 }
 
-/* --- Login corner 3D badge --- */
-#view-login .login-card{
-  position: relative;
-  overflow: visible;            /* allow the badge to hang outside */
-}
+/* ---- Login card: neat corner cap (scoped, minimal) ---- */
+#view-login .login-card { position: relative; overflow: visible; }
 
-/* position + size the 3D model */
-#view-login .login-card .corner-model{
-  position: absolute;
-  top: -28px;                   /* tweak to taste */
-  left: -28px;                  /* tweak to taste */
-  width: 132px;
-  height: 132px;
-  pointer-events: none;         /* decorative; don’t block clicks */
-  z-index: 5;
-  filter: drop-shadow(0 12px 24px rgba(2,6,23,.18));
-  /* slight tilt for “worn” feel */
-  transform: rotateZ(-12deg);
-}
-
-/* subtle glow that sits under the model */
-#view-login .login-card .corner-model::part(default-ar-button),
-#view-login .login-card .corner-model::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:18px;
-  background: radial-gradient(60% 60% at 50% 55%, rgba(255,255,255,.35), transparent 70%);
-  z-index:-1;
-}
-
-/* Optional: scale down on small screens so it doesn’t crowd the form */
-@media (max-width: 520px){
-  #view-login .login-card .corner-model{
-    top: -22px; left: -22px;
-    width: 108px; height: 108px;
-    transform: rotateZ(-10deg);
-  }
-}
-
-/* Respect reduced motion — stop auto-rotate if the user prefers it */
-@media (prefers-reduced-motion: reduce){
-  #view-login .login-card .corner-model{
-    --model-viewer-auto-rotate: 0; /* custom var just to document intent */
-  }
-}
-
-/* Make the login card a positioning context */
-#view-login .login-card{
-  position: relative;
-  overflow: visible;         /* let the cap hang out */
-}
-
-/* 3D cap – sits outside the corner */
-#view-login .login-card .corner-model{
-  position: absolute;
-  top: -30px;                /* lift above corner */
-  left: -32px;               /* hang to the left */
-  width: 96px;
-  height: 96px;
-  transform: rotate(-12deg); /* slight tilt */
-  filter: drop-shadow(0 14px 28px rgba(2,6,23,.18));
-  pointer-events: none;      /* don't block form inputs */
-  z-index: 2;                /* below the lip (added next) */
-}
-
-/* Corner “lip” — a triangular overlay that matches the card.
-   It hides the inner part of the cap so it looks tucked under the card edge. */
-#view-login .login-card::after{
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
-  width: 88px;               /* size of the triangular lip */
-  height: 88px;
-  background: var(--card);   /* same as card fill */
-  border-top-left-radius: 22px;
-  /* match card’s border + inner highlight so the seam disappears */
-  box-shadow:
-    0 0 0 1px rgba(15,23,42,.08),          /* card border color */
-    0 1px 0 0 rgba(255,255,255,.6) inset;  /* inner highlight like your cards */
-  clip-path: polygon(0 0, 100% 0, 0 100%); /* triangular wedge */
-  pointer-events: none;
-  z-index: 6;               /* above the cap */
-}
-
-/* Keep the heading from colliding with the cap */
-#view-login .login-card h3{
-  margin-left: 64px;         /* push text to the right of the cap */
-}
-
-/* Mobile: scale everything down a bit */
-@media (max-width: 520px){
-  #view-login .login-card .corner-model{
-    top: -24px; left: -26px;
-    width: 78px; height: 78px;
-    transform: rotate(-10deg);
-  }
-  #view-login .login-card::after{
-    width: 74px; height: 74px;
-  }
-  #view-login .login-card h3{
-    margin-left: 52px;
-  }
-}
-/* test */
-.login-card {
-  position: relative;
-  overflow: visible; /* let cap stick out */
-}
-
-.login-card .corner-model {
-  position: absolute;
-  top: -42px;    /* pull upward so it rests on the corner */
-  left: 12px;    /* nudge right so it aligns with the card edge */
-  width: 92px;   /* adjust size to look proportional */
-  height: 92px;
-  z-index: 3;    /* sits above the card, but below form text */
-  pointer-events: none;
-  transform: rotate(-8deg); /* slight tilt makes it look “worn” */
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,.15));
-}
-/* soft shadow under cap so it looks attached */
-.login-card .corner-model::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(rgba(0,0,0,.25), transparent 70%);
-  transform: translateY(20px) scale(0.8);
-  z-index: -1;
-}
-.login-card h3 {
-  margin-top: 32px;  /* push down so cap doesn’t overlap text */
-}
-
-/* Make the card a positioning context */
-.login-card{ position:relative; overflow:visible; }
-
-/* Cap: sized & tucked on the corner, slight tilt */
-.login-card .corner-model{
-  position:absolute;
-  top:-38px;            /* pull up */
-  left:-8px;            /* hug the edge */
-  width:108px; height:108px;
-  transform: rotate(-10deg);
-  pointer-events:none;
-  z-index:4;            /* above the card chrome */
-  filter: drop-shadow(0 10px 22px rgba(2,6,23,.18));
-}
-
-/* Keep the title clear of the cap */
-.login-card h3{ padding-left:96px; margin-top:10px; }
-@media (max-width:520px){
-  .login-card .corner-model{ top:-30px; left:-6px; width:92px; height:92px; }
-  .login-card h3{ padding-left:84px; }
-}
-
-/* ---- The “wear the cap” illusion: clip a notch from the card ---- */
-/* This mask punches a small circular bite out of the top-left corner. */
-.clip-corner{
-  /* size of the bite; tweak to fit your model */
-  --notch: 26px;
-
-  /* carve a circular notch (works in Chromium/Safari/Firefox) */
-  -webkit-mask-image: radial-gradient(circle at -6px -6px,
-                       transparent var(--notch),
-                       #000 calc(var(--notch) + 1px));
-          mask-image: radial-gradient(circle at -6px -6px,
-                       transparent var(--notch),
-                       #000 calc(var(--notch) + 1px));
-  -webkit-mask-composite: source-over;
-          mask-composite: add;
-}
-
-/* Soft indentation where the cap meets the card (sells the immersion) */
-.clip-corner::before{
-  content:"";
-  position:absolute; top:0; left:0;
-  width:72px; height:72px; pointer-events:none; z-index:1;
-  background: radial-gradient(60px 60px at 0 0,
-              rgba(0,0,0,.18) 0%,
-              rgba(0,0,0,.10) 35%,
-              transparent 70%);
-  mix-blend-mode:multiply; filter: blur(.6px);
-}
-
-/* Make the login card a positioning context */
-#view-login .login-card{ position:relative; overflow:visible; }
-
-/* Wrapper that anchors everything in the corner */
-#view-login .corner-wear{
-  position:absolute;
-  top:-16px;              /* pull slightly outside the card */
-  left:-14px;
-  width:116px;            /* overall badge footprint */
-  height:116px;
-  pointer-events:none;
-  z-index:2;              /* above card content, below the lip */
-}
-
-/* The 3D model itself */
-#view-login .corner-model{
-  width:100%; height:100%;
-  transform: rotateZ(-10deg);      /* playful tilt */
-  filter: drop-shadow(0 14px 22px rgba(2,6,23,.18));
-  --poster-color: transparent;
-}
-
-/* LIP: a small rounded patch that matches the card and sits ABOVE the model,
-   so the model looks tucked under the corner radius. */
-#view-login .corner-lip{
-  position:absolute;
-  top:-2px; left:-2px;
-  width:48px; height:48px;
-  background: var(--card);
-  border-top-left-radius: 22px;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.80) inset,
-    0 0 0 1px var(--glass-hr);      /* same hairline as your cards */
-  z-index:3;                        /* must be above the model */
-}
-
-/* A soft contact shadow on the card surface for immersion */
-#view-login .corner-shadow{
-  position:absolute;
-  top:28px; left:22px;
-  width:78px; height:54px;
-  background: radial-gradient(60% 55% at 50% 50%,
-             rgba(15,23,42,.22), rgba(15,23,42,0));
-  filter: blur(8px);
-  opacity:.55;
-  z-index:1;                        /* under the model */
-}
-
-/* Don’t let the cap hide the title */
-#view-login .login-title{ padding-left: 72px; }
-@media (max-width:520px){
-  #view-login .corner-wear{ top:-14px; left:-12px; width:98px; height:98px; }
-  #view-login .corner-lip{ width:44px; height:44px; border-top-left-radius:20px; }
-  #view-login .corner-shadow{ top:24px; left:20px; width:66px; height:46px; }
-  #view-login .login-title{ padding-left: 64px; }
-}
-/* ——— Login card “wearing” the 3D cap ——— */
-#view-login .login-card{ position:relative; overflow:visible; }
-
-/* The 3D cap */
-#view-login .login-card .corner-cap{
-  position:absolute;
-  top:-26px;            /* lift above corner */
-  left:-22px;           /* hang a bit outside */
-  width:96px; height:96px;
-  pointer-events:none;  /* don’t block the form */
-  z-index:1;            /* below the lip overlay (z:2) */
-  transform: rotate(-10deg);
-  filter: drop-shadow(0 12px 24px rgba(2,6,23,.20));
-}
-
-/* Little “lip” of the card that sits ABOVE the cap so it looks tucked in */
-#view-login .login-card::before{
-  content:"";
-  position:absolute;
-  z-index:2;
-  top:-1px; left:-1px;
-  width:180px;          /* how wide the lip extends along the top edge */
-  height:44px;          /* lip depth */
-  border-top-left-radius:22px; 
-  border-top-right-radius:14px;
-  /* mimic your glass card surface + border */
-  background: linear-gradient(180deg, rgba(255,255,255,.82), var(--glass));
-  border: 1px solid var(--glass-hr);
-  box-shadow:
-    0 1px 0 0 rgba(255,255,255,.6) inset,
-    0 0 0 8px rgba(255,255,255,.35) inset;
-  /* cut away the inner part so only the EDGE shows as a lip */
-  -webkit-mask: 
-    linear-gradient(#000 0 0) padding-box, 
-    radial-gradient(120px 60px at 40% 10%, transparent 62%, #000 63%) border-box;
-  -webkit-mask-composite: xor; /* Safari */
-          mask-composite: exclude; /* others */
-  pointer-events:none;
-}
-
-/* Soft contact shadow UNDER the lip so the cap feels immersed */
-#view-login .login-card::after{
-  content:"";
-  position:absolute;
-  z-index:1;            /* same layer as cap, under the lip */
-  top:10px; left:10px; width:84px; height:40px;
-  background: radial-gradient(60% 60% at 50% 50%, rgba(2,6,23,.20), transparent 70%);
-  filter: blur(10px);
-  pointer-events:none;
-}
-
-/* Keep the title from colliding with the cap */
-#view-login .login-card .login-title{ padding-left:84px; }
-@media (max-width:520px){
-  #view-login .login-card .corner-cap{ top:-22px; left:-18px; width:84px; height:84px; }
-  #view-login .login-card::before{ height:40px; width:160px; }
-  #view-login .login-card .login-title{ padding-left:72px; }
-}
-
-/* Login card can host absolute children */
-#view-login .login-card{ position:relative; overflow:visible; }
-
-/* The 3D cap (kept small, slightly tilted) */
-#view-login .login-card .corner-cap{
-  position:absolute;
-  top:-24px;            /* lift above the corner */
-  left:-20px;           /* hang a bit outside */
-  width:92px; height:92px;
-  transform: rotate(-10deg);
-  pointer-events:none;              /* never blocks inputs */
-  z-index:1;                        /* below the lip overlay */
-  filter: drop-shadow(0 12px 22px rgba(2,6,23,.18));
-  --poster-color: transparent;      /* hide poster flash */
-}
-
-/* The “lip” that tucks the cap under the card chrome */
-#view-login .login-card::before{
-  content:"";
-  position:absolute; inset:0 auto auto 0; /* top-left corner only */
-  width:190px;          /* how far the lip goes along the top */
-  height:52px;          /* lip depth */
-  border-top-left-radius:22px;
-  background: linear-gradient(180deg, rgba(255,255,255,.82), var(--glass));
-  border:1px solid var(--glass-hr);
-  box-shadow:
-    0 1px 0 0 rgba(255,255,255,.6) inset,
-    0 0 0 8px rgba(255,255,255,.35) inset;
-  /* cut most of the block so only the curved/top edge shows (the lip) */
-  -webkit-mask:
-    radial-gradient(120px 80px at 0 0, #000 58%, transparent 59%) top left/120px 80px no-repeat,
-    linear-gradient(#000,#000);
-  -webkit-mask-composite: source-in;             /* Safari */
-          mask:
-    radial-gradient(120px 80px at 0 0, #000 58%, transparent 59%) top left/120px 80px no-repeat,
-    linear-gradient(#000,#000);
-  pointer-events:none;
-  z-index:2;             /* sits ABOVE the cap for the tuck effect */
-}
-
-/* Soft contact shadow under the lip to sell the immersion */
-#view-login .login-card::after{
-  content:"";
-  position:absolute; top:18px; left:14px;
-  width:90px; height:48px;
-  background: radial-gradient(60% 60% at 50% 50%, rgba(2,6,23,.18), transparent 70%);
-  filter: blur(10px);
-  pointer-events:none;
-  z-index:1;             /* same layer as cap, under the lip */
-}
-
-/* Keep the title clear of the cap */
-#view-login .login-card .login-title{ padding-left:84px; }
-
-/* Small screens: scale down a touch */
-@media (max-width:520px){
-  #view-login .login-card .corner-cap{ top:-20px; left:-16px; width:82px; height:82px; }
-  #view-login .login-card::before{ height:46px; width:166px; }
-  #view-login .login-card .login-title{ padding-left:72px; }
-}
-/* === Login card “wearing the cap” (scoped, conflict-free) ================== */
-#view-login .login-card{
-  position: relative;
-  overflow: visible; /* only this card can overflow */
-  --card-radius: 22px;        /* matches your card rounding */
-  --cap-size: 96px;           /* cap footprint */
-  --cap-tilt: -10deg;         /* playful tilt */
-  --cap-x: -20px;             /* hang a bit outside left */
-  --cap-y: -24px;             /* lift above top edge */
-}
-
-/* 3D model placement */
+/* footprint that holds the 3D model + the little lip + shadow */
 #view-login .login-card .cap-wrap{
   position: absolute;
-  top: var(--cap-y);
-  left: var(--cap-x);
-  width: var(--cap-size);
-  height: var(--cap-size);
-  z-index: 1;                 /* under the lip, above card body */
-  pointer-events: none;       /* never blocks inputs */
-  filter: drop-shadow(0 12px 22px rgba(2,6,23,.18));
+  top: -18px;             /* lift slightly above the corner */
+  left: -18px;            /* hang a bit outside */
+  width: 96px;
+  height: 96px;
+  pointer-events: none;
+  z-index: 1;             /* under the lip, over the card content edge */
 }
+
+/* the 3D cap itself */
 #view-login .login-card .cap-3d{
   width: 100%;
   height: 100%;
-  transform: rotateZ(var(--cap-tilt));
-  --poster-color: transparent; /* avoid white flash while loading */
+  transform: rotate(-10deg);
+  --poster-color: transparent;                   /* avoid flash */
+  filter: drop-shadow(0 12px 22px rgba(2,6,23,.18));
 }
 
-/* LIP: a top-left chrome that sits ABOVE the cap to “tuck” it in */
-#view-login .login-card::before{
-  content: "";
+/* a tiny “lip” that matches the card chrome to tuck the cap edge */
+#view-login .login-card .cap-wrap::before{
+  content:"";
   position: absolute;
-  z-index: 2;                 /* above the cap */
-  top: -1px; left: -1px;
-  width: 184px;               /* how far the lip extends along the top */
-  height: 50px;               /* depth of the lip */
-  border-top-left-radius: var(--card-radius);
+  top: 0; left: 0;
+  width: 76px; height: 76px;                     /* wedge size */
   background: linear-gradient(180deg, rgba(255,255,255,.82), var(--glass));
   border: 1px solid var(--glass-hr);
   box-shadow:
     0 1px 0 0 rgba(255,255,255,.6) inset,
-    0 0 0 8px rgba(255,255,255,.35) inset;
-  /* show only the rounded edge “wedge” using a mask */
-  -webkit-mask:
-    radial-gradient(120px 80px at 0 0, #000 58%, transparent 60%) top left/120px 80px no-repeat,
-    linear-gradient(#000,#000);
-  -webkit-mask-composite: source-in;           /* Safari */
-          mask:
-    radial-gradient(120px 80px at 0 0, #000 58%, transparent 60%) top left/120px 80px no-repeat,
-    linear-gradient(#000,#000);
-  pointer-events: none;
+    0 0 0 8px rgba(255,255,255,.35) inset;       /* matches your glass cards */
+  border-top-left-radius: 22px;                  /* same radius as .card */
+  clip-path: polygon(0 0, 100% 0, 0 100%);       /* triangular corner lip */
+  z-index: 2;                                    /* above the model */
 }
 
-/* Contact shadow UNDER the lip for realism (same layer as cap) */
-#view-login .login-card::after{
-  content: "";
+/* soft contact shadow on the card surface so it feels attached */
+#view-login .login-card .cap-wrap::after{
+  content:"";
   position: absolute;
-  z-index: 1;
-  top: 16px; left: 12px;
-  width: 88px; height: 46px;
+  top: 30px; left: 22px;
+  width: 64px; height: 44px;
   background: radial-gradient(60% 60% at 50% 50%, rgba(2,6,23,.18), transparent 70%);
   filter: blur(10px);
-  pointer-events: none;
+  z-index: 0;                                    /* under the model */
+  opacity: .9;
 }
 
-/* Keep title clear of the cap */
-#view-login .login-card .login-title{ padding-left: 84px; }
+/* keep the title clear of the cap */
+#view-login .login-card .login-title{ padding-left: 80px; }
 
-/* Small screens: scale down slightly */
-@media (max-width: 520px){
-  #view-login .login-card{
-    --cap-size: 84px;
-    --cap-x: -16px;
-    --cap-y: -20px;
+/* small screens: scale down a touch */
+@media (max-width:520px){
+  #view-login .login-card .cap-wrap{
+    top:-14px; left:-14px;
+    width:84px; height:84px;
   }
-  #view-login .login-card::before{ width: 166px; height: 44px; }
-  #view-login .login-card .login-title{ padding-left: 72px; }
+  #view-login .login-card .login-title{ padding-left:72px; }
 }

@@ -1007,3 +1007,33 @@ label input[type="checkbox"]{ margin-right:6px; }
     margin-left: 52px;
   }
 }
+/* test */
+.login-card {
+  position: relative;
+  overflow: visible; /* let cap stick out */
+}
+
+.login-card .corner-model {
+  position: absolute;
+  top: -42px;    /* pull upward so it rests on the corner */
+  left: 12px;    /* nudge right so it aligns with the card edge */
+  width: 92px;   /* adjust size to look proportional */
+  height: 92px;
+  z-index: 3;    /* sits above the card, but below form text */
+  pointer-events: none;
+  transform: rotate(-8deg); /* slight tilt makes it look “worn” */
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.15));
+}
+/* soft shadow under cap so it looks attached */
+.login-card .corner-model::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(rgba(0,0,0,.25), transparent 70%);
+  transform: translateY(20px) scale(0.8);
+  z-index: -1;
+}
+.login-card h3 {
+  margin-top: 32px;  /* push down so cap doesn’t overlap text */
+}

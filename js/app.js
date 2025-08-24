@@ -2,11 +2,12 @@
 import { $, show, hide, showPageLoader, setLoading } from './core/dom.js';
 import { state } from './core/state.js';
 import { api } from './core/api.js';
-import { loadBranding, applyBranding } from './core/branding.js';
+import { loadBranding } from './core/branding.js';
 import { wireTabs } from './core/tabs.js';
-import { DEFAULT_LOGO_DATAURI } from './core/state.js';
 
-const root = document.getElementById('app-root'); // must exist in public/index.html
+const root  = document.getElementById('app-root'); // must exist in public/index.html
+const boot  = document.getElementById('boot');      // from index.html splash
+const shell = document.getElementById('app-shell'); // wrapper around your app
 
 /** Map of all tab panes per role => relative partial paths */
 const ROLE_TABS = {
@@ -312,28 +313,15 @@ async function tryResume(){
 }
 
 (async function init(){
-  // keep tab on splash; don’t render app yet
-  const boot = document.getElementById('boot');
-  const shell = document.getElementById('app-shell');
-
   try{
-    // load branding in strict mode — no default fallback here
-    const ok = await loadBranding(true);
-    if (!ok){
-      // branding truly not set — your call:
-      // 1) keep splash with a simple message, or
-      // 2) fallback to defaults and continue.
-      // If you want to *block* until branding exists, comment out the next line.
-      applyBranding({ logoUrl: DEFAULT_LOGO_DATAURI }); // remove this to strictly block
-    }
-  }catch(e){
-    // network error; either keep splash (block) or proceed with default
-    applyBranding({ logoUrl: DEFAULT_LOGO_DATAURI }); // optional
+    // Ensure branding is applied before anything is shown
+    await loadBranding(true); // require = true → keep splash until we have branding (cache/public/admin)
+  }catch(_){
+    // If branding truly not configured anywhere, we still proceed (but splash already hid)
+  }finally{
+    if (shell) shell.style.display = '';   // reveal your original UI
+    if (boot)  boot.remove();              // remove splash
   }
-
-  // now reveal the app and mount the first screen atomically
-  if (shell) shell.style.display = '';
-  if (boot)  boot.remove();
 
   wireHeader();
   const resumed = await tryResume();

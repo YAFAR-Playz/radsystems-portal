@@ -191,8 +191,7 @@ async function mountRole(role, demo=false){
 
 async function showLogin(){
   await loadView('views/roles/login.html');
-    // after await loadView(...)
-  try { const fx = await import('./login.fx.js'); fx?.initLoginFx?.(); } catch(_){}
+  
 
   const emailEl   = document.getElementById('loginEmail');
   const passEl    = document.getElementById('loginPassword');
@@ -297,6 +296,22 @@ async function showLogin(){
     await loadBranding();
     await mountRole(state.user.role, true);
   });
+    // --- UI polish: subtle 3D tilt on cards (no business logic touched)
+  const enableTilt = (el)=>{
+    const damp = 60; // higher = gentler
+    const rect = ()=> el.getBoundingClientRect();
+    const move = (e)=>{
+      const r = rect();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const dx = (e.clientX - cx) / damp;
+      const dy = (e.clientY - cy) / damp;
+      el.style.transform = `rotateX(${ -dy }deg) rotateY(${ dx }deg) translateY(-2px)`;
+    };
+    const leave = ()=> { el.style.transform = ''; };
+    el.addEventListener('mousemove', move);
+    el.addEventListener('mouseleave', leave);
+  };
+  document.querySelectorAll('.tilt[data-tilt]').forEach(enableTilt);
 }
 // Attempt session resume
 async function tryResume(){

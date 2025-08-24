@@ -14,6 +14,7 @@
 </head>
 <body>
   <!-- Minimal boot splash (keeps the tab on a neutral screen until branding is ready) -->
+  <div id="boot" aria-hidden="true">
   <div class="rs-loader" id="rsBootBars">
   <div class="rs-stack">
     <div class="rs-bar aqua"   aria-hidden="true"></div>
@@ -21,6 +22,7 @@
     <div class="rs-bar orange" aria-hidden="true"></div>
   </div>
 </div>
+  </div>
   <!-- 🔒 Keep your entire app exactly the same, just wrapped in #app-shell and hidden initially -->
   <div id="app-shell" style="display:none">
   <div class="container">

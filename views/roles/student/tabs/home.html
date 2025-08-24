@@ -1,30 +1,58 @@
 <!-- Student Home -->
-<div class="grid cols-3">
-  <div class="card"><div class="muted">Open Assignments</div><div id="s-kpi-open" class="kpi">0</div></div>
-  <div class="card"><div class="muted">Due This Week</div><div id="s-kpi-due" class="kpi">0</div></div>
-  <div class="card"><div class="muted">Submitted</div><div id="s-kpi-submitted" class="kpi">0</div></div>
+<div class="grid cols-3" style="margin-bottom: 30px;">
+  <div class="card kpi-card">
+    <div class="kpi-icon">📖</div>
+    <div class="muted">Open Assignments</div>
+    <div id="s-kpi-open" class="kpi">0</div>
+    <div class="kpi-trend">↗️ Active</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon">⏰</div>
+    <div class="muted">Due This Week</div>
+    <div id="s-kpi-due" class="kpi">0</div>
+    <div class="kpi-trend">🔥 Urgent</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon">✅</div>
+    <div class="muted">Submitted</div>
+    <div id="s-kpi-submitted" class="kpi">0</div>
+    <div class="kpi-trend">📈 Progress</div>
+  </div>
 </div>
 
-<div class="card" style="margin-top:16px">
-  <div class="card-title">Upcoming & Redo</div>
-  <div class="muted" style="margin:6px 0 10px">
+<div class="card main-content-card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <span class="title-icon">🎯</span>
+      Upcoming & Redo Assignments
+    </h3>
+    <div class="card-actions">
+      <button class="btn-icon refresh-btn" title="Refresh">🔄</button>
+    </div>
+  </div>
+  
+  <div class="card-description">
     Uploads are allowed while the assignment is open. If you upload after the normal deadline but before the late submission deadline, it will be marked <b>Submitted Late</b>.
   </div>
+  
   <div class="table-wrapper">
-    <table class="table compact">
+    <table class="table modern-table">
       <thead>
         <tr>
-          <th>Assignment</th>
-          <th>Course</th>
-          <th>Unit</th>
-          <th>Deadline</th>
-          <th>Late Submission DL</th>
-          <th>Status</th>
-          <th>Action</th>
+          <th><span class="th-content">📝 Assignment</span></th>
+          <th><span class="th-content">🎓 Course</span></th>
+          <th><span class="th-content">📖 Unit</span></th>
+          <th><span class="th-content">⏰ Deadline</span></th>
+          <th><span class="th-content">🕐 Late Submission DL</span></th>
+          <th><span class="th-content">📊 Status</span></th>
+          <th><span class="th-content">🚀 Action</span></th>
         </tr>
       </thead>
       <tbody id="s-home-upcoming"></tbody>
     </table>
   </div>
-  <div id="s-submit-msg" class="muted" style="margin-top:8px;"></div> <!-- still used by Home uploads -->
+  
+  <div class="upload-status">
+    <div id="s-submit-msg" class="status-message"></div>
+  </div>
 </div>

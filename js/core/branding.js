@@ -85,4 +85,7 @@ export async function loadBranding(require=false){
   // Optional: apply only a minimal default (keeps variables valid)
   applyBranding({ logoUrl: DEFAULT_LOGO_DATAURI });
   return false;
+  // Hide branding loader once applied
+const bl = document.getElementById('brandingLoader');
+if (bl) bl.style.display = 'none';
 }

@@ -1088,3 +1088,60 @@ label input[type="checkbox"]{ margin-right:6px; }
               transparent 70%);
   mix-blend-mode:multiply; filter: blur(.6px);
 }
+
+/* Make the login card a positioning context */
+#view-login .login-card{ position:relative; overflow:visible; }
+
+/* Wrapper that anchors everything in the corner */
+#view-login .corner-wear{
+  position:absolute;
+  top:-16px;              /* pull slightly outside the card */
+  left:-14px;
+  width:116px;            /* overall badge footprint */
+  height:116px;
+  pointer-events:none;
+  z-index:2;              /* above card content, below the lip */
+}
+
+/* The 3D model itself */
+#view-login .corner-model{
+  width:100%; height:100%;
+  transform: rotateZ(-10deg);      /* playful tilt */
+  filter: drop-shadow(0 14px 22px rgba(2,6,23,.18));
+  --poster-color: transparent;
+}
+
+/* LIP: a small rounded patch that matches the card and sits ABOVE the model,
+   so the model looks tucked under the corner radius. */
+#view-login .corner-lip{
+  position:absolute;
+  top:-2px; left:-2px;
+  width:48px; height:48px;
+  background: var(--card);
+  border-top-left-radius: 22px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.80) inset,
+    0 0 0 1px var(--glass-hr);      /* same hairline as your cards */
+  z-index:3;                        /* must be above the model */
+}
+
+/* A soft contact shadow on the card surface for immersion */
+#view-login .corner-shadow{
+  position:absolute;
+  top:28px; left:22px;
+  width:78px; height:54px;
+  background: radial-gradient(60% 55% at 50% 50%,
+             rgba(15,23,42,.22), rgba(15,23,42,0));
+  filter: blur(8px);
+  opacity:.55;
+  z-index:1;                        /* under the model */
+}
+
+/* Don’t let the cap hide the title */
+#view-login .login-title{ padding-left: 72px; }
+@media (max-width:520px){
+  #view-login .corner-wear{ top:-14px; left:-12px; width:98px; height:98px; }
+  #view-login .corner-lip{ width:44px; height:44px; border-top-left-radius:20px; }
+  #view-login .corner-shadow{ top:24px; left:20px; width:66px; height:46px; }
+  #view-login .login-title{ padding-left: 64px; }
+}

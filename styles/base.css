@@ -861,3 +861,17 @@ label input[type="checkbox"]{ margin-right:6px; }
 @media (prefers-reduced-motion: reduce){
   #boot .rs-bar, #boot .rs-bar > .fill, #boot .rs-bar > .fill::before{ animation:none; }
 }
+/* Stack area tightened */
+.rs-stack{ 
+  position:relative; 
+  width:min(56vmin, 360px); 
+  height:min(36vmin, 260px); /* reduce height to compress spacing */
+}
+
+/* Adjust bar spacing */
+.rs-bar{ height:34px; }
+
+/* Bars closer together */
+.rs-bar.aqua   { top: 20px;  --g1:#bfe6e0; --g2: var(--rs-aqua);   animation: breatheA 3.2s ease-in-out infinite; }
+.rs-bar.deep   { top: 85px;  --g1:#1c5562; --g2: var(--rs-deep);   animation: breatheB 3.4s ease-in-out infinite; }
+.rs-bar.orange { top: 150px; --g1:#f08a6a; --g2: var(--rs-orange); animation: breatheC 3.6s ease-in-out infinite; }

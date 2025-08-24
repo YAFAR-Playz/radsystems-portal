@@ -966,3 +966,21 @@ label input[type="checkbox"]{ margin-right:6px; }
   z-index: 2;
   filter: drop-shadow(0 8px 16px rgba(0,0,0,.12));
 }
+
+
+/* Make login card able to host absolute children */
+.login-card {
+  position: relative;
+  overflow: visible; /* allow the badge to peek outside */
+}
+
+/* Position 3D badge in top-left corner */
+.login-card .corner-model {
+  position: absolute;
+  top: -28px;   /* adjust until it sits nicely */
+  left: -28px;
+  width: 72px;  /* scale badge size */
+  height: 72px;
+  pointer-events: none; /* so it doesn’t block form clicks */
+  z-index: 2;
+}

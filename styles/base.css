@@ -569,3 +569,38 @@ label input[type="checkbox"]{ margin-right:6px; }
   @media (max-width:480px){
     .rs-bar{ border-radius:6px; }
   }
+
+/* === v3 overrides (append at the end) ========================= */
+:root{
+  /* single source of truth for the diagonal */
+  --rs-angle: 135deg; /* 45° from the negative X‑axis */
+}
+
+/* Keep the whole motif pointed ↙︎ and centered */
+.rs-loader{ transform: rotate(var(--rs-angle)); }
+
+/* Ensure bars never briefly appear vertical while loading styles */
+.rs-bar{ transform: rotate(var(--rs-angle)); }
+
+/* Remove any rotate animations from earlier versions */
+@keyframes popIn{ 0%{ opacity:0; transform: scale(.85) rotate(var(--rs-angle)); } 100%{ opacity:1; transform: scale(1) rotate(var(--rs-angle)); } }
+
+/* Smooth pulse along the bar axis (scaleX), with tiny depth shift */
+@keyframes pulse1{ 0%,100%{ transform: rotate(var(--rs-angle)) scaleX(0.94) translateZ(0); } 50%{ transform: rotate(var(--rs-angle)) scaleX(1.06) translateZ(12px); } }
+@keyframes pulse2{ 0%,100%{ transform: rotate(var(--rs-angle)) scaleX(0.96) translateZ(0); } 50%{ transform: rotate(var(--rs-angle)) scaleX(1.04) translateZ(8px); } }
+@keyframes pulse3{ 0%,100%{ transform: rotate(var(--rs-angle)) scaleX(0.95) translateZ(0); } 50%{ transform: rotate(var(--rs-angle)) scaleX(1.03) translateZ(6px); } }
+
+/* Apply the pulse + (optional) shine sweep together */
+.rs-bar{ animation-duration: .5s, 2.2s; animation-timing-function: ease-out, ease-in-out; animation-fill-mode: both; }
+.rs-bar.aqua   { animation-name: popIn, pulse1; animation-delay: .05s, .55s; }
+.rs-bar.deep   { animation-name: popIn, pulse2; animation-delay: .15s, .65s; }
+.rs-bar.orange { animation-name: popIn, pulse3; animation-delay: .25s, .75s; }
+
+/* If you want to **remove** the shiny sweep entirely, uncomment below:
+.rs-bar::before{ display:none; }
+*/
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .rs-bar{ animation: none !important; transform: rotate(var(--rs-angle)); }
+}

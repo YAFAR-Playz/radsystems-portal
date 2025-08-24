@@ -1,17 +1,27 @@
 <!-- views/roles/student/tabs/assignments.html -->
-<div class="card">
-  <div class="card-title">My Assignments</div>
+<div class="card main-content-card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <span class="title-icon">📚</span>
+      My Assignments
+    </h3>
+    <div class="card-actions">
+      <button class="btn-icon filter-btn" title="Filter">🔍</button>
+      <button class="btn-icon sort-btn" title="Sort">📊</button>
+    </div>
+  </div>
+  
   <div class="table-wrapper">
-    <table class="table compact" id="s-assignments-table">
+    <table class="table modern-table" id="s-assignments-table">
       <thead>
         <tr>
-          <th>Assignment</th>
-          <th>Course</th>
-          <th>Unit</th>
-          <th>Due</th>
-          <th>Submission</th>
-          <th>My File</th>
-          <th>Feedback</th>
+          <th><span class="th-content">📝 Assignment</span></th>
+          <th><span class="th-content">🎓 Course</span></th>
+          <th><span class="th-content">📖 Unit</span></th>
+          <th><span class="th-content">📅 Due Date</span></th>
+          <th><span class="th-content">📊 Submission</span></th>
+          <th><span class="th-content">📎 My File</span></th>
+          <th><span class="th-content">💬 Feedback</span></th>
         </tr>
       </thead>
       <tbody></tbody>

@@ -306,3 +306,90 @@ label input[type="checkbox"]{ margin-right:6px; }
   #view-login::before{ animation: none; }
   #view-login .card, #view-login .btn, #view-login input{ transition: none; }
 }
+
+/* Fullscreen boot cover */
+    #boot{
+      position:fixed; inset:0; z-index:99999; background:#fff;
+      display:grid; place-items:center;
+    }
+
+    /* Diagonal stack like the logo */
+    #boot .logo-bars{
+      --bar-w: clamp(140px, 22vw, 280px);
+      --bar-h: clamp(14px, 2.6vw, 28px);
+      --gap:   clamp(10px, 1.4vw, 16px);
+      display:flex; flex-direction:column; gap:var(--gap);
+      transform: rotate(-45deg);
+      filter: saturate(1.05);
+      will-change: transform, filter;
+      animation: barsFloat 4s ease-in-out infinite alternate;
+    }
+
+    /* One bar wrapper (for backplate) */
+    #boot .bar{
+      position:relative; width:var(--bar-w); height:var(--bar-h); border-radius:6px;
+      /* soft drop on the whole strip */
+      box-shadow:
+        0 18px 28px rgba(0,0,0,.07),
+        0 4px  10px rgba(0,0,0,.06);
+      overflow:hidden; /* clip the sheen */
+    }
+    /* backplate (the logo's shadow layer) */
+    #boot .bar::before{
+      content:""; position:absolute; inset:0; border-radius:inherit; z-index:0;
+      transform: translate(10%, 22%); /* diagonal offset */
+      filter: blur(1px);
+      background: var(--plate);
+    }
+    /* the glossy colored strip */
+    #boot .bar > i{
+      position:absolute; inset:0; border-radius:inherit; z-index:1;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,0) 35%) ,     /* gloss top */
+        linear-gradient( to bottom, var(--cTop), var(--cMid) 55%, var(--cBot) );      /* body */
+    }
+    /* moving sheen highlight */
+    #boot .bar > i::after{
+      content:""; position:absolute; inset:-30% -60%; z-index:2;
+      background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.65) 50%, transparent 65%);
+      transform: translateX(-60%);
+      animation: sheen 2.2s ease-in-out infinite;
+      mix-blend-mode: screen;
+    }
+
+    /* Colors pulled to match the PNG logo (refined, slightly material) */
+    /* Red / Coral strip */
+    #boot .bar.red      { --plate:#e8a19344; }
+    #boot .bar.red   > i{ --cTop:#f2a792; --cMid:#e0522d; --cBot:#c93f20; }
+    /* Deep Teal strip */
+    #boot .bar.teal     { --plate:#8aa3ad44; }
+    #boot .bar.teal  > i{ --cTop:#2a6a77; --cMid:#073c4a; --cBot:#042d38; }
+    /* Mint strip */
+    #boot .bar.mint     { --plate:#d8f0ecaa; }
+    #boot .bar.mint  > i{ --cTop:#cdeee7; --cMid:#a6dbd1; --cBot:#8bc8bd; }
+
+    /* Motion */
+    @keyframes sheen {
+      0%   { transform: translateX(-70%) skewX(-12deg); opacity:.0; }
+      35%  { opacity:.85; }
+      70%  { transform: translateX(70%)  skewX(-12deg); opacity:.0; }
+      100% { transform: translateX(70%)  skewX(-12deg); opacity:0; }
+    }
+    @keyframes barsFloat {
+      from { transform: rotate(-45deg) translateY(0);   }
+      to   { transform: rotate(-45deg) translateY(-4px);}
+    }
+
+    /* Stagger the first appearance (then the looped sheen takes over) */
+    #boot .bar { opacity:0; transform: translateY(10px); }
+    #boot .bar.red  { animation: in 420ms ease-out   0ms   forwards; }
+    #boot .bar.teal { animation: in 420ms ease-out  120ms  forwards; }
+    #boot .bar.mint { animation: in 420ms ease-out  240ms  forwards; }
+    @keyframes in { to { opacity:1; transform: translateY(0); } }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      #boot .logo-bars{ animation:none; }
+      #boot .bar > i::after{ display:none; }
+      #boot .bar{ animation:none; opacity:1; transform:none; }
+    }

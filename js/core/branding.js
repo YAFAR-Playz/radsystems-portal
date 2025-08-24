@@ -13,7 +13,8 @@ export function applyBranding(branding){
   const titleEl = document.querySelector('.brand .title');
   if (titleEl){
     titleEl.textContent = state.branding.teamName || 'RadSystems Portal';
-  }  
+  }
+  if (branding.customLoginModelUrl) state.branding.customLoginModelUrl = branding.customLoginModelUrl;
 }
 
 export async function loadBranding(){

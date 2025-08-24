@@ -902,3 +902,114 @@ label input[type="checkbox"]{ margin-right:6px; }
   flex-direction:column;
   justify-content:center;  /* <— center vertically inside stack */
 }
+
+
+
+
+
+/* === Neumorphic login card (scoped) ======================= */
+#view-login { place-items:start; }
+#view-login .login-card.n-card{
+  max-width: 520px;
+  margin: 0;
+  padding: 26px 22px 18px;
+  border: 0;
+  background: #eef2f7;
+  border-radius: 24px;
+  /* soft “out” shadow */
+  box-shadow:
+    -12px -12px 24px #ffffff,
+     12px  12px 28px rgba(15,23,42,.15);
+}
+
+/* top row: avatar + title */
+#view-login .n-card .n-card-head{
+  display:flex; align-items:center; gap:16px; margin-bottom:14px;
+}
+#view-login .n-card .n-avatar{
+  width:54px; height:54px; border-radius:50%;
+  display:grid; place-items:center;
+  color:#5b6b8a;
+  background: linear-gradient(180deg,#f7f9fc,#e7edf5);
+  box-shadow:
+    inset -6px -6px 10px #ffffff,
+    inset  6px  6px 12px rgba(15,23,42,.10),
+            0   10px 18px rgba(15,23,42,.08);
+}
+#view-login .n-card .n-title{
+  margin:0; font-size:28px; font-weight:800; letter-spacing:.4px; color:#2b3448;
+}
+
+/* labels / inputs */
+#view-login .n-label{
+  font-size:12px; font-weight:700; color:#5b6b8a; margin-top:8px; margin-bottom:6px;
+}
+#view-login .n-input{
+  border-radius:16px; padding:0; overflow:hidden; background: #eef2f7;
+  box-shadow:
+    inset -8px -8px 16px #ffffff,
+    inset  8px  8px 16px rgba(15,23,42,.12);
+}
+#view-login .n-input input{
+  all: unset; display:block; width:100%;
+  padding:14px 16px; font-size:15px; color:#0f172a;
+}
+#view-login .n-input:focus-within{
+  box-shadow:
+    inset -8px -8px 16px #ffffff,
+    inset  8px  8px 16px rgba(3,105,161,.16),
+    0 0 0 3px color-mix(in oklab, var(--brand-blue) 28%, transparent);
+}
+
+/* buttons */
+#view-login .n-btn{
+  appearance:none; border:0; border-radius:16px;
+  padding:12px 16px; font-weight:800; font-size:15px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  cursor:pointer; transition: transform .08s ease, box-shadow .18s ease, filter .18s ease;
+  margin-top:12px;
+}
+#view-login .n-btn:active{ transform: translateY(0); filter:brightness(.98); }
+
+#view-login .n-btn.n-primary{
+  color:#fff;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--brand-blue) 95%, #0000),
+                                       color-mix(in oklab, var(--brand-blue) 78%, #0000));
+  box-shadow:
+    -8px -8px 16px #ffffff,
+     8px  8px 22px rgba(15,23,42,.15),
+     0    8px 18px color-mix(in oklab, var(--brand-blue) 32%, transparent) inset;
+}
+#view-login .n-btn.n-primary:hover{
+  transform: translateY(-2px);
+  box-shadow:
+    -8px -8px 16px #ffffff,
+     8px  12px 26px rgba(15,23,42,.18),
+     0    8px 22px color-mix(in oklab, var(--brand-blue) 38%, transparent) inset;
+}
+
+#view-login .n-btn.n-ghost{
+  background: #eef2f7;
+  color:#334155;
+  box-shadow:
+    -6px -6px 12px #ffffff,
+     6px  6px 12px rgba(15,23,42,.10);
+}
+#view-login .n-btn.n-ghost:hover{ transform: translateY(-1px); }
+
+/* small foot text */
+#view-login .n-foot{ font-size:12px; margin-top:10px; }
+
+/* keep your two-column → one-column behavior */
+@media (max-width:900px){
+  #view-login.grid{ grid-template-columns: 1fr; }
+  #view-login .login-card.n-card{ order: -1; }
+}
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  #view-login .n-btn, #view-login .n-input{ transition:none; }
+}
+
+/* Optional: remove prior glossy “glass” styling in this view */
+#view-login .card::after{ content:none; }

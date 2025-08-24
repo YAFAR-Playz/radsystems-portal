@@ -192,3 +192,132 @@ label input[type="checkbox"]{ margin-right:6px; }
 .badge.role-hr{background:#fff7f0;color:#9a4d00;border:1px solid #ffd9b3}
 .badge.role-finance{background:#f0fbff;color:#0b5d7a;border:1px solid #cdefff}
 .badge.role-parent{background:#f7f7ff;color:#3d39a5;border:1px solid #dfdefe}
+/* ===== Login: modern effects (glass, lighting, tilt) ===== */
+.login-hero{
+  position: relative;
+  padding: 32px 0 48px;
+  min-height: calc(100vh - 120px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(1200px 600px at 10% 10%, rgba(31,60,136,.22), transparent 60%),
+    radial-gradient(900px 500px at 80% 20%, rgba(110,203,119,.15), transparent 60%),
+    radial-gradient(600px 400px at 60% 85%, rgba(14,165,233,.18), transparent 60%);
+}
+
+.login-grid{
+  width: min(1100px, 92vw);
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+@media (max-width: 920px){
+  .login-grid{ grid-template-columns: 1fr; }
+}
+
+.hero-blob{
+  position: absolute; inset: -20% -10% auto auto;
+  filter: blur(40px);
+  opacity: .35; pointer-events: none;
+  mix-blend-mode: screen;
+  animation: blobFloat 22s ease-in-out infinite alternate;
+}
+.hero-blob-a{ width: 50vw; height: 50vw; background: radial-gradient(circle at 30% 30%, var(--brand-blue), transparent 60%); top:-20%; left:-10%; }
+.hero-blob-b{ width: 40vw; height: 40vw; background: radial-gradient(circle at 70% 70%, var(--brand-green), transparent 60%); bottom:-20%; right:-10%; animation-delay: 2.5s; }
+@keyframes blobFloat{
+  0%{ transform: translate3d(0,0,0) scale(1); }
+  100%{ transform: translate3d(0,-20px,0) scale(1.05); }
+}
+
+/* Glassy cards with light border & hover glow */
+.login-card{
+  position: relative;
+  border-radius: 18px;
+  background: linear-gradient( to bottom right, rgba(255,255,255,.08), rgba(255,255,255,.04) );
+  border: 1px solid rgba(255,255,255,.26);
+  box-shadow:
+    0 10px 30px rgba(2, 6, 23, .25),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  overflow: hidden;
+}
+.login-card::before{ /* soft moving light */
+  content:"";
+  position:absolute; inset: -120% -80% auto auto; height:280%; width:200%;
+  background: conic-gradient(from 0deg, rgba(255,255,255,.35), transparent 20%, transparent 60%, rgba(255,255,255,.25));
+  transform: translate3d(0,0,0) rotate(0deg);
+  animation: sweep 8s linear infinite;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+@keyframes sweep{ to { transform: translate3d(0,0,0) rotate(360deg); } }
+
+.login-card:hover{
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 44px rgba(2, 6, 23, .35),
+    inset 0 1px 0 rgba(255,255,255,.28);
+  border-color: rgba(255,255,255,.36);
+}
+
+/* Slight 3D tilt */
+.tilt{ transform-style: preserve-3d; will-change: transform; }
+
+/* Larger logo on brand card */
+.logo.lg{ width: 56px; height: 56px; border-radius: 14px; }
+.brand-top{ display:flex; align-items:center; gap:14px; }
+.brand-title{ margin:0; font-size: clamp(22px, 3.6vw, 32px); letter-spacing:.2px; }
+.brand-sub{ margin-top:6px; }
+
+.chips{ margin-top: 12px; display:flex; gap:8px; flex-wrap:wrap; }
+.chip{
+  background: rgba(255,255,255,.12);
+  color: #fff; padding:6px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.18);
+}
+
+/* Input polish */
+.input-elev{
+  border-radius: 12px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 1px 0 rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.6);
+  transition: box-shadow .2s ease, transform .15s ease;
+}
+.input-elev:focus{
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(14,165,233,.18),
+    0 10px 20px rgba(2, 6, 23, .18);
+  transform: translateZ(10px);
+}
+
+/* Buttons: soft 3D + glow using brand colors */
+.btn.soft{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.2);
+  color: #0f172a;
+}
+.btn.primary.btn-glow{
+  background: linear-gradient(135deg, var(--brand-blue), var(--brand-green));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 8px 22px rgba(31,60,136,.28);
+  transition: box-shadow .2s ease, transform .15s ease, filter .2s ease;
+}
+.btn.primary.btn-glow:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(31,60,136,.38);
+  filter: brightness(1.02) saturate(1.05);
+}
+
+/* Titles inside login card */
+.card-title{ margin:0 0 4px 0; font-size: 20px; font-weight: 800; }
+.card-sub{ margin:0 0 10px 0; }
+
+/* Footer notes inside login card */
+.login-notes{ margin-top: 6px; display:flex; gap:6px; flex-wrap:wrap; }
+.badge.soft{ border: 1px solid rgba(16,185,129,.25); }
+
+/* Small fineprint */
+.fineprint{ margin-top: 10px; font-size: 12px; opacity: .75; }

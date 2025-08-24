@@ -604,3 +604,48 @@ label input[type="checkbox"]{ margin-right:6px; }
 @media (prefers-reduced-motion: reduce){
   .rs-bar{ animation: none !important; transform: rotate(var(--rs-angle)); }
 }
+
+/* loader wrapper — no rotation now */
+.rs-loader{
+  width: 340px; height: 280px;
+  display:flex; align-items:center; justify-content:center;
+  /* remove: transform: rotate(-45deg); */
+}
+
+/* stack area */
+.rs-stack{
+  position:relative; width: 280px; height: 220px;
+}
+
+/* base bar style */
+.rs-bar{
+  position:absolute;
+  left:0; right:0;
+  height:34px;
+  border-radius:12px;
+  transform: rotate(-45deg);   /* rotate the bars themselves */
+  transform-origin: center;
+  background: var(--_barColor);
+  box-shadow: 0 10px 26px rgba(0,0,0,.10), 0 2px 0 rgba(255,255,255,.6) inset;
+  animation: rsPulse 2.6s ease-in-out infinite;
+}
+
+/* shadows */
+.rs-bar::after{
+  content:""; position:absolute; inset:0;
+  border-radius:12px;
+  transform: translate(10px, 10px);
+  background: var(--_shadowColor);
+  z-index:-1;
+}
+
+/* bar positions (staggered diagonally top→bottom) */
+.rs-bar.aqua   { top: 0px;   --_barColor: var(--rs-aqua);   --_shadowColor: var(--rs-aqua-shadow); animation-delay:.1s; }
+.rs-bar.deep   { top: 70px;  --_barColor: var(--rs-deep);   --_shadowColor: var(--rs-slate);        animation-delay:.3s; }
+.rs-bar.orange { top: 140px; --_barColor: var(--rs-orange); --_shadowColor: var(--rs-orange-shadow);animation-delay:.5s; }
+
+/* New pulse effect instead of just shine */
+@keyframes rsPulse{
+  0%,100%{ transform: rotate(-45deg) scale(1); }
+  50%    { transform: rotate(-45deg) scale(1.08); }
+}

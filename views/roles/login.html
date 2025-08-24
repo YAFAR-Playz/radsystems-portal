@@ -1,16 +1,24 @@
 <section id="view-login" class="grid cols-2" style="margin-top:18px">
 <div class="card stack login-card">
-  <model-viewer
-    class="corner-cap"
-    src="4b3534c7-53d0-4686-934a-9d427f324832.glb"
-    alt=""
-    auto-rotate rotation-per-second="30deg"
-    camera-controls disable-zoom interaction-prompt="none"
-    exposure="1.05" shadow-intensity="0.55" reveal="auto">
-  </model-viewer>
+  <!-- Cap (3D) -->
+  <div class="cap-wrap" aria-hidden="true">
+    <model-viewer
+      class="cap-3d"
+      src="4b3534c7-53d0-4686-934a-9d427f324832.glb"
+      alt=""
+      auto-rotate
+      rotation-per-second="30deg"
+      disable-zoom
+      camera-controls
+      interaction-prompt="none"
+      exposure="1.05"
+      shadow-intensity="0.55"
+      reveal="auto">
+    </model-viewer>
+  </div>
 
   <h3 class="login-title">Login</h3>
-
+  <!-- rest of your form unchanged -->
     <!-- Step 1: Email -->
     <div id="step-email" class="stack">
       <div class="field">

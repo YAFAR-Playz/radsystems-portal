@@ -862,13 +862,17 @@ label input[type="checkbox"]{ margin-right:6px; }
   #boot .rs-bar, #boot .rs-bar > .fill, #boot .rs-bar > .fill::before{ animation:none; }
 }
 /* Stack container even tighter */
+/* Stack area tightened */
 #boot .rs-stack{ 
   position:relative; 
-  width:min(48vmin, 280px); 
-  height:min(18vmin, 140px); /* shrink vertical area */
+  width:min(56vmin, 360px); 
+  height:min(36vmin, 260px); /* reduce height to compress spacing */
 }
 
-/* Bars aligned with very small gaps (≈25px apart) */
+/* Adjust bar spacing */
+#boot .rs-bar{ height:34px; }
+
+/* Bars closer together */
 #boot .rs-bar.aqua   { top: 20px;  --g1:#bfe6e0; --g2: var(--rs-aqua);   animation: breatheA 3.2s ease-in-out infinite; }
-#boot .rs-bar.deep   { top: 45px;  --g1:#1c5562; --g2: var(--rs-deep);   animation: breatheB 3.4s ease-in-out infinite; }
-#boot .rs-bar.orange { top: 70px;  --g1:#f08a6a; --g2: var(--rs-orange); animation: breatheC 3.6s ease-in-out infinite; }
+#boot .rs-bar.deep   { top: 85px;  --g1:#1c5562; --g2: var(--rs-deep);   animation: breatheB 3.4s ease-in-out infinite; }
+#boot .rs-bar.orange { top: 150px; --g1:#f08a6a; --g2: var(--rs-orange); animation: breatheC 3.6s ease-in-out infinite; }

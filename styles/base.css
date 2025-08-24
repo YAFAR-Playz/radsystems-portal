@@ -1023,3 +1023,16 @@ label input[type="checkbox"]{ margin-right:6px; }
   #view-login .login-card .cap-wrap{ top:-12px; left:-12px; width:68px; height:68px; }
   #view-login .login-title{ padding-left:64px; }
 }
+
+/* Make the viewer itself transparent */
+#view-login .cap-3d{
+  --poster-color: transparent;     /* kill white poster */
+  background: transparent !important;
+}
+
+/* Hide built‑in poster & progress bar layers */
+#view-login .cap-3d::part(poster){ background: transparent !important; }
+#view-login .cap-3d::part(default-progress-bar){ display:none !important; }
+
+/* (Optional) if you ever set a skybox/env image, keep bg clear */
+#view-login .cap-3d{ --background-color: transparent; }

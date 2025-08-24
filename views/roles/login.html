@@ -1,83 +1,71 @@
-<section id="view-login" class="login-scene">
-  <!-- 3D background (optional Spline / video / image). Pointer events disabled so UI stays clickable. -->
-  <div class="bg-wrap">
-    <iframe id="loginModel" class="bg-3d" title="3D Scene" loading="lazy" referrerpolicy="no-referrer" allow="autoplay; fullscreen" aria-hidden="true"></iframe>
-    <div class="bg-gradient"></div>
-    <div class="bg-noise"></div>
-    <canvas id="bgSparkles" class="bg-sparkles" aria-hidden="true"></canvas>
+<section id="view-login" class="grid cols-2" style="margin-top:18px">
+  <div class="card stack">
+    <h3>Login</h3>
+
+    <!-- Step 1: Email -->
+    <div id="step-email" class="stack">
+      <div class="field">
+        <label>Email</label>
+        <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
+      </div>
+      <div class="row">
+        <button id="btnContinue" class="btn primary">
+          <span class="spinner hidden" id="continueSpin"></span><span>Continue</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2a: Existing user HAS password -->
+    <div id="step-existing" class="stack hidden">
+      <div class="field">
+        <label>Password</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div class="row">
+        <button id="btnSignIn" class="btn primary">
+          <span class="spinner hidden" id="signinSpin"></span><span>Sign in</span>
+        </button>
+        <button id="btnBack1" class="btn">Back</button>
+      </div>
+    </div>
+
+    <!-- Step 2b: Existing user WITHOUT password (first-time set) -->
+    <div id="step-newpass" class="stack hidden">
+      <div class="field">
+        <label>Create password</label>
+        <input id="newPass" type="password" placeholder="At least 6 characters" autocomplete="new-password"/>
+      </div>
+      <div class="field">
+        <label>Re-enter new password</label>
+        <input id="newPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+      </div>
+      <div class="row">
+        <button id="btnSetPassword" class="btn primary">
+          <span class="spinner hidden" id="setpassSpin"></span><span>Set password & Sign in</span>
+        </button>
+        <button id="btnBack2" class="btn">Back</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="btnDemo" class="btn">Demo Login</button>
+    </div>
+
+    <div class="muted" style="font-size:12px">
+      Demo accounts:<br>
+      admin@school.edu / admin123<br>
+      head.math@school.edu / head123<br>
+      assistant.sara@school.edu / assistant123
+    </div>
   </div>
 
-  <!-- Content -->
-  <div class="login-shell">
-    <div class="brand-top">
-      <img id="brandLogo" class="logo logo-xl" alt="Logo"/>
-      <div class="brand-text">
-        <div class="brand-title">RadSystems Portal</div>
-        <div class="brand-sub">Assistants · Heads · Admin · Students</div>
-      </div>
-    </div>
-
-    <div class="login-card glass card stack">
-      <h3 class="card-title">تسجيل الدخول</h3>
-
-      <!-- Step 1: Email -->
-      <div id="step-email" class="stack">
-        <div class="field">
-          <label>Email</label>
-          <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
-        </div>
-        <div class="row">
-          <button id="btnContinue" class="btn primary btn-3d">
-            <span class="spinner hidden" id="continueSpin"></span>
-            <span>Continue</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 2a: Existing user HAS password -->
-      <div id="step-existing" class="stack hidden">
-        <div class="field">
-          <label>Password</label>
-          <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
-        </div>
-        <div class="row">
-          <button id="btnSignIn" class="btn primary btn-3d">
-            <span class="spinner hidden" id="signinSpin"></span>
-            <span>Sign in</span>
-          </button>
-          <button id="btnBack1" class="btn">Back</button>
-        </div>
-      </div>
-
-      <!-- Step 2b: First-time set password -->
-      <div id="step-newpass" class="stack hidden">
-        <div class="field">
-          <label>Create password</label>
-          <input id="newPass" type="password" placeholder="At least 6 characters" autocomplete="new-password"/>
-        </div>
-        <div class="field">
-          <label>Re-enter new password</label>
-          <input id="newPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
-        </div>
-        <div class="row">
-          <button id="btnSetPassword" class="btn primary btn-3d">
-            <span class="spinner hidden" id="setpassSpin"></span>
-            <span>Set password & Sign in</span>
-          </button>
-          <button id="btnBack2" class="btn">Back</button>
-        </div>
-      </div>
-
-      <div class="row">
-        <button id="btnDemo" class="btn ghost">Demo Login</button>
-      </div>
-
-      <div class="muted tiny">
-        Demo accounts:<br/>
-        admin@school.edu / admin123<br/>
-        head.math@school.edu / head123<br/>
-        assistant.sara@school.edu / assistant123
-      </div>
-    </div>
+  <div class="card stack">
+    <h3>How it works</h3>
+    <ul class="muted" style="margin:0 0 6px 18px;line-height:1.5">
+      <li><b>Assistant</b>: students, assignments, submit & edit checks.</li>
+      <li><b>Head</b>: assign/reassign, create assignments, analytics.</li>
+      <li><b>Admin</b>: users/courses/enrollments CRUD, roles & permissions, CSV import/export, branding & CORS.</li>
+    </ul>
+    <div class="badge ok" style="width:max-content">Sheets-first · Secure · Simple</div>
   </div>
 </section>

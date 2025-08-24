@@ -14,15 +14,21 @@
 </head>
 <body>
   <!-- Minimal boot splash (keeps the tab on a neutral screen until branding is ready) -->
-  <div id="boot" aria-hidden="true">
-  <div class="rs-loader" id="rsBootBars">
+  <!-- HTML: replace the content inside your existing <div id="boot"> ... </div> with this block -->
+<div class="rs-loader mirror-x" aria-hidden="true">
   <div class="rs-stack">
-    <div class="rs-bar aqua"   aria-hidden="true"></div>
-    <div class="rs-bar deep"   aria-hidden="true"></div>
-    <div class="rs-bar orange" aria-hidden="true"></div>
+    <div class="rs-bar aqua">
+      <span class="fill"></span>
+    </div>
+    <div class="rs-bar deep">
+      <span class="fill"></span>
+    </div>
+    <div class="rs-bar orange">
+      <span class="fill"></span>
+    </div>
   </div>
 </div>
-  </div>
+
   <!-- 🔒 Keep your entire app exactly the same, just wrapped in #app-shell and hidden initially -->
   <div id="app-shell" style="display:none">
   <div class="container">

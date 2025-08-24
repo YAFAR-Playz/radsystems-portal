@@ -16,22 +16,18 @@
 
   <!-- Actual login content -->
   <h3>Login</h3>
-  ...
-</div>
-    <!-- (rest of your form unchanged) -->
-
-    <!-- Step 1: Email -->
-    <div id="step-email" class="stack">
-      <div class="field">
-        <label>Email</label>
-        <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
-      </div>
-      <div class="row">
-        <button id="btnContinue" class="btn primary">
-          <span class="spinner hidden" id="continueSpin"></span><span>Continue</span>
-        </button>
-      </div>
+<div id="step-email" class="stack">
+    <div class="field">
+      <label>Email</label>
+      <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
     </div>
+    <div class="row">
+      <button id="btnContinue" class="btn primary">
+        <span class="spinner hidden" id="continueSpin"></span><span>Continue</span>
+      </button>
+    </div>
+  </div>
+
 
     <!-- Step 2a: Existing user HAS password -->
     <div id="step-existing" class="stack hidden">

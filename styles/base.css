@@ -1037,3 +1037,54 @@ label input[type="checkbox"]{ margin-right:6px; }
 .login-card h3 {
   margin-top: 32px;  /* push down so cap doesn’t overlap text */
 }
+
+/* Make the card a positioning context */
+.login-card{ position:relative; overflow:visible; }
+
+/* Cap: sized & tucked on the corner, slight tilt */
+.login-card .corner-model{
+  position:absolute;
+  top:-38px;            /* pull up */
+  left:-8px;            /* hug the edge */
+  width:108px; height:108px;
+  transform: rotate(-10deg);
+  pointer-events:none;
+  z-index:4;            /* above the card chrome */
+  filter: drop-shadow(0 10px 22px rgba(2,6,23,.18));
+}
+
+/* Keep the title clear of the cap */
+.login-card h3{ padding-left:96px; margin-top:10px; }
+@media (max-width:520px){
+  .login-card .corner-model{ top:-30px; left:-6px; width:92px; height:92px; }
+  .login-card h3{ padding-left:84px; }
+}
+
+/* ---- The “wear the cap” illusion: clip a notch from the card ---- */
+/* This mask punches a small circular bite out of the top-left corner. */
+.clip-corner{
+  /* size of the bite; tweak to fit your model */
+  --notch: 26px;
+
+  /* carve a circular notch (works in Chromium/Safari/Firefox) */
+  -webkit-mask-image: radial-gradient(circle at -6px -6px,
+                       transparent var(--notch),
+                       #000 calc(var(--notch) + 1px));
+          mask-image: radial-gradient(circle at -6px -6px,
+                       transparent var(--notch),
+                       #000 calc(var(--notch) + 1px));
+  -webkit-mask-composite: source-over;
+          mask-composite: add;
+}
+
+/* Soft indentation where the cap meets the card (sells the immersion) */
+.clip-corner::before{
+  content:"";
+  position:absolute; top:0; left:0;
+  width:72px; height:72px; pointer-events:none; z-index:1;
+  background: radial-gradient(60px 60px at 0 0,
+              rgba(0,0,0,.18) 0%,
+              rgba(0,0,0,.10) 35%,
+              transparent 70%);
+  mix-blend-mode:multiply; filter: blur(.6px);
+}

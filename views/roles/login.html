@@ -1,38 +1,43 @@
 <section id="view-login" class="login-hero">
-  <!-- Background: gradient + subtle 3D particles + optional brand 3D model -->
-  <canvas id="loginBgFx" aria-hidden="true"></canvas>
-  <!-- Optional GLB model (if you add one in branding; otherwise stays hidden) -->
-  <div class="bg-model-wrap">
-    <!-- model-viewer is lazy-loaded in JS only if a model URL exists -->
-    <model-viewer id="loginModel" class="hidden" autoplay camera-controls disable-tap exposure="0.9" auto-rotate></model-viewer>
-  </div>
+  <!-- animated bg lights -->
+  <div class="hero-blob hero-blob-a"></div>
+  <div class="hero-blob hero-blob-b"></div>
 
-  <div class="login-shell">
-    <!-- BRAND PANEL (keeps your admin branding) -->
-    <div class="brand-pane">
-      <img id="brandLogo" class="brand-logo" alt="Logo"/>
-      <h1 class="brand-title">RadSystems Portal</h1>
-      <p class="brand-sub">Assistants · Heads · Admin · LMS</p>
+  <div class="login-grid">
+    <!-- Brand / pitch card (unchanged content, enhanced visuals) -->
+    <div class="card login-card tilt" data-tilt>
+      <div class="brand-top">
+        <img id="brandLogo" class="logo lg" alt="Logo"/>
+        <div class="brand-titles">
+          <h1 class="brand-title">RadSystems Portal</h1>
+          <p class="brand-sub muted">Assistants · Heads · Admin · Google Sheets backend</p>
+        </div>
+      </div>
+
+      <div class="chips">
+        <span class="chip">Sheets-first</span>
+        <span class="chip">Secure</span>
+        <span class="chip">Simple</span>
+      </div>
     </div>
 
-    <!-- AUTH CARD (same fields/IDs; just styled) -->
-    <div class="auth-card" data-tilt>
-      <div class="auth-header">
-        <h3>Login</h3>
-        <div class="auth-caption muted">Welcome back — sign in to continue.</div>
-      </div>
+    <!-- Login card (all IDs kept) -->
+    <div class="card login-card tilt" data-tilt>
+      <h3 class="card-title">Login</h3>
+      <p class="card-sub muted">Welcome back — sign in to continue.</p>
 
       <!-- Step 1: Email -->
       <div id="step-email" class="stack">
         <div class="field">
           <label>Email</label>
-          <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
+          <input id="loginEmail" type="email" class="input-elev"
+                 placeholder="user@school.edu" autocomplete="username"/>
         </div>
-        <div class="row">
-          <button id="btnContinue" class="btn primary">
+        <div class="row wrap">
+          <button id="btnContinue" class="btn primary btn-glow">
             <span class="spinner hidden" id="continueSpin"></span><span>Continue</span>
           </button>
-          <button id="btnDemo" class="btn">Demo Login</button>
+          <button id="btnDemo" class="btn ghost soft">Demo Login</button>
         </div>
       </div>
 
@@ -40,36 +45,46 @@
       <div id="step-existing" class="stack hidden">
         <div class="field">
           <label>Password</label>
-          <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+          <input id="loginPassword" type="password" class="input-elev"
+                 placeholder="••••••••" autocomplete="current-password"/>
         </div>
-        <div class="row">
-          <button id="btnSignIn" class="btn primary">
+        <div class="row wrap">
+          <button id="btnSignIn" class="btn primary btn-glow">
             <span class="spinner hidden" id="signinSpin"></span><span>Sign in</span>
           </button>
           <button id="btnBack1" class="btn">Back</button>
         </div>
       </div>
 
-      <!-- Step 2b: Existing user WITHOUT password -->
+      <!-- Step 2b: Existing user WITHOUT password (first-time set) -->
       <div id="step-newpass" class="stack hidden">
         <div class="field">
           <label>Create password</label>
-          <input id="newPass" type="password" placeholder="At least 6 characters" autocomplete="new-password"/>
+          <input id="newPass" type="password" class="input-elev"
+                 placeholder="At least 6 characters" autocomplete="new-password"/>
         </div>
         <div class="field">
           <label>Re-enter new password</label>
-          <input id="newPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+          <input id="newPass2" type="password" class="input-elev"
+                 placeholder="Repeat password" autocomplete="new-password"/>
         </div>
-        <div class="row">
-          <button id="btnSetPassword" class="btn primary">
+        <div class="row wrap">
+          <button id="btnSetPassword" class="btn primary btn-glow">
             <span class="spinner hidden" id="setpassSpin"></span><span>Set password & Sign in</span>
           </button>
           <button id="btnBack2" class="btn">Back</button>
         </div>
       </div>
 
-      <div class="login-footer muted">
-        <span class="badge ok">Sheets‑first · Secure · Simple</span>
+      <div class="login-notes">
+        <div class="badge ok soft">Sheets-first</div>
+        <div class="badge ok soft">Secure</div>
+        <div class="badge ok soft">Simple</div>
+      </div>
+
+      <div class="muted fineprint">
+        Demo accounts:<br>
+        admin@school.edu / admin123 · head.math@school.edu / head123 · assistant.sara@school.edu / assistant123
       </div>
     </div>
   </div>

@@ -1,54 +1,14 @@
 <!-- views/roles/student/tabs/analytics.html -->
-<div class="analytics-grid">
-  <div class="card chart-card">
-    <div class="card-header">
-      <h3 class="card-title">
-        <span class="title-icon">📊</span>
-        Submission Status Overview
-      </h3>
-    </div>
-    <div class="chart-container">
-      <div class="chart-box">
-        <canvas id="s-donut"></canvas>
-      </div>
-      <div class="chart-legend">
-        <div class="legend-item">
-          <span class="legend-color submitted"></span>
-          <span class="legend-text">Submitted</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-color late"></span>
-          <span class="legend-text">Late</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-color pending"></span>
-          <span class="legend-text">Pending</span>
-        </div>
-      </div>
-    </div>
+<div class="grid two">
+  <div class="card">
+    <div class="card-title">My Submission Status</div>
+    <div class="chart-box"><canvas id="s-donut"></canvas></div>
   </div>
-  
-  <div class="card grades-card">
-    <div class="card-header">
-      <h3 class="card-title">
-        <span class="title-icon">🏆</span>
-        Grade History
-      </h3>
-      <div class="card-actions">
-        <button class="btn-icon export-btn" title="Export Grades">📤</button>
-      </div>
-    </div>
-    
+  <div class="card">
+    <div class="card-title">My Grades</div>
     <div class="table-wrapper">
-      <table class="table modern-table grades-table" id="s-grades-table">
-        <thead>
-          <tr>
-            <th><span class="th-content">📝 Assignment</span></th>
-            <th><span class="th-content">🎯 Grade</span></th>
-            <th><span class="th-content">📊 Status</span></th>
-            <th><span class="th-content">📅 Updated</span></th>
-          </tr>
-        </thead>
+      <table class="table compact" id="s-grades-table">
+        <thead><tr><th>Assignment</th><th>Grade</th><th>Status</th><th>Updated</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>

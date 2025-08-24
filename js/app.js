@@ -191,6 +191,38 @@ async function mountRole(role, demo=false){
 
 async function showLogin(){
   await loadView('views/roles/login.html');
+  // After loadView(...)
+const model = document.getElementById('loginModel');
+try{
+  // If admin set a Spline or model URL in branding.customLoginModelUrl, use it.
+  const url = state.branding?.customLoginModelUrl || state.branding?.modelUrl || "";
+  if (model){
+    if (url) { model.src = url; model.classList.remove('hidden'); }
+    else { model.remove(); /* fallback: gradient + sparkles only */ }
+  }
+}catch(_){ /* no-op */ }
+
+// Simple sparkles (background canvas) — lightweight and optional
+(function sparkles(){
+  const c = document.getElementById('bgSparkles'); if (!c) return; const ctx = c.getContext('2d');
+  const DPR = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+  function size(){ c.width = c.clientWidth*DPR; c.height=c.clientHeight*DPR; }
+  const nodes = Array.from({length: 50}, () => ({
+    x: Math.random(), y: Math.random(), r: 1+Math.random()*2, s: .2+.8*Math.random(),
+  }));
+  size(); window.addEventListener('resize', size);
+  (function loop(){
+    ctx.clearRect(0,0,c.width,c.height);
+    for(const n of nodes){
+      n.y += 0.0008*n.s; if (n.y>1) n.y=0; n.x += (Math.random()-.5)*0.001;
+      const x=n.x*c.width, y=n.y*c.height; const g=ctx.createRadialGradient(x,y,0,x,y,12*DPR);
+      g.addColorStop(0, 'rgba(255,255,255,.85)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,n.r*DPR,0,Math.PI*2); ctx.fill();
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
 
   const emailEl   = document.getElementById('loginEmail');
   const passEl    = document.getElementById('loginPassword');

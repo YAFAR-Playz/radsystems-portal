@@ -747,3 +747,19 @@ label input[type="checkbox"]{ margin-right:6px; }
 @media (prefers-reduced-motion: reduce){
   .rs-bar, .rs-bar > .fill, .rs-bar > .fill::before{ animation:none; }
 }
+/* Loader wrapper — flip bars from ↘ to ↙ */
+.rs-loader{
+  width: 340px; height: 280px;
+  display:flex; align-items:center; justify-content:center;
+  transform: rotate(45deg);   /* was -45deg, flip across Y-axis */
+}
+
+/* Update bar positions after flip */
+.rs-bar.orange{ top: 120px; transform: scale(1) rotate(0deg); animation-delay:.15s; }
+.rs-bar.deep  { top: 70px;  transform: scale(1) rotate(0deg); animation-delay:.35s; }
+.rs-bar.aqua  { top: 20px;  transform: scale(1) rotate(0deg); animation-delay:.55s; }
+
+/* If you’re using translateX for drift, invert its direction */
+@keyframes rsDrift1{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(-6px) } }
+@keyframes rsDrift2{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(-8px) } }
+@keyframes rsDrift3{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(-10px)} }

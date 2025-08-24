@@ -876,3 +876,29 @@ label input[type="checkbox"]{ margin-right:6px; }
 #boot .rs-bar.aqua   { top: 20px;  --g1:#bfe6e0; --g2: var(--rs-aqua);   animation: breatheA 3.2s ease-in-out infinite; }
 #boot .rs-bar.deep   { top: 85px;  --g1:#1c5562; --g2: var(--rs-deep);   animation: breatheB 3.4s ease-in-out infinite; }
 #boot .rs-bar.orange { top: 150px; --g1:#f08a6a; --g2: var(--rs-orange); animation: breatheC 3.6s ease-in-out infinite; }
+
+/* Boot container stays fullscreen and centers */
+#boot{
+  position:fixed; inset:0; z-index:99999;
+  display:grid; place-items:center;
+  background:#fff;
+}
+
+/* Loader wrapper also centers its child */
+#boot .rs-loader{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+}
+
+/* Stack exactly centered with fixed height */
+#boot .rs-stack{
+  position:relative;
+  width:min(56vmin, 360px);
+  height:200px;   /* trimmed so bars group neatly */
+  display:flex;
+  flex-direction:column;
+  justify-content:center;  /* <— center vertically inside stack */
+}

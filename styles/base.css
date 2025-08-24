@@ -885,7 +885,7 @@ label input[type="checkbox"]{ margin-right:6px; }
 }
 
 /* Loader wrapper also centers its child */
-#boot .rs-loader{
+.rs-loader{
   display:flex;
   align-items:center;
   justify-content:center;
@@ -894,7 +894,7 @@ label input[type="checkbox"]{ margin-right:6px; }
 }
 
 /* Stack exactly centered with fixed height */
-#boot .rs-stack{
+.rs-stack{
   position:relative;
   width:min(56vmin, 360px);
   height:200px;   /* trimmed so bars group neatly */

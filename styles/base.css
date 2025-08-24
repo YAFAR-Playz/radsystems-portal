@@ -1036,3 +1036,20 @@ label input[type="checkbox"]{ margin-right:6px; }
 
 /* (Optional) if you ever set a skybox/env image, keep bg clear */
 #view-login .cap-3d{ --background-color: transparent; }
+
+/* Login cap: remove white poster/progress from <model-viewer> */
+#view-login .cap-3d{
+  /* transparent canvas + poster */
+  --poster-color: transparent;
+  background: transparent;
+}
+
+/* poster layer (the white rectangle) */
+#view-login .cap-3d::part(poster){
+  background: transparent !important;
+}
+
+/* optional: hide green/white loading bar */
+#view-login .cap-3d::part(default-progress-bar){
+  display: none !important;
+}

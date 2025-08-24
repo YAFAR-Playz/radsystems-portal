@@ -393,3 +393,94 @@ label input[type="checkbox"]{ margin-right:6px; }
       #boot .bar > i::after{ display:none; }
       #boot .bar{ animation:none; opacity:1; transform:none; }
     }
+
+/* Full-screen cover */
+  #boot{
+    position:fixed; inset:0; z-index:99999;
+    display:grid; place-items:center;
+    background:#0b1013; /* neutral while branding loads */
+    overflow:hidden;
+  }
+  /* soft vignette & grain for depth */
+  #boot::before{
+    content:""; position:absolute; inset:-20%;
+    background:
+      radial-gradient(60% 50% at 30% 20%, rgba(255,255,255,.06), transparent 60%),
+      radial-gradient(70% 60% at 80% 80%, rgba(0,0,0,.25), transparent 65%);
+    filter: blur(20px); pointer-events:none;
+  }
+  #boot::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size: 3px 3px; opacity:.25; mix-blend-mode: overlay;
+  }
+
+  /* Loader scene */
+  .rs-loader{ position:relative; width:min(60vmin, 360px); height:min(60vmin, 360px);
+    display:grid; place-items:center; transform-style:preserve-3d; perspective:900px;
+  }
+
+  /* bar colors — matched to your PNG */
+  :root{
+    --bar-mint:   #9FD7CF; /* light mint */
+    --bar-teal:   #0B3D4A; /* deep teal */
+    --bar-orange: #D2451F; /* warm orange */
+    --bar-shadow: rgba(0,0,0,.35);
+  }
+
+  /* Common bar styling */
+  .rs-bar{
+    position:absolute;
+    width: clamp(140px, 42vmin, 280px);
+    height: clamp(18px, 5.2vmin, 32px);
+    border-radius: 8px;
+    transform: rotate(-45deg) translate3d(0,0,0);
+    transform-origin: center;
+    box-shadow:
+      0 8px 14px var(--bar-shadow),
+      inset 0 2px 3px rgba(255,255,255,.35),
+      inset 0 -6px 10px rgba(0,0,0,.25);
+    overflow:hidden;
+  }
+
+  /* glossy material */
+  .rs-bar::before{
+    content:""; position:absolute; inset:-30% -40%;
+    background: linear-gradient(120deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,.05) 40%, rgba(255,255,255,0) 60%);
+    transform: translateX(-120%) rotate(0.0001deg);
+    animation: shimmer 2.3s ease-in-out infinite;
+    filter: blur(0.4px);
+  }
+  @keyframes shimmer{
+    0%   { transform: translateX(-120%) }
+    55%  { transform: translateX(30%) }
+    100% { transform: translateX(140%) }
+  }
+
+  /* subtle float for life */
+  @keyframes float1{ 0%,100%{ transform: translateZ(0) rotate(-45deg) translateY(0) } 50%{ transform: translateZ(20px) rotate(-45deg) translateY(-4px) } }
+  @keyframes float2{ 0%,100%{ transform: translateZ(0) rotate(-45deg) translateY(0) } 50%{ transform: translateZ(14px) rotate(-45deg) translateY(3px) } }
+  @keyframes float3{ 0%,100%{ transform: translateZ(0) rotate(-45deg) translateY(0) } 50%{ transform: translateZ(10px) rotate(-45deg) translateY(-2px) } }
+
+  /* entry pop */
+  @keyframes popIn { 0%{ opacity:0; transform: scale(.85) rotate(-45deg) } 100%{ opacity:1; transform: scale(1) rotate(-45deg) } }
+
+  /* staggered stack (mint on top, teal middle, orange bottom) */
+  .bar-mint  { background: linear-gradient(#bfe6e0, var(--bar-mint));    animation: popIn .5s .05s both, float1 3.8s .05s ease-in-out infinite;  translate: 26px -64px; }
+  .bar-teal  { background: linear-gradient(#1c5562, var(--bar-teal));    animation: popIn .5s .15s both, float2 3.8s .15s ease-in-out infinite;  translate: 0px   0px;   }
+  .bar-orange{ background: linear-gradient(#e0623b, var(--bar-orange));  animation: popIn .5s .25s both, float3 3.8s .25s ease-in-out infinite;  translate: -26px 64px;  }
+
+  /* tiny bevel edges to enhance 3D */
+  .rs-bar::after{
+    content:""; position:absolute; inset:0;
+    background:
+      linear-gradient( to bottom, rgba(255,255,255,.35), transparent 40%),
+      linear-gradient( to right,  rgba(255,255,255,.25), transparent 45%),
+      linear-gradient( to top,    rgba(0,0,0,.18), transparent 60%);
+    mix-blend-mode: soft-light; pointer-events:none;
+  }
+
+  /* keep crisp on small screens */
+  @media (max-width:480px){
+    .rs-bar{ border-radius:6px; }
+  }

@@ -763,3 +763,101 @@ label input[type="checkbox"]{ margin-right:6px; }
 @keyframes rsDrift1{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(-6px) } }
 @keyframes rsDrift2{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(-8px) } }
 @keyframes rsDrift3{ 0%,100%{ transform: translateX(0) } 50%{ transform: translateX(-10px)} }
+
+
+
+
+/* ===== BOOT LOADER — FINAL OVERRIDES (append at end of file) ===== */
+
+/* Fullscreen cover + fade-out */
+#boot{
+  position:fixed; inset:0; z-index:99999;
+  display:grid; place-items:center;
+  background:#fff; overflow:hidden;
+  opacity:1; transition: opacity .35s ease;
+}
+#boot.boot--hide{ opacity:0; pointer-events:none; }
+
+/* center + flip so bars point from top-left ➜ bottom-right */
+#boot .rs-loader{
+  width:min(64vmin, 480px);
+  height:min(64vmin, 480px);
+  display:flex; align-items:center; justify-content:center;
+  transform: rotate(45deg) scaleX(-1);
+}
+
+/* stage */
+#boot .rs-stack{ position:relative; width:min(56vmin, 420px); height:min(44vmin, 330px); }
+
+/* colors */
+:root{
+  --rs-orange:#D84A27; --rs-deep:#063C49; --rs-aqua:#9FD6CE;
+  --track:#eef3f7;
+}
+
+/* reset any earlier rotations; make the card act as a track */
+#boot .rs-bar{
+  position:absolute; left:0; right:0; height:36px; border-radius:12px; overflow:hidden;
+  transform:none;                 /* <— kills old rotate(-45deg) */
+  background:linear-gradient(#ffffff, #f2f4f7 38%, #e7ecf1);
+  box-shadow:0 14px 28px rgba(0,0,0,.10), inset 0 2px 0 rgba(255,255,255,.55);
+  will-change:transform;
+}
+
+/* depth plate */
+#boot .rs-bar::after{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  transform: translate(10px,10px); background:rgba(0,0,0,.06); z-index:-1;
+}
+
+/* progress fill inside each bar */
+#boot .rs-bar > .fill{
+  position:absolute; inset:0; width:12%; border-radius:inherit; overflow:hidden;
+  background:linear-gradient(to bottom, var(--g1), var(--g2));
+  box-shadow: inset 0 2px 3px rgba(255,255,255,.35), inset 0 -8px 12px rgba(0,0,0,.18);
+  animation: fillPulse 2.8s ease-in-out infinite;
+}
+
+/* shiny sweep across the fill */
+#boot .rs-bar > .fill::before{
+  content:""; position:absolute; inset:-30% -50%;
+  background:linear-gradient(110deg, transparent 35%, rgba(255,255,255,.55) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: sheen 2.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+/* positions + colors + independent breathing (shrink/grow) */
+#boot .rs-bar.aqua   { top:  20px; --g1:#bfe6e0; --g2:var(--rs-aqua);   animation:breatheA 3.2s ease-in-out infinite; }
+#boot .rs-bar.deep   { top: 125px; --g1:#1c5562; --g2:var(--rs-deep);   animation:breatheB 3.4s ease-in-out infinite; }
+#boot .rs-bar.orange { top: 230px; --g1:#f08a6a; --g2:var(--rs-orange); animation:breatheC 3.6s ease-in-out infinite; }
+
+#boot .rs-bar.aqua   > .fill{ animation-delay: .00s; }
+#boot .rs-bar.deep   > .fill{ animation-delay: .25s; }
+#boot .rs-bar.orange > .fill{ animation-delay: .50s; }
+#boot .rs-bar.aqua   > .fill::before{ animation-delay:.00s; }
+#boot .rs-bar.deep   > .fill::before{ animation-delay:.25s; }
+#boot .rs-bar.orange > .fill::before{ animation-delay:.50s; }
+
+/* progress grow/shrink */
+@keyframes fillPulse{
+  0%   { width:10%;  filter:brightness(1.00); }
+  45%  { width:88%;  filter:brightness(1.05); }
+  100% { width:12%;  filter:brightness(1.00); }
+}
+/* sheen sweep */
+@keyframes sheen{
+  0% { transform: translateX(-120%) skewX(-12deg); opacity:0; }
+  30%{ opacity:.9; }
+  70%{ transform: translateX(120%)  skewX(-12deg); opacity:0; }
+  100%{ transform: translateX(120%)  skewX(-12deg); opacity:0; }
+}
+/* independent breathing (translate along bar axis + slight scale) */
+@keyframes breatheA{ 0%,100%{ transform: translateX(0)    scale(1.00);} 50%{ transform: translateX(10px) scale(0.985);} }
+@keyframes breatheB{ 0%,100%{ transform: translateX(0)    scale(1.00);} 50%{ transform: translateX(12px) scale(0.982);} }
+@keyframes breatheC{ 0%,100%{ transform: translateX(0)    scale(1.00);} 50%{ transform: translateX(14px) scale(0.980);} }
+
+/* accessibility */
+@media (prefers-reduced-motion: reduce){
+  #boot .rs-bar, #boot .rs-bar > .fill, #boot .rs-bar > .fill::before{ animation:none; }
+}

@@ -984,3 +984,25 @@ label input[type="checkbox"]{ margin-right:6px; }
   pointer-events: none; /* so it doesn’t block form clicks */
   z-index: 2;
 }
+
+/* Position login card as relative anchor */
+.login-card {
+  position: relative;
+  overflow: visible; /* allow badge to stick out */
+}
+
+/* Place the badge so it overlaps the card corner */
+.login-card .corner-model {
+  position: absolute;
+  top: -34px;   /* stick out above the card */
+  left: -28px;  /* stick out to the left */
+  width: 88px;
+  height: 88px;
+  z-index: 5;
+  pointer-events: none; /* don’t block form interaction */
+}
+
+/* Optional tilt to make it look “worn” */
+.login-card .corner-model {
+  transform: rotate(-10deg);
+}

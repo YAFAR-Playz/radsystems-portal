@@ -398,7 +398,7 @@ label input[type="checkbox"]{ margin-right:6px; }
   #boot{
     position:fixed; inset:0; z-index:99999;
     display:grid; place-items:center;
-    background:#0b1013; /* neutral while branding loads */
+    background:#fff; /* neutral while branding loads */
     overflow:hidden;
   }
   /* soft vignette & grain for depth */

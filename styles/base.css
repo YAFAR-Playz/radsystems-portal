@@ -1145,3 +1145,61 @@ label input[type="checkbox"]{ margin-right:6px; }
   #view-login .corner-shadow{ top:24px; left:20px; width:66px; height:46px; }
   #view-login .login-title{ padding-left: 64px; }
 }
+/* ——— Login card “wearing” the 3D cap ——— */
+#view-login .login-card{ position:relative; overflow:visible; }
+
+/* The 3D cap */
+#view-login .login-card .corner-cap{
+  position:absolute;
+  top:-26px;            /* lift above corner */
+  left:-22px;           /* hang a bit outside */
+  width:96px; height:96px;
+  pointer-events:none;  /* don’t block the form */
+  z-index:1;            /* below the lip overlay (z:2) */
+  transform: rotate(-10deg);
+  filter: drop-shadow(0 12px 24px rgba(2,6,23,.20));
+}
+
+/* Little “lip” of the card that sits ABOVE the cap so it looks tucked in */
+#view-login .login-card::before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  top:-1px; left:-1px;
+  width:180px;          /* how wide the lip extends along the top edge */
+  height:44px;          /* lip depth */
+  border-top-left-radius:22px; 
+  border-top-right-radius:14px;
+  /* mimic your glass card surface + border */
+  background: linear-gradient(180deg, rgba(255,255,255,.82), var(--glass));
+  border: 1px solid var(--glass-hr);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,.6) inset,
+    0 0 0 8px rgba(255,255,255,.35) inset;
+  /* cut away the inner part so only the EDGE shows as a lip */
+  -webkit-mask: 
+    linear-gradient(#000 0 0) padding-box, 
+    radial-gradient(120px 60px at 40% 10%, transparent 62%, #000 63%) border-box;
+  -webkit-mask-composite: xor; /* Safari */
+          mask-composite: exclude; /* others */
+  pointer-events:none;
+}
+
+/* Soft contact shadow UNDER the lip so the cap feels immersed */
+#view-login .login-card::after{
+  content:"";
+  position:absolute;
+  z-index:1;            /* same layer as cap, under the lip */
+  top:10px; left:10px; width:84px; height:40px;
+  background: radial-gradient(60% 60% at 50% 50%, rgba(2,6,23,.20), transparent 70%);
+  filter: blur(10px);
+  pointer-events:none;
+}
+
+/* Keep the title from colliding with the cap */
+#view-login .login-card .login-title{ padding-left:84px; }
+@media (max-width:520px){
+  #view-login .login-card .corner-cap{ top:-22px; left:-18px; width:84px; height:84px; }
+  #view-login .login-card::before{ height:40px; width:160px; }
+  #view-login .login-card .login-title{ padding-left:72px; }
+}

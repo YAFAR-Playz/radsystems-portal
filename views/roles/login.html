@@ -1,64 +1,71 @@
 <section id="view-login" class="grid cols-2" style="margin-top:18px">
-  <!-- LEFT: Neumorphic login card -->
-  <div class="card login-card n-card">
-    <div class="n-card-head">
-      <div class="n-avatar">
-        <!-- person icon -->
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M4 20c0-3.2 3.6-5.5 8-5.5s8 2.3 8 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <h2 class="n-title">Sign In</h2>
-    </div>
+  <!-- Left: Neumorphic login card -->
+  <div class="card stack login-card">
+    <div class="login-hero"><i aria-hidden="true"></i></div>
+    <h3 class="login-title">Sign In</h3>
 
     <!-- Step 1: Email -->
     <div id="step-email" class="stack">
-      <label class="n-label" for="loginEmail">Email</label>
-      <div class="n-input">
-        <input id="loginEmail" type="email" placeholder="user@school.edu" autocomplete="username"/>
+      <div class="field">
+        <label>Email</label>
+        <input id="loginEmail" type="email" placeholder="you@school.edu" autocomplete="username"/>
       </div>
-      <button id="btnContinue" class="n-btn n-primary">
-        <span class="spinner hidden" id="continueSpin"></span><span>Continue</span>
-      </button>
+      <div class="row">
+        <button id="btnContinue" class="btn primary">
+          <span class="spinner hidden" id="continueSpin"></span>
+          <span>Continue</span>
+        </button>
+      </div>
+      <div class="login-help">We’ll check if you already have a password.</div>
     </div>
 
     <!-- Step 2a: Existing user HAS password -->
     <div id="step-existing" class="stack hidden">
-      <label class="n-label" for="loginPassword">Password</label>
-      <div class="n-input">
+      <div class="field">
+        <label>Password</label>
         <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
       </div>
-      <div class="row wrap" style="gap:10px">
-        <button id="btnSignIn" class="n-btn n-primary">
-          <span class="spinner hidden" id="signinSpin"></span><span>Sign in</span>
+      <div class="row">
+        <button id="btnSignIn" class="btn primary">
+          <span class="spinner hidden" id="signinSpin"></span>
+          <span>Login</span>
         </button>
-        <button id="btnBack1" class="n-btn n-ghost">Back</button>
+        <button id="btnBack1" class="btn">Back</button>
       </div>
     </div>
 
     <!-- Step 2b: Existing user WITHOUT password (first-time set) -->
     <div id="step-newpass" class="stack hidden">
-      <label class="n-label" for="newPass">Create password</label>
-      <div class="n-input"><input id="newPass" type="password" placeholder="At least 6 characters" autocomplete="new-password"/></div>
-      <label class="n-label" for="newPass2">Re-enter new password</label>
-      <div class="n-input"><input id="newPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/></div>
-      <div class="row wrap" style="gap:10px">
-        <button id="btnSetPassword" class="n-btn n-primary">
-          <span class="spinner hidden" id="setpassSpin"></span><span>Set password & Sign in</span>
+      <div class="field">
+        <label>Create password</label>
+        <input id="newPass" type="password" placeholder="At least 6 characters" autocomplete="new-password"/>
+      </div>
+      <div class="field">
+        <label>Re-enter new password</label>
+        <input id="newPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+      </div>
+      <div class="row">
+        <button id="btnSetPassword" class="btn primary">
+          <span class="spinner hidden" id="setpassSpin"></span>
+          <span>Create & Login</span>
         </button>
-        <button id="btnBack2" class="n-btn n-ghost">Back</button>
+        <button id="btnBack2" class="btn">Back</button>
       </div>
     </div>
 
-    <button id="btnDemo" class="n-btn n-ghost" style="margin-top:6px">Demo Login</button>
+    <div class="row">
+      <button id="btnDemo" class="btn">Demo Login</button>
+    </div>
 
-    <div class="n-foot muted">
-      Demo accounts: admin@school.edu / admin123 · head.math@school.edu / head123 · assistant.sara@school.edu / assistant123
+    <div class="muted" style="font-size:12px">
+      Demo accounts:<br>
+      admin@school.edu / admin123<br>
+      head.math@school.edu / head123<br>
+      assistant.sara@school.edu / assistant123
     </div>
   </div>
 
-  <!-- RIGHT: keep your info card -->
+  <!-- Right: unchanged info card -->
   <div class="card stack">
     <h3>How it works</h3>
     <ul class="muted" style="margin:0 0 6px 18px;line-height:1.5">
